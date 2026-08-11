@@ -77,3 +77,28 @@ def evaluar_estado_piscina(geomembrana):
         estado_general=estado,
         apta_produccion=apta,
     )
+def notificar_alerta(alerta):
+    """Crea notificaciones para los usuarios cuyo rol debe recibirlas."""
+    from apps.usuarios.models import Usuario
+
+    if alerta.severidad == 'critica':
+        roles = ['Instructor Líder', 'Operario']
+    else:
+        roles = ['Operario']
+
+    destinatarios = Usuario.objects.filter(
+        rol__nombre_rol__in=roles,
+        estado='activo',
+    )
+
+    return Notificacion.objects.bulk_create([
+        Notificacion(
+            usuario=u,
+            alerta=alerta,
+            titulo=f'Alerta {alerta.get_severidad_display()}',
+            mensaje=alerta.mensaje_alerta,
+        )
+        for u in destinatarios
+    ])
+
+    

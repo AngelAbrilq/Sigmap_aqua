@@ -41,6 +41,18 @@ class UsuarioManager(BaseUserManager):
         extra.setdefault('is_staff', True)
         extra.setdefault('is_superuser', True)
         extra.setdefault('estado', 'activo')
+
+        if not extra.get('rol') and not extra.get('rol_id'):
+            from apps.usuarios.models import Rol
+            rol, _ = Rol.objects.get_or_create(
+                nombre_rol='Instructor Lider',
+                defaults={
+                    'descripcion': 'Administrador del sistema',
+                    'permisos': {},
+                },
+            )
+            extra['rol'] = rol
+
         return self.create_user(email, nombre_completo, password, **extra)
 
 
