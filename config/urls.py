@@ -26,6 +26,7 @@ admin.site.index_title = 'Panel de administración'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.core.urls')),
+    path('auth/', include('apps.usuarios.urls')),
 ]
 
 if settings.DEBUG:

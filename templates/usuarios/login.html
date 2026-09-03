@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión — SIGMAP-AQUA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+<div class="card">
+
+    <!-- ═══ PANEL IZQUIERDO ═══ -->
+    <div class="panel-left">
+
+        <div class="brand-logo">
+            <img src="{% static 'img/Logo.jpeg' %}" alt="SIGMAP-AQUA">
+        </div>
+
+        <div class="brand-name">SIGMAP-AQUA</div>
+        <div class="brand-tagline">Sistema Inteligente de Monitoreo<br>para Acuicultura</div>
+
+        <div class="brand-divider"></div>
+
+        <div class="brand-features">
+            <div class="feat">
+                <span class="feat-dot green"></span>
+                <span>Monitoreo en tiempo real 24/7</span>
+            </div>
+            <div class="feat">
+                <span class="feat-dot yellow"></span>
+                <span>Alertas ante cambios críticos</span>
+            </div>
+            <div class="feat">
+                <span class="feat-dot blue"></span>
+                <span>Predicciones con inteligencia artificial</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══ PANEL DERECHO ═══ -->
+    <div class="panel-right">
+        <div class="form-box">
+
+            <h1 class="form-title">Iniciar sesión</h1>
+            <p class="form-desc">Ingresa tus credenciales para acceder al sistema</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert" role="alert">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" action="{% url 'usuarios:login' %}" novalidate>
+                {% csrf_token %}
+
+                <div class="field">
+                    <label for="username">Correo electrónico o usuario</label>
+                    <div class="input-box">
+                        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                        </svg>
+                        <input type="text" id="username" name="username"
+                            placeholder="Ej. juan.perez@empresa.com"
+                            autocomplete="username" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Contraseña</label>
+                    <div class="input-box">
+                        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-6 9a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm3.1-9H8.9V6a3.1 3.1 0 0 1 6.2 0v2z"/>
+                        </svg>
+                        <input type="password" id="password" name="password"
+                            placeholder="Ingresa tu contraseña"
+                            autocomplete="current-password" required>
+                        <button type="button" class="eye-btn" onclick="togglePass()" aria-label="Mostrar u ocultar contraseña">
+                            <svg id="eye-ico" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="forgot-row">
+                        <a href="#">¿Olvidaste tu contraseña?</a>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 17l5-5-5-5v3H3v4h7v3zm8-14H6a2 2 0 0 0-2 2v3h2V5h12v14H6v-3H4v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/>
+                    </svg>
+                    Iniciar sesión
+                </button>
+
+            </form>
+
+            <div class="form-footer">
+                © 2026 SIGMAP-AQUA · Sistema cerrado
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function togglePass() {
+        const inp = document.getElementById('password');
+        const ico = document.getElementById('eye-ico');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+        } else {
+            inp.type = 'password';
+            ico.innerHTML = '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>';
+        }
+    }
+</script>
+
+</body>
+</html>

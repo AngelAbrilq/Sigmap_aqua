@@ -1,0 +1,6 @@
+* [33m6eb1a07[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: pagina principal y enrutamiento base
+* [33m216fd76[m feat: comando de carga de datos iniciales
+* [33m86355fa[m feat: modelos de usuarios, piscinas, monitoreo y alertas
+* [33mff292ff[m chore: excluir venv y archivos compilados del repositorio; feat: estructura de apps y configuracion con variables de entorno
+* [33m97dcd80[m  Subiendo el Proyecto  SIGMAP-AQUA
+* [33macdffb9[m Subiendo el Proyecto Sigmap_aqua
