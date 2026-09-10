@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}SIGMAP-AQUA | Panel del Operario{% endblock %}
+
+{% block page_title %}
+  <h1>Panel del Operario</h1>
+  <p>Monitoreo en tiempo real y operaciones del sistema</p>
+{% endblock %}
+
+{% block content %}
+
+  <!-- ===== LECTURAS EN VIVO ===== -->
+  <section class="metrics-grid">
+    <article class="card metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-box orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+          </svg>
+        </div>
+        <span class="metric-title">Temperatura</span>
+      </div>
+      <div class="metric-value-row">
+        <span class="metric-value" id="lecturaTemperatura">--</span>
+        <span class="metric-unit">C</span>
+      </div>
+      <p class="metric-range">Rango seguro: 24 - 30 C</p>
+    </article>
+
+    <article class="card metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-box purple">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M8 12h8"/>
+          </svg>
+        </div>
+        <span class="metric-title">pH</span>
+      </div>
+      <div class="metric-value-row">
+        <span class="metric-value" id="lecturaPh">--</span>
+      </div>
+      <p class="metric-range">Rango seguro: 6.5 - 8.5</p>
+    </article>
+
+    <article class="card metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-box cyan">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+        </div>
+        <span class="metric-title">Oxigeno disuelto</span>
+      </div>
+      <div class="metric-value-row">
+        <span class="metric-value" id="lecturaOxigeno">--</span>
+        <span class="metric-unit">mg/L</span>
+      </div>
+      <p class="metric-range">Rango seguro: 5.0 - 9.0 mg/L</p>
+    </article>
+
+    <article class="card metric-card">
+      <div class="metric-top">
+        <div class="metric-icon-box blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+          </svg>
+        </div>
+        <span class="metric-title">Sensores activos</span>
+      </div>
+      <div class="metric-value-row">
+        <span class="metric-value" id="lecturaSensores">--</span>
+      </div>
+      <p class="metric-range">Dispositivos reportando</p>
+    </article>
+  </section>
+
+  <section class="middle-grid">
+    <!-- ===== GRAFICA EN VIVO ===== -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title-box">
+          <h2 class="card-title">Lecturas en tiempo real</h2>
+        </div>
+        <a href="{% url 'core:monitoreo' %}" class="link-action">Vista completa</a>
+      </div>
+      <div class="chart-container">
+        <canvas id="graficaTiempoRealOperario" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- ===== ALERTAS ACTIVAS ===== -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title-box">
+          <h2 class="card-title">Alertas activas</h2>
+        </div>
+        <a href="{% url 'core:alertas' %}" class="link-action">Ver todas</a>
+      </div>
+      <div class="alerts-list" id="listaAlertasOperario">
+        <p style="color:#6B7280; font-size:14px; padding:8px 0;">
+          Sin alertas activas en este momento.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ACCIONES OPERATIVAS ===== -->
+  <section class="card">
+    <div class="card-header">
+      <div class="card-title-box">
+        <h2 class="card-title">Operaciones</h2>
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <a href="{% url 'core:sensores' %}" class="link-action">Gestionar sensores</a>
+      <a href="{% url 'core:geomembranas' %}" class="link-action">Gestionar geomembranas</a>
+      <a href="{% url 'core:monitoreo' %}" class="link-action">Registrar lectura manual</a>
+    </div>
+  </section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /**
+   * Grafica de monitoreo en vivo del panel de Operario.
+   * Sustituir `obtenerLecturas` por fetch al endpoint real de monitoreo.
+   */
+  document.addEventListener('DOMContentLoaded', function () {
+    const canvas = document.getElementById('graficaTiempoRealOperario');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    const grafica = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Temperatura (C)', data: [], borderColor: '#F97316', tension: 0.35 },
+          { label: 'Oxigeno (mg/L)',  data: [], borderColor: '#06B6D4', tension: 0.35 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        animation: false
+      }
+    });
+
+    /**
+     * Punto de integracion con la API de sensores.
+     * @returns {{hora: string, temperatura: number, oxigeno: number}}
+     */
+    function obtenerLecturas() {
+      const ahora = new Date();
+      return {
+        hora: ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        temperatura: 26 + Math.random(),
+        oxigeno: 6 + Math.random() * 0.6
+      };
+    }
+
+    const MAX_PUNTOS = 12;
+
+    function refrescar() {
+      const lectura = obtenerLecturas();
+      grafica.data.labels.push(lectura.hora);
+      grafica.data.datasets[0].data.push(lectura.temperatura.toFixed(2));
+      grafica.data.datasets[1].data.push(lectura.oxigeno.toFixed(2));
+
+      if (grafica.data.labels.length > MAX_PUNTOS) {
+        grafica.data.labels.shift();
+        grafica.data.datasets.forEach(function (ds) { ds.data.shift(); });
+      }
+      grafica.update();
+
+      document.getElementById('lecturaTemperatura').textContent = lectura.temperatura.toFixed(1);
+      document.getElementById('lecturaOxigeno').textContent = lectura.oxigeno.toFixed(1);
+    }
+
+    refrescar();
+    setInterval(refrescar, 5000);
+  });
+</script>
+{% endblock %}

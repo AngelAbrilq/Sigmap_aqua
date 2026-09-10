@@ -1,167 +1,14 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIGMAP-AQUA | Panel de Instructor Líder</title>
-  
-  <!-- Tipografía Google Fonts: Plus Jakarta Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Carga de Django Static -->
-  <!-- {% load static %} -->
+{% extends "base.html" %}
+{% load static %}
 
-  <!-- Vinculación de Estilos CSS -->
-  <link rel="stylesheet" href="../../static/css/InstructorLider.css">
-  <link rel="stylesheet" href="/static/css/InstructorLider.css">
-  <link rel="stylesheet" href="{% static 'css/InstructorLider.css' %}">
-  
-  <style>
-    @import url("../../static/css/InstructorLider.css");
-    @import url("/static/css/InstructorLider.css");
-  </style>
+{% block title %}SIGMAP-AQUA | Panel de Instructor Lider{% endblock %}
 
-  <!-- Chart.js para Renderizado de Gráficas -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
+{% block page_title %}
+  <h1>Bienvenido de nuevo!</h1>
+  <p>Monitorea en tiempo real la calidad del agua y el estado de tus piscinas piscicolas.</p>
+{% endblock %}
 
-  <div class="app-container">
-    
-    <!-- =========================================================================
-         1. BARRA LATERAL (SIDEBAR)
-         ========================================================================= -->
-            <aside class="sidebar">
-      <div class="sidebar-header">
-        <img src="../../static/img/logo sigmap-aqua.png" data-django-src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo" onerror="this.onerror=null; this.src='../../static/img/Logo.jpeg';">
-        <h1 class="sidebar-brand">SIGMAP-AQUA</h1>
-        <p class="sidebar-subtitle">Sistema Inteligente de Monitoreo para Acuicultura</p>
-      </div>
-
-      <nav class="sidebar-nav">
-        <!-- Inicio -->
-        <a href="#" class="nav-item active">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span>Inicio</span>
-        </a>
-
-        <!-- Sensores -->
-        <a href="../funcionalidades/sensores.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          <span>Sensores</span>
-        </a>
-
-        <!-- Monitoreo en tiempo real -->
-        <a href="../funcionalidades/monitoreo.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          <span>Monitoreo en tiempo real</span>
-        </a>
-
-        <!-- Historial de datos -->
-        <a href="../funcionalidades/Historial.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <span>Historial de datos</span>
-        </a>
-
-        <!-- Gráficas y reportes -->
-        <a href="../funcionalidades/graficasyreportes.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          <span>Gráficas y reportes</span>
-        </a>
-
-        <!-- Comparación de períodos -->
-        <a href="../funcionalidades/ComoaracionesdePreiodos.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          <span>Comparación de períodos</span>
-        </a>
-
-        <!-- Alertas -->
-        <a href="../funcionalidades/Alertas.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span>Alertas</span>
-          <span class="nav-badge">3</span>
-        </a>
-
-        <!-- IA - Análisis predictivo -->
-        <a href="../funcionalidades/AI.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12v9.9"/><circle cx="12" cy="12" r="3"/></svg>
-          <span>IA - Análisis predictivo</span>
-        </a>
-
-        <!-- Usuarios -->
-        <a href="../funcionalidades/usuarios.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>Usuarios</span>
-        </a>
-
-        <!-- Geomembranas -->
-        <a href="../funcionalidades/geomenbranas.html" class="nav-item">
-          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-          <span>Geomembranas</span>
-        </a>
-      </nav>
-    </aside>
-
-    <!-- =========================================================================
-         2. ÁREA PRINCIPAL (INICIO - PANEL DE INSTRUCTOR LÍDER)
-         ========================================================================= -->
-    <div class="main-wrapper">
-      
-      <!-- ENCABEZADO SUPERIOR -->
-      <header class="top-header">
-        <div class="header-title-group">
-          <h1>¡Bienvenido de nuevo!</h1>
-          <p>Monitorea en tiempo real la calidad del agua y el estado de tus piscinas piscícolas.</p>
-        </div>
-
-                <div class="header-right-group">
-          <!-- Notificaciones -->
-          <button class="topbar-icon-btn" title="Notificaciones">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span class="topbar-badge">3</span>
-          </button>
-
-          <!-- Ayuda -->
-          <button class="topbar-icon-btn" title="Ayuda y Soporte">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </button>
-
-          <!-- Usuario Administrador -->
-          <div class="user-profile-wrap">
-            <div class="topbar-user-pill" id="userProfileBtn" title="Opciones de cuenta">
-              <div class="topbar-user-avatar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-              </div>
-              <div class="topbar-user-info">
-                <span class="topbar-user-name">Administrador</span>
-                <span class="topbar-user-role">Rol: Administrador</span>
-              </div>
-              <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-
-            <div class="user-dropdown-menu" id="userDropdownMenu">
-              <div class="user-dropdown-header">
-                <div class="name">Administrador</div>
-                <div class="email">admin@sigmap-aqua.com</div>
-              </div>
-              <a href="../funcionalidades/configuraciones.html" class="user-dropdown-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>Configuración</span>
-              </a>
-              <div class="user-dropdown-divider"></div>
-              <a href="../usuarios/login.html" class="user-dropdown-item text-danger">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span>Cerrar sesión</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <!-- CONTENIDO DEL DASHBOARD DE INICIO -->
-      <main class="dashboard-content">
+{% block content %}
 
         <!-- Tarjetas de Métricas (5 Columnas) -->
         <section class="metrics-grid">
@@ -293,7 +140,7 @@
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">Alertas activas</h3>
-              <a href="#" class="link-action">Ver todas</a>
+              <a href="{% url 'core:alertas' %}" class="link-action">Ver todas</a>
             </div>
 
             <div class="alerts-list">
@@ -327,73 +174,32 @@
           </div>
         </section>
 
-      </main>
+{% endblock %}
 
-      <!-- FOOTER BAR -->
-      <footer class="footer-bar">
-        <div class="footer-item">
-          <svg class="footer-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <span>Última actualización: 24/05/2024 10:30:45</span>
-        </div>
+{% block extra_js %}
+<script>
+  /** Grafica de resumen del panel de Instructor Lider. */
+  document.addEventListener('DOMContentLoaded', function () {
+    const chartCanvas = document.getElementById('realtimeChart');
+    if (!chartCanvas || typeof Chart === 'undefined') return;
 
-        <div class="footer-item">
-          <svg class="footer-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          <span style="display: flex; align-items: center; gap: 6px;">
-            <span class="status-dot-green"></span> Conexión estable
-          </span>
-        </div>
-
-        <div class="footer-item">
-          <span>&copy; 2024 SIGMAP-AQUA. Todos los derechos reservados.</span>
-        </div>
-      </footer>
-
-    </div>
-  </div>
-
-  <!-- SCRIPT CHART.JS PARA INICIO & DROPDOWN -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Dropdown de perfil
-      const btn = document.getElementById('userProfileBtn');
-      const menu = document.getElementById('userDropdownMenu');
-      if (btn && menu) {
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          menu.classList.toggle('show');
-          btn.classList.toggle('active');
-        });
-        document.addEventListener('click', function(e) {
-          if (!btn.contains(e.target) && !menu.contains(e.target)) {
-            menu.classList.remove('show');
-            btn.classList.remove('active');
-          }
-        });
-      }
-
-      // Gráfica de inicio
-      const chartCanvas = document.getElementById('realtimeChart');
-      if (chartCanvas) {
-        const ctx = chartCanvas.getContext('2d');
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
-            datasets: [
-              { label: 'Temperatura (°C)', data: [25, 25.2, 24.5, 25, 25, 26.2, 25.5], borderColor: '#2563EB', tension: 0.3 },
-              { label: 'pH', data: [7.8, 7.5, 7.0, 7.5, 7.8, 7.0, 7.8], borderColor: '#10B981', tension: 0.3 },
-              { label: 'Oxígeno Disuelto (mg/L)', data: [4.5, 4.2, 4.5, 5.0, 5.0, 5.2, 5.0], borderColor: '#06B6D4', tension: 0.3 },
-              { label: 'Turbidez (NTU)', data: [11.2, 12.0, 12.2, 12.5, 11.5, 13.5, 11.8], borderColor: '#F97316', tension: 0.3 }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
-          }
-        });
+    new Chart(chartCanvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+        datasets: [
+          { label: 'Temperatura (C)',        data: [25, 25.2, 24.5, 25, 25, 26.2, 25.5],       borderColor: '#2563EB', tension: 0.3 },
+          { label: 'pH',                     data: [7.8, 7.5, 7.0, 7.5, 7.8, 7.0, 7.8],        borderColor: '#10B981', tension: 0.3 },
+          { label: 'Oxigeno disuelto (mg/L)', data: [4.5, 4.2, 4.5, 5.0, 5.0, 5.2, 5.0],       borderColor: '#06B6D4', tension: 0.3 },
+          { label: 'Turbidez (NTU)',         data: [11.2, 12.0, 12.2, 12.5, 11.5, 13.5, 11.8], borderColor: '#F97316', tension: 0.3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } }
       }
     });
-  </script>
-</body>
-</html>
+  });
+</script>
+{% endblock %}
