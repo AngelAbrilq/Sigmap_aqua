@@ -56,6 +56,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Bloquea el admin nativo para los roles operativos
+    'apps.usuarios.middleware.BloqueoAdminNativoMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -142,5 +145,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth
 LOGIN_URL           = '/auth/login/'
-LOGIN_REDIRECT_URL  = '/admin/'
+LOGIN_REDIRECT_URL  = '/dashboard/'   # fallback: login_view enruta por rol
 LOGOUT_REDIRECT_URL = '/auth/login/'
