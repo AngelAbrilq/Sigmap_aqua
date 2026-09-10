@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGMAP-AQUA | Monitoreo en Tiempo Real</title>
+  
+  <!-- Tipografía Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Carga de Django Static -->
+  <!-- {% load static %} -->
+
+  <!-- Vinculación de Estilos CSS -->
+  <link rel="stylesheet" href="../../static/css/InstructorLider.css">
+  <link rel="stylesheet" href="/static/css/InstructorLider.css">
+  <link rel="stylesheet" href="{% static 'css/InstructorLider.css' %}">
+  
+  <link rel="stylesheet" href="../../static/css/monitoreo.css">
+  <link rel="stylesheet" href="/static/css/monitoreo.css">
+  <link rel="stylesheet" href="{% static 'css/monitoreo.css' %}">
+
+  <style>
+    @import url("../../static/css/InstructorLider.css");
+    @import url("/static/css/InstructorLider.css");
+    @import url("../../static/css/monitoreo.css");
+    @import url("/static/css/monitoreo.css");
+  </style>
+
+  <!-- Chart.js para Renderizado de Gráficas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- =========================================================================
+         1. BARRA LATERAL (SIDEBAR)
+         ========================================================================= -->
+        <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="../../static/img/logo sigmap-aqua.png" data-django-src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo" onerror="this.onerror=null; this.src='../../static/img/Logo.jpeg';">
+        <h1 class="sidebar-brand">SIGMAP-AQUA</h1>
+        <p class="sidebar-subtitle">Sistema Inteligente de Monitoreo para Acuicultura</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Inicio -->
+        <a href="../roles/InstructorLider.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Inicio</span>
+        </a>
+
+        <!-- Sensores -->
+        <a href="sensores.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span>Sensores</span>
+        </a>
+
+        <!-- Monitoreo en tiempo real -->
+        <a href="monitoreo.html" class="nav-item active">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Monitoreo en tiempo real</span>
+        </a>
+
+        <!-- Historial de datos -->
+        <a href="#" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Historial de datos</span>
+        </a>
+
+        <!-- Gráficas y reportes -->
+        <a href="graficasyreportes.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Gráficas y reportes</span>
+        </a>
+
+        <!-- Comparación de períodos -->
+        <a href="ComoaracionesdePreiodos.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Comparación de períodos</span>
+        </a>
+
+        <!-- Alertas -->
+        <a href="Alertas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas</span>
+          <span class="nav-badge">3</span>
+        </a>
+
+        <!-- IA - Análisis predictivo -->
+        <a href="AI.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12v9.9"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>IA - Análisis predictivo</span>
+        </a>
+
+        <!-- Usuarios -->
+        <a href="usuarios.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Usuarios</span>
+        </a>
+
+        <!-- Geomembranas -->
+        <a href="geomenbranas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Geomembranas</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../usuarios/login.html" class="nav-item logout">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Cerrar sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- =========================================================================
+         2. CONTENEDOR PRINCIPAL DEL MÓDULO DE MONITOREO EN TIEMPO REAL
+         ========================================================================= -->
+    <main class="main-wrapper">
+      
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-title-group">
+          <h1>Monitoreo en tiempo real</h1>
+          <p>Visualiza en tiempo real los parámetros de calidad del agua de tus piscinas piscícolas.</p>
+        </div>
+
+                <div class="header-right-group">
+          <!-- Ayuda -->
+          <button class="topbar-icon-btn" title="Ayuda y Soporte">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+
+          <!-- Notificaciones -->
+          <button class="topbar-icon-btn" title="Notificaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-badge">3</span>
+          </button>
+
+          <!-- Usuario Administrador -->
+          <div class="user-profile-wrap">
+            <div class="topbar-user-pill" id="userProfileBtn" title="Opciones de cuenta">
+              <div class="topbar-user-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+              <div class="topbar-user-info">
+                <span class="topbar-user-name">Administrador</span>
+                <span class="topbar-user-role">Rol: Administrador</span>
+              </div>
+              <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+              <div class="user-dropdown-header">
+                <div class="name">Administrador</div>
+                <div class="email">admin@sigmap-aqua.com</div>
+              </div>
+              <a href="configuraciones.html" class="user-dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Configuración</span>
+              </a>
+              <div class="user-dropdown-divider"></div>
+              <a href="../usuarios/login.html" class="user-dropdown-item text-danger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Cerrar sesión</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content para Monitoreo -->
+      <div class="dashboard-content">
+
+        <!-- Sub-header bar: Pool Selector & Status info -->
+        <div class="header-top-bar" style="margin-bottom: 16px;">
+          <button class="pool-selector-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Piscina 1</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <div class="status-bar-sub">
+            <div class="status-bar-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Última actualización: 24/05/2024 10:30:45</span>
+            </div>
+            <div class="status-bar-item" style="color: #12B76A; font-weight: 700;">
+              <span class="status-dot-green"></span> En línea
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. Tarjetas de Parámetros (5 Tarjetas con Sparklines) -->
+        <section class="monitoreo-params-grid">
+          <!-- Temperatura -->
+          <div class="param-card">
+            <div class="param-top-row">
+              <div class="param-icon-box blue">🌡️</div>
+              <div class="param-info-box">
+                <span class="param-title">Temperatura</span>
+                <div class="param-value-wrap">
+                  <span class="param-value">27.5</span>
+                  <span class="param-unit">°C</span>
+                </div>
+                <div class="param-badge-wrap">
+                  <span class="badge badge-en-linea">Óptimo</span>
+                </div>
+              </div>
+            </div>
+            <span class="param-range">Rango: 24 - 30 °C</span>
+            <div class="sparkline-wrapper">
+              <canvas id="sparklineTemp"></canvas>
+            </div>
+          </div>
+
+          <!-- pH -->
+          <div class="param-card">
+            <div class="param-top-row">
+              <div class="param-icon-box green">🧪</div>
+              <div class="param-info-box">
+                <span class="param-title">pH</span>
+                <div class="param-value-wrap">
+                  <span class="param-value">7.2</span>
+                </div>
+                <div class="param-badge-wrap">
+                  <span class="badge badge-en-linea">Óptimo</span>
+                </div>
+              </div>
+            </div>
+            <span class="param-range">Rango: 6.5 - 8.5</span>
+            <div class="sparkline-wrapper">
+              <canvas id="sparklinePh"></canvas>
+            </div>
+          </div>
+
+          <!-- Oxígeno Disuelto -->
+          <div class="param-card">
+            <div class="param-top-row">
+              <div class="param-icon-box cyan">O₂</div>
+              <div class="param-info-box">
+                <span class="param-title">Oxígeno Disuelto</span>
+                <div class="param-value-wrap">
+                  <span class="param-value">6.8</span>
+                  <span class="param-unit">mg/L</span>
+                </div>
+                <div class="param-badge-wrap">
+                  <span class="badge badge-en-linea">Óptimo</span>
+                </div>
+              </div>
+            </div>
+            <span class="param-range">Rango: > 5 mg/L</span>
+            <div class="sparkline-wrapper">
+              <canvas id="sparklineOd"></canvas>
+            </div>
+          </div>
+
+          <!-- Turbidez -->
+          <div class="param-card">
+            <div class="param-top-row">
+              <div class="param-icon-box orange">💧</div>
+              <div class="param-info-box">
+                <span class="param-title">Turbidez</span>
+                <div class="param-value-wrap">
+                  <span class="param-value">12.3</span>
+                  <span class="param-unit">NTU</span>
+                </div>
+                <div class="param-badge-wrap">
+                  <span class="badge badge-alerta" style="background-color: #FEF0C7; color: #DC6803;">Riesgo</span>
+                </div>
+              </div>
+            </div>
+            <span class="param-range">Rango: < 10 NTU</span>
+            <div class="sparkline-wrapper">
+              <canvas id="sparklineTurb"></canvas>
+            </div>
+          </div>
+
+          <!-- Conductividad -->
+          <div class="param-card">
+            <div class="param-top-row">
+              <div class="param-icon-box purple">⚡</div>
+              <div class="param-info-box">
+                <span class="param-title">Conductividad</span>
+                <div class="param-value-wrap">
+                  <span class="param-value">420</span>
+                  <span class="param-unit">µS/cm</span>
+                </div>
+                <div class="param-badge-wrap">
+                  <span class="badge badge-en-linea">Óptimo</span>
+                </div>
+              </div>
+            </div>
+            <span class="param-range">Rango: 200 - 800 µS/cm</span>
+            <div class="sparkline-wrapper">
+              <canvas id="sparklineCond"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Sección Central: Gráfica Multilínea + Gauges Derecha -->
+        <section class="monitoreo-middle-grid" style="margin-top: 24px;">
+          <!-- Gráfica Multilínea en Tiempo Real -->
+          <div class="card monitoreo-chart-card">
+            <div class="card-header">
+              <h3 class="card-title">Gráfica en tiempo real - Piscina 1</h3>
+              <select class="select-filter" style="padding: 4px 24px 4px 10px; font-size: 0.78rem;">
+                <option>Últimas 24 horas</option>
+                <option>Últimas 12 horas</option>
+                <option>Última hora</option>
+              </select>
+            </div>
+
+            <div class="monitoreo-chart-legend">
+              <span><span class="chart-legend-dot temp"></span> Temperatura (°C)</span>
+              <span><span class="chart-legend-dot ph"></span> pH</span>
+              <span><span class="chart-legend-dot od"></span> Oxigeno Disuelto (mg/L)</span>
+              <span><span class="chart-legend-dot turb"></span> Turbidez (NTU)</span>
+              <span><span class="chart-legend-dot cond"></span> Conductividad (µS/cm)</span>
+            </div>
+
+            <div class="main-chart-wrapper">
+              <canvas id="monitoreoMultiChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Estado General y Aptitud -->
+          <div class="monitoreo-right-gauges">
+            <!-- Estado General del Agua -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Estado general del agua</h3>
+              </div>
+              <div class="water-status-box">
+                <div class="circular-status-badge">
+                  <span class="status-badge-icon">💧</span>
+                  <span class="status-badge-text">Óptimo</span>
+                </div>
+                <div>
+                  <p class="status-description">Las condiciones del agua son adecuadas para la producción piscícola.</p>
+                  <a href="#" class="btn-sm-outline">Ver detalles</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Aptitud para Producción -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Aptitud para producción</h3>
+              </div>
+              <div class="aptitude-box">
+                <div class="arc-gauge-wrapper">
+                  <svg class="arc-gauge-svg" viewBox="0 0 100 60">
+                    <path class="arc-gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" />
+                    <path class="arc-gauge-fill" d="M 10 50 A 40 40 0 0 1 90 50" />
+                  </svg>
+                  <span class="arc-gauge-val">78%</span>
+                </div>
+                <div class="aptitude-info">
+                  <div class="aptitude-level-row">
+                    <span class="aptitude-level-label">Nivel de aptitud</span>
+                    <span class="badge badge-en-linea">Alta</span>
+                  </div>
+                  <p class="status-description" style="margin-top: 4px;">La piscina está en condiciones favorables para la producción.</p>
+                  <a href="#" class="btn-sm-outline" style="align-self: flex-start;">Ver recomendaciones</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Fila Inferior: Información, Sensores Activos y Alertas -->
+        <section class="monitoreo-bottom-grid" style="margin-top: 24px;">
+          <!-- Información de la piscina -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Información de la piscina</h3>
+            </div>
+            <div class="pool-info-content">
+              <div class="pool-data-list">
+                <div class="pool-data-row">
+                  <span class="pool-data-icon">🏢</span>
+                  <span class="pool-data-label">Piscina</span>
+                  <span class="pool-data-val">Piscina 1</span>
+                </div>
+                <div class="pool-data-row">
+                  <span class="pool-data-icon">📍</span>
+                  <span class="pool-data-label">Ubicación</span>
+                  <span class="pool-data-val">Sector Norte</span>
+                </div>
+                <div class="pool-data-row">
+                  <span class="pool-data-icon">🛡️</span>
+                  <span class="pool-data-label">Geomembrana</span>
+                  <span class="pool-data-val">GM-001 (HDPE 1.0 mm)</span>
+                </div>
+                <div class="pool-data-row">
+                  <span class="pool-data-icon">💧</span>
+                  <span class="pool-data-label">Volumen de agua</span>
+                  <span class="pool-data-val">1,200 m³</span>
+                </div>
+                <div class="pool-data-row">
+                  <span class="pool-data-icon">📅</span>
+                  <span class="pool-data-label">Fecha de siembra</span>
+                  <span class="pool-data-val">01/05/2024</span>
+                </div>
+                <div class="pool-data-row">
+                  <span class="pool-data-icon">🐟</span>
+                  <span class="pool-data-label">Especie</span>
+                  <span class="pool-data-val">Tilapia (Oreochromis niloticus)</span>
+                </div>
+              </div>
+
+              <!-- Ilustración 3D del Estanque Acuícola -->
+              <div class="pool-illustration">
+                <svg class="pool-3d-graphic" viewBox="0 0 120 100" fill="none">
+                  <ellipse cx="60" cy="55" rx="50" ry="25" fill="#0284c7" stroke="#38bdf8" stroke-width="3"/>
+                  <ellipse cx="60" cy="50" rx="42" ry="20" fill="#0369a1" opacity="0.8"/>
+                  <circle cx="45" cy="48" r="4" fill="#60a5fa"/>
+                  <circle cx="75" cy="52" r="4" fill="#34d399"/>
+                  <path d="M45 44 L45 25 M75 48 L75 30" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <circle cx="45" cy="23" r="6" fill="#1d4ed8"/>
+                  <circle cx="75" cy="28" r="6" fill="#059669"/>
+                </svg>
+              </div>
+            </div>
+            <button class="btn-secondary" style="margin-top: 16px; width: 100%;">Ver detalles de la piscina</button>
+          </div>
+
+          <!-- Sensores activos -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Sensores activos</h3>
+            </div>
+            <div class="active-sensors-list">
+              <div class="active-sensor-item">
+                <div class="active-sensor-left"><span>🌡️</span><span>Temperatura P1</span></div>
+                <span class="badge badge-en-linea">En línea</span>
+              </div>
+              <div class="active-sensor-item">
+                <div class="active-sensor-left"><span>🧪</span><span>pH P1</span></div>
+                <span class="badge badge-en-linea">En línea</span>
+              </div>
+              <div class="active-sensor-item">
+                <div class="active-sensor-left"><span>O₂</span><span>Oxigeno Disuelto P1</span></div>
+                <span class="badge badge-en-linea">En línea</span>
+              </div>
+              <div class="active-sensor-item">
+                <div class="active-sensor-left"><span>💧</span><span>Turbidez P1</span></div>
+                <span class="badge badge-en-linea">En línea</span>
+              </div>
+              <div class="active-sensor-item">
+                <div class="active-sensor-left"><span>⚡</span><span>Conductividad P1</span></div>
+                <span class="badge badge-en-linea">En línea</span>
+              </div>
+            </div>
+            <button class="btn-secondary" style="margin-top: 16px; width: 100%;">Ver todos los sensores</button>
+          </div>
+
+          <!-- Alertas activas -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Alertas activas</h3>
+              <a href="#" class="btn-link-map">Ver todas</a>
+            </div>
+            <div class="monitoreo-alerts-list">
+              <div class="monitoreo-alert-item warning">
+                <div class="monitoreo-alert-icon" style="color: #F97316;">⚠️</div>
+                <div class="monitoreo-alert-body">
+                  <div class="monitoreo-alert-header">
+                    <span class="monitoreo-alert-title">Turbidez elevada</span>
+                    <span class="monitoreo-alert-time">Hace 15 min</span>
+                  </div>
+                  <span class="monitoreo-alert-desc">Valor actual: 12.3 NTU (Umbral: < 10 NTU)</span>
+                  <span class="monitoreo-alert-pool">Piscina 1</span>
+                </div>
+              </div>
+
+              <div class="monitoreo-alert-item critical">
+                <div class="monitoreo-alert-icon" style="color: #EF4444;">🚨</div>
+                <div class="monitoreo-alert-body">
+                  <div class="monitoreo-alert-header">
+                    <span class="monitoreo-alert-title">pH fuera de rango</span>
+                    <span class="monitoreo-alert-time">Hace 1 h</span>
+                  </div>
+                  <span class="monitoreo-alert-desc">Valor actual: 8.9 (Umbral: 6.5 - 8.5)</span>
+                  <span class="monitoreo-alert-pool">Piscina 2</span>
+                </div>
+              </div>
+
+              <div class="monitoreo-alert-item warning">
+                <div class="monitoreo-alert-icon" style="color: #F59E0B;">⚠️</div>
+                <div class="monitoreo-alert-body">
+                  <div class="monitoreo-alert-header">
+                    <span class="monitoreo-alert-title">Oxígeno disuelto bajo</span>
+                    <span class="monitoreo-alert-time">Hace 2 h</span>
+                  </div>
+                  <span class="monitoreo-alert-desc">Valor actual: 3.8 mg/L (Umbral: > 5 mg/L)</span>
+                  <span class="monitoreo-alert-pool">Piscina 3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Nota informativa al pie -->
+        <div class="realtime-footer-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Los datos mostrados son en tiempo real y se actualizan automáticamente cada minuto.</span>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- JAVASCRIPT EXCLUSIVO DE MONITOREO EN TIEMPO REAL -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // 1. Gráfica Multilínea
+      const ctxMonitoreoMulti = document.getElementById('monitoreoMultiChart')?.getContext('2d');
+      if (ctxMonitoreoMulti) {
+        new Chart(ctxMonitoreoMulti, {
+          type: 'line',
+          data: {
+            labels: ['10:30', '14:30', '18:30', '22:30', '02:30', '06:30', '10:30'],
+            datasets: [
+              { label: 'Temperatura (°C)', data: [27, 28, 27.5, 26.8, 27.2, 28.1, 27.5], borderColor: '#1E64D4', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+              { label: 'pH', data: [7.2, 7.3, 7.1, 7.0, 7.2, 7.4, 7.2], borderColor: '#12B76A', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+              { label: 'Oxígeno Disuelto (mg/L)', data: [6.8, 6.5, 6.8, 7.1, 6.9, 6.6, 6.8], borderColor: '#06B6D4', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+              { label: 'Turbidez (NTU)', data: [12.3, 13.1, 12.0, 12.5, 11.8, 12.9, 12.3], borderColor: '#F97316', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
+              { label: 'Conductividad (µS/cm)', data: [42, 40, 41, 40, 39, 41, 40], borderColor: '#9333EA', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { min: 0, max: 50, ticks: { stepSize: 10, font: { family: 'Plus Jakarta Sans', size: 10 } }, grid: { color: '#F1F5F9' } },
+              x: { ticks: { font: { family: 'Plus Jakarta Sans', size: 10 } }, grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      // 2. Mini Sparklines
+      function initSparkline(canvasId, color, data) {
+        const ctx = document.getElementById(canvasId)?.getContext('2d');
+        if (!ctx) return;
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false } }
+          }
+        });
+      }
+
+      initSparkline('sparklineTemp', '#1E64D4', [25, 26, 25.5, 27, 26.8, 27.2, 28, 27.4, 27.8, 27.5]);
+      initSparkline('sparklinePh', '#12B76A', [7.0, 7.1, 7.0, 7.2, 7.1, 7.3, 7.2, 7.1, 7.2, 7.2]);
+      initSparkline('sparklineOd', '#06B6D4', [6.2, 6.4, 6.3, 6.5, 6.8, 6.7, 6.9, 6.6, 6.8, 6.8]);
+      initSparkline('sparklineTurb', '#F97316', [10, 11, 10.5, 12, 11.5, 12.8, 12.0, 12.5, 13.0, 12.3]);
+      initSparkline('sparklineCond', '#9333EA', [410, 415, 412, 418, 420, 416, 422, 419, 421, 420]);
+    });
+  </script>
+
+  <!-- Script para dropdown del perfil de usuario -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('userProfileBtn');
+      const menu = document.getElementById('userDropdownMenu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.toggle('show');
+        });
+        document.addEventListener('click', function(e) {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('show');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1044 @@
+/* ==========================================================================
+   SIGMAP-AQUA - Geomembranas CSS
+   Módulo: templates/funcionalidades/geomenbranas.html
+   ========================================================================== */
+
+/* Contenedor principal del módulo */
+.gm-container {
+  padding: 24px 32px 40px;
+  background-color: var(--bg-main, #F4F7FC);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0F172A;
+  box-sizing: border-box;
+}
+
+.gm-container *, .gm-container *::before, .gm-container *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   1. HEADER DE LA PÁGINA
+   ========================================================================== */
+.gm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.gm-title-area h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.gm-title-area p {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.gm-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Pill selector Piscina */
+.gm-pill-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #1E293B;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gm-pill-select:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.gm-pill-select svg:first-child {
+  color: #2563EB;
+}
+
+.gm-pill-select svg:last-child {
+  color: #94A3B8;
+}
+
+/* Pill Fecha */
+.gm-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #1E293B;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gm-date-pill svg {
+  color: #2563EB;
+}
+
+/* Botones de acción redondos/cuadrados */
+.gm-icon-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  color: #64748B;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gm-icon-btn:hover {
+  border-color: #CBD5E1;
+  color: #1E293B;
+  background: #F8FAFC;
+}
+
+.gm-badge-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 17px;
+  height: 17px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+}
+
+/* User pill */
+.gm-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 4px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.gm-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #E2E8F0;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gm-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.gm-user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.gm-user-role {
+  font-size: 11px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   2. KPI CARDS (Fila de 5 tarjetas)
+   ========================================================================== */
+.gm-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.gm-kpi-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gm-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.gm-kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gm-kpi-icon--total {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.gm-kpi-icon--status {
+  background: #ECFDF5;
+  color: #16A34A;
+}
+
+.gm-kpi-icon--life {
+  background: #F5F3FF;
+  color: #8B5CF6;
+}
+
+.gm-kpi-icon--last {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.gm-kpi-icon--next {
+  background: #FFF7ED;
+  color: #EA580C;
+}
+
+.gm-kpi-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gm-kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gm-kpi-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.gm-kpi-value--green {
+  color: #16A34A;
+}
+
+.gm-kpi-sub {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   3. LAYOUT PRINCIPAL (Dos columnas: Lista + Detalle)
+   ========================================================================== */
+.gm-main-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ==========================================================================
+   4. COLUMNA IZQUIERDA: LISTA DE GEOMEMBRANAS
+   ========================================================================== */
+.gm-list-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gm-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gm-list-header h2 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.gm-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.gm-btn-add:hover {
+  background: #1D4ED8;
+}
+
+/* Buscador y filtro */
+.gm-list-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gm-search-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gm-search-icon {
+  position: absolute;
+  left: 12px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.gm-search-input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.gm-search-input:focus {
+  background: #FFFFFF;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.gm-btn-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.gm-btn-filter:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #1E293B;
+}
+
+/* Lista de geomembranas */
+.gm-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gm-list-item {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.gm-list-item:hover {
+  border-color: #CBD5E1;
+  background: #FAFAFC;
+}
+
+.gm-list-item--active {
+  border: 1.5px solid #2563EB !important;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+
+.gm-list-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gm-list-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+}
+
+.gm-list-item-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.gm-list-item--active .gm-list-item-name {
+  color: #2563EB;
+}
+
+/* Status dots y labels */
+.gm-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.gm-status-dot--ok {
+  background: #16A34A;
+}
+
+.gm-status-dot--warn {
+  background: #F59E0B;
+}
+
+.gm-status-label {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.gm-status-label--ok {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.gm-status-label--warn {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.gm-list-item-detail {
+  font-size: 11.5px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+/* Gauge circular */
+.gm-list-item-gauge {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gm-gauge-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.gm-list-item-arrow {
+  color: #94A3B8;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.gm-list-item:hover .gm-list-item-arrow {
+  transform: translateX(2px);
+  color: #2563EB;
+}
+
+/* Paginación */
+.gm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.gm-pagination-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gm-page-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gm-page-btn:hover:not(:disabled) {
+  border-color: #2563EB;
+  color: #2563EB;
+}
+
+.gm-page-btn--active {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-color: #2563EB;
+}
+
+.gm-page-btn--active:hover {
+  background: #1D4ED8;
+  color: #FFFFFF;
+}
+
+.gm-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.gm-pagination-info {
+  font-size: 11.5px;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   5. COLUMNA DERECHA: DETALLE DE GEOMEMBRANA
+   ========================================================================== */
+.gm-detail-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header de detalle */
+.gm-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gm-detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gm-detail-title-row h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.gm-btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1E293B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gm-btn-edit:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+/* Tabs */
+.gm-detail-tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 2px;
+}
+
+.gm-detail-tab {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #64748B;
+  text-decoration: none;
+  padding: 8px 2px 12px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.gm-detail-tab:hover {
+  color: #0F172A;
+}
+
+.gm-detail-tab.active {
+  color: #2563EB;
+  font-weight: 700;
+}
+
+.gm-detail-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #2563EB;
+  border-radius: 2px;
+}
+
+/* Cuerpo del detalle */
+.gm-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Fila Superior: Info general + Vista de referencia */
+.gm-detail-top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.gm-info-general h3,
+.gm-ref-image h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 14px 0;
+}
+
+/* Tabla de información general */
+.gm-info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gm-info-table tr {
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.gm-info-table tr:last-child {
+  border-bottom: none;
+}
+
+.gm-info-label {
+  padding: 10px 0;
+  font-size: 12.5px;
+  color: #64748B;
+  font-weight: 500;
+  width: 48%;
+}
+
+.gm-info-value {
+  padding: 10px 0;
+  font-size: 12.5px;
+  color: #0F172A;
+  font-weight: 700;
+  text-align: left;
+}
+
+/* Progress bar en tabla */
+.gm-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gm-progress-pct {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #16A34A;
+}
+
+.gm-progress-bar {
+  flex: 1;
+  max-width: 120px;
+  height: 7px;
+  background: #E2E8F0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.gm-progress-fill {
+  height: 100%;
+  background: #16A34A;
+  border-radius: 10px;
+}
+
+/* Contenedor Imagen de referencia */
+.gm-ref-image-container {
+  width: 100%;
+  height: 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gm-ref-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Fila Inferior: 4 tarjetas (Estado actual, Parámetros, Última, Próxima) */
+.gm-detail-bottom-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+/* Card base */
+.gm-estado-card,
+.gm-params-card,
+.gm-inspec-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.gm-estado-card h3,
+.gm-params-card h3,
+.gm-inspec-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 12px 0;
+}
+
+/* Estado actual */
+.gm-estado-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.gm-estado-icon {
+  width: 52px;
+  height: 52px;
+  background: #DCFCE7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.gm-estado-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gm-estado-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.gm-estado-desc {
+  font-size: 11.5px;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+/* Parámetros de integridad */
+.gm-params-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gm-param-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.gm-param-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.gm-param-name {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.gm-param-value {
+  font-weight: 700;
+}
+
+.gm-param-value--ok {
+  color: #16A34A;
+}
+
+/* Tarjetas de Inspección */
+.gm-inspec-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.gm-inspec-icon {
+  width: 40px;
+  height: 40px;
+  background: #EFF6FF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gm-inspec-card:last-child .gm-inspec-icon {
+  background: #FFF7ED;
+}
+
+.gm-inspec-card:last-child .gm-inspec-icon svg {
+  stroke: #EA580C;
+}
+
+.gm-inspec-data {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gm-inspec-date {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.gm-inspec-detail {
+  font-size: 11px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.gm-btn-outline-sm {
+  width: 100%;
+  padding: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563EB;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.gm-btn-outline-sm:hover {
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+}
+
+/* ==========================================================================
+   6. BARRA DE RECOMENDACIÓN INFERIOR
+   ========================================================================== */
+.gm-recommendation-bar {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gm-rec-icon {
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gm-rec-texts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gm-rec-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1E3A8A;
+}
+
+.gm-rec-desc {
+  font-size: 12.5px;
+  color: #3B82F6;
+  font-weight: 500;
+}
+
+.gm-btn-rec {
+  background: #FFFFFF;
+  border: 1px solid #93C5FD;
+  color: #2563EB;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.gm-btn-rec:hover {
+  background: #DBEAFE;
+  border-color: #60A5FA;
+}
+
+/* ==========================================================================
+   7. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1280px) {
+  .gm-kpi-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .gm-detail-bottom-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .gm-main-layout {
+    grid-template-columns: 1fr;
+  }
+  .gm-detail-top-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .gm-container {
+    padding: 16px;
+  }
+  .gm-kpi-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .gm-detail-bottom-row {
+    grid-template-columns: 1fr;
+  }
+  .gm-recommendation-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .gm-btn-rec {
+    align-self: flex-start;
+  }
+}

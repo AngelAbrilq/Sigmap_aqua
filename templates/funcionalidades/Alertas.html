@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGMAP-AQUA | Alertas</title>
+
+  <!-- Tipografía -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos base -->
+  <link rel="stylesheet" href="../../static/css/InstructorLider.css">
+  <link rel="stylesheet" href="/static/css/InstructorLider.css">
+
+  <!-- Estilos módulo -->
+  <link rel="stylesheet" href="../../static/css/alertas.css">
+  <link rel="stylesheet" href="/static/css/alertas.css">
+
+  <style>
+    @import url("../../static/css/InstructorLider.css");
+    @import url("/static/css/InstructorLider.css");
+    @import url("../../static/css/alertas.css");
+    @import url("/static/css/alertas.css");
+  </style>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- =========================================================================
+         1. BARRA LATERAL (SIDEBAR)
+         ========================================================================= -->
+        <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="../../static/img/logo sigmap-aqua.png" data-django-src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo" onerror="this.onerror=null; this.src='../../static/img/Logo.jpeg';">
+        <h1 class="sidebar-brand">SIGMAP-AQUA</h1>
+        <p class="sidebar-subtitle">Sistema Inteligente de Monitoreo para Acuicultura</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Inicio -->
+        <a href="../roles/InstructorLider.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Inicio</span>
+        </a>
+
+        <!-- Sensores -->
+        <a href="sensores.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span>Sensores</span>
+        </a>
+
+        <!-- Monitoreo en tiempo real -->
+        <a href="monitoreo.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Monitoreo en tiempo real</span>
+        </a>
+
+        <!-- Historial de datos -->
+        <a href="#" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Historial de datos</span>
+        </a>
+
+        <!-- Gráficas y reportes -->
+        <a href="graficasyreportes.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Gráficas y reportes</span>
+        </a>
+
+        <!-- Comparación de períodos -->
+        <a href="ComoaracionesdePreiodos.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Comparación de períodos</span>
+        </a>
+
+        <!-- Alertas -->
+        <a href="Alertas.html" class="nav-item active">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas</span>
+          <span class="nav-badge">3</span>
+        </a>
+
+        <!-- IA - Análisis predictivo -->
+        <a href="AI.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12v9.9"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>IA - Análisis predictivo</span>
+        </a>
+
+        <!-- Usuarios -->
+        <a href="usuarios.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Usuarios</span>
+        </a>
+
+        <!-- Geomembranas -->
+        <a href="geomenbranas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Geomembranas</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../usuarios/login.html" class="nav-item logout">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Cerrar sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- =========================================================================
+         2. CONTENIDO PRINCIPAL
+         ========================================================================= -->
+    <main class="main-content">
+      <div class="alt-container">
+
+        <!-- =====================================================================
+             HEADER: TÍTULO, SUBTÍTULO Y ACCIONES DE USUARIO
+             ===================================================================== -->
+        <header class="alt-header">
+          <div class="alt-title-area">
+            <div class="alt-title-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div class="alt-title-text">
+              <h1>Alertas</h1>
+              <p>Monitorea y gestiona las alertas generadas por los sensores y el sistema.</p>
+            </div>
+          </div>
+
+          <div class="alt-header-actions">
+            <!-- Pill Piscina 1 -->
+            <div class="alt-pill-select">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Piscina 1</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+
+            <!-- Botón Calendario -->
+            <button class="alt-icon-btn" title="Calendario">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </button>
+
+        <div class="header-right-group">
+          <!-- Ayuda -->
+          <button class="topbar-icon-btn" title="Ayuda y Soporte">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+
+          <!-- Notificaciones -->
+          <button class="topbar-icon-btn" title="Notificaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-badge">3</span>
+          </button>
+
+          <!-- Usuario Administrador -->
+          <div class="user-profile-wrap">
+            <div class="topbar-user-pill" id="userProfileBtn" title="Opciones de cuenta">
+              <div class="topbar-user-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+              <div class="topbar-user-info">
+                <span class="topbar-user-name">Administrador</span>
+                <span class="topbar-user-role">Rol: Administrador</span>
+              </div>
+              <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+              <div class="user-dropdown-header">
+                <div class="name">Administrador</div>
+                <div class="email">admin@sigmap-aqua.com</div>
+              </div>
+              <a href="configuraciones.html" class="user-dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Configuración</span>
+              </a>
+              <div class="user-dropdown-divider"></div>
+              <a href="../usuarios/login.html" class="user-dropdown-item text-danger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Cerrar sesión</span>
+              </a>
+            </div>
+          </div>
+        </div>
+          </div>
+        </header>
+
+        <!-- =====================================================================
+             4 TARJETAS KPI SUPERIORES
+             ===================================================================== -->
+        <section class="alt-kpi-grid">
+          <!-- 1. Alertas críticas -->
+          <div class="alt-kpi-card">
+            <div class="alt-kpi-icon-badge alt-kpi-criticas">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="alt-kpi-body">
+              <span class="alt-kpi-label">Alertas críticas</span>
+              <span class="alt-kpi-value">1</span>
+              <span class="alt-kpi-subtext">Requieren atención inmediata</span>
+            </div>
+          </div>
+
+          <!-- 2. Alertas importantes -->
+          <div class="alt-kpi-card">
+            <div class="alt-kpi-icon-badge alt-kpi-importantes">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="alt-kpi-body">
+              <span class="alt-kpi-label">Alertas importantes</span>
+              <span class="alt-kpi-value">2</span>
+              <span class="alt-kpi-subtext">Requieren atención</span>
+            </div>
+          </div>
+
+          <!-- 3. Alertas leves -->
+          <div class="alt-kpi-card">
+            <div class="alt-kpi-icon-badge alt-kpi-leves">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div class="alt-kpi-body">
+              <span class="alt-kpi-label">Alertas leves</span>
+              <span class="alt-kpi-value">4</span>
+              <span class="alt-kpi-subtext">Monitoreo recomendado</span>
+            </div>
+          </div>
+
+          <!-- 4. Total de alertas (hoy) -->
+          <div class="alt-kpi-card">
+            <div class="alt-kpi-icon-badge alt-kpi-total">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="alt-kpi-body">
+              <span class="alt-kpi-label">Total de alertas (hoy)</span>
+              <span class="alt-kpi-value">7</span>
+              <span class="alt-kpi-subtext">Actualizado: 10:30 a.m.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================================
+             SECCIÓN MEDIA: TABLA DE ALERTAS + COLUMNA DERECHA
+             ===================================================================== -->
+        <div class="alt-main-grid">
+
+          <!-- Columna Izquierda: Tarjeta con Lista de Alertas -->
+          <section class="alt-alerts-card">
+            <div class="alt-card-header-title">Lista de alertas</div>
+
+            <!-- Filtros superiores -->
+            <div class="alt-filter-bar">
+              <!-- Buscador -->
+              <div class="alt-search-box">
+                <svg class="alt-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" class="alt-search-input" placeholder="Buscar alerta...">
+              </div>
+
+              <!-- Severidades -->
+              <div class="alt-select-box">
+                <select>
+                  <option>Todas las severidades</option>
+                  <option>Crítica</option>
+                  <option>Importante</option>
+                  <option>Leve</option>
+                </select>
+                <div class="alt-select-arrow">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+
+              <!-- Piscinas -->
+              <div class="alt-select-box">
+                <select>
+                  <option>Todas las piscinas</option>
+                  <option>Piscina 1</option>
+                  <option>Piscina 2</option>
+                  <option>Piscina 3</option>
+                </select>
+                <div class="alt-select-arrow">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+
+              <!-- Estados -->
+              <div class="alt-select-box">
+                <select>
+                  <option>Todos los estados</option>
+                  <option>Activa</option>
+                  <option>Reconocida</option>
+                </select>
+                <div class="alt-select-arrow">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+
+              <!-- Rango fechas -->
+              <div class="alt-date-filter">
+                <span>17/05/2024 - 24/05/2024</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+
+              <!-- Limpiar filtros -->
+              <button class="alt-btn-clean">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <span>Limpiar filtros</span>
+              </button>
+            </div>
+
+            <!-- Tabla -->
+            <div class="alt-table-responsive">
+              <table class="alt-table">
+                <thead>
+                  <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Severidad</th>
+                    <th>Alerta</th>
+                    <th>Parámetro</th>
+                    <th>Piscina</th>
+                    <th>Valor</th>
+                    <th>Umbral</th>
+                    <th style="text-align: center;">Estado</th>
+                    <th style="text-align: center;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Fila 1: Oxigeno disuelto muy bajo -->
+                  <tr>
+                    <td class="alt-cell-datetime">
+                      24/05/2024<br>
+                      <span class="alt-subtime">10:15 a.m.</span>
+                    </td>
+                    <td>
+                      <span class="alt-sev-badge alt-sev-critica">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+                        <span>Crítica</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="alt-cell-alert">
+                        <span class="alt-alert-title">Oxígeno disuelto muy bajo</span>
+                        <span class="alt-alert-desc">Nivel crítico detectado</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="alt-cell-param">
+                        <span class="alt-param-icon" style="color: #0284C7; font-weight: 700; font-size: 11px;">O₂</span>
+                        <span>Oxígeno Disuelto</span>
+                      </div>
+                    </td>
+                    <td>Piscina 3</td>
+                    <td class="alt-val-crit">2.8 mg/L</td>
+                    <td>&gt; 5 mg/L</td>
+                    <td style="text-align: center;">
+                      <span class="alt-status-badge alt-status-activa">Activa</span>
+                    </td>
+                    <td>
+                      <div class="alt-actions-cell">
+                        <button class="alt-action-icon-btn" title="Ver detalle">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="alt-action-icon-btn" title="Marcar como revisada">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Fila 2: Turbidez elevada -->
+                  <tr>
+                    <td class="alt-cell-datetime">
+                      24/05/2024<br>
+                      <span class="alt-subtime">09:47 a.m.</span>
+                    </td>
+                    <td>
+                      <span class="alt-sev-badge alt-sev-importante">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span>Importante</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="alt-cell-alert">
+                        <span class="alt-alert-title">Turbidez elevada</span>
+                        <span class="alt-alert-desc">Valor fuera del rango óptimo</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="alt-cell-param">
+                        <span class="alt-param-icon" style="color: #F97316;">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+                        </span>
+                        <span>Turbidez</span>
+                      </div>
+                    </td>
+                    <td>Piscina 2</td>
+                    <td class="alt-val-imp">16.7 NTU</td>
+                    <td>&lt; 10 NTU</td>
+                    <td style="text-align: center;">
+                      <span class="alt-status-badge alt-status-activa">Activa</span>
+                    </td>
+                    <td>
+                      <div class="alt-actions-cell">
+                        <button class="alt-action-icon-btn" title="Ver detalle">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Fila 3: pH fuera de rango -->
+                  <tr>
+                    <td class="alt-cell-datetime">
+                      24/05/2024<br>
+                      <span class="alt-subtime">09:30 a.m.</span>
+                    </td>
+                    <td>
+                      <span class="alt-sev-badge alt-sev-importante">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span>Importante</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="alt-cell-alert">
+                        <span class="alt-alert-title">pH fuera de rango</span>
+                        <span class="alt-alert-desc">Valor fuera del rango óptimo</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="alt-cell-param">
+                        <span class="alt-param-icon" style="color: #12B76A;">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                        </span>
+                        <span>pH</span>
+                      </div>
+                    </td>
+                    <td>Piscina 1</td>
+                    <td class="alt-val-imp">8.9</td>
+                    <td>6.5 - 8.5</td>
+                    <td style="text-align: center;">
+                      <span class="alt-status-badge alt-status-activa">Activa</span>
+                    </td>
+                    <td>
+                      <div class="alt-actions-cell">
+                        <button class="alt-action-icon-btn" title="Ver detalle">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Fila 4: Temperatura elevada -->
+                  <tr>
+                    <td class="alt-cell-datetime">
+                      24/05/2024<br>
+                      <span class="alt-subtime">08:55 a.m.</span>
+                    </td>
+                    <td>
+                      <span class="alt-sev-badge alt-sev-leve">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span>Leve</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="alt-cell-alert">
+                        <span class="alt-alert-title">Temperatura elevada</span>
+                        <span class="alt-alert-desc">Cercana al límite superior</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="alt-cell-param">
+                        <span class="alt-param-icon" style="color: #1E64D4;">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                        </span>
+                        <span>Temperatura</span>
+                      </div>
+                    </td>
+                    <td>Piscina 1</td>
+                    <td class="alt-val-imp">29.1 °C</td>
+                    <td>&lt; 30 °C</td>
+                    <td style="text-align: center;">
+                      <span class="alt-status-badge alt-status-activa">Activa</span>
+                    </td>
+                    <td>
+                      <div class="alt-actions-cell">
+                        <button class="alt-action-icon-btn" title="Ver detalle">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="alt-action-icon-btn" title="Marcar como revisada">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Fila 5: Conductividad alta -->
+                  <tr>
+                    <td class="alt-cell-datetime">
+                      24/05/2024<br>
+                      <span class="alt-subtime">08:20 a.m.</span>
+                    </td>
+                    <td>
+                      <span class="alt-sev-badge alt-sev-leve">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span>Leve</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="alt-cell-alert">
+                        <span class="alt-alert-title">Conductividad alta</span>
+                        <span class="alt-alert-desc">Valor por encima de lo normal</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="alt-cell-param">
+                        <span class="alt-param-icon" style="color: #9333EA;">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </span>
+                        <span>Conductividad</span>
+                      </div>
+                    </td>
+                    <td>Piscina 2</td>
+                    <td class="alt-val-imp">750 µS/cm</td>
+                    <td>&lt; 800 µS/cm</td>
+                    <td style="text-align: center;">
+                      <span class="alt-status-badge alt-status-activa">Activa</span>
+                    </td>
+                    <td>
+                      <div class="alt-actions-cell">
+                        <button class="alt-action-icon-btn" title="Ver detalle">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="alt-action-icon-btn" title="Marcar como revisada">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Fila 6: Oxigeno disuelto bajo -->
+                  <tr>
+                    <td class="alt-cell-datetime">
+                      24/05/2024<br>
+                      <span class="alt-subtime">07:45 a.m.</span>
+                    </td>
+                    <td>
+                      <span class="alt-sev-badge alt-sev-leve">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span>Leve</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="alt-cell-alert">
+                        <span class="alt-alert-title">Oxígeno disuelto bajo</span>
+                        <span class="alt-alert-desc">Valor cercano al umbral</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="alt-cell-param">
+                        <span class="alt-param-icon" style="color: #0284C7; font-weight: 700; font-size: 11px;">O₂</span>
+                        <span>Oxígeno Disuelto</span>
+                      </div>
+                    </td>
+                    <td>Piscina 1</td>
+                    <td class="alt-val-lev">5.1 mg/L</td>
+                    <td>&gt; 5 mg/L</td>
+                    <td style="text-align: center;">
+                      <span class="alt-status-badge alt-status-reconocida">Reconocida</span>
+                    </td>
+                    <td>
+                      <div class="alt-actions-cell">
+                        <button class="alt-action-icon-btn" title="Ver detalle">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="alt-action-icon-btn" title="Historial">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Fila 7: Turbidez ligeramente elevada -->
+                  <tr>
+                    <td class="alt-cell-datetime">
+                      24/05/2024<br>
+                      <span class="alt-subtime">07:10 a.m.</span>
+                    </td>
+                    <td>
+                      <span class="alt-sev-badge alt-sev-leve">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span>Leve</span>
+                      </span>
+                    </td>
+                    <td>
+                      <div class="alt-cell-alert">
+                        <span class="alt-alert-title">Turbidez ligeramente elevada</span>
+                        <span class="alt-alert-desc">Monitoreo recomendado</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="alt-cell-param">
+                        <span class="alt-param-icon" style="color: #F97316;">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+                        </span>
+                        <span>Turbidez</span>
+                      </div>
+                    </td>
+                    <td>Piscina 3</td>
+                    <td class="alt-val-lev">11.2 NTU</td>
+                    <td>&lt; 10 NTU</td>
+                    <td style="text-align: center;">
+                      <span class="alt-status-badge alt-status-reconocida">Reconocida</span>
+                    </td>
+                    <td>
+                      <div class="alt-actions-cell">
+                        <button class="alt-action-icon-btn" title="Ver detalle">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button class="alt-action-icon-btn" title="Historial">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="alt-pagination-row">
+              <span>Mostrando 1 a 7 de 7 alertas</span>
+              <div class="alt-pagination-controls">
+                <button class="alt-page-btn">&lt;</button>
+                <button class="alt-page-btn active">1</button>
+                <button class="alt-page-btn">&gt;</button>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- Columna Derecha: 3 Tarjetas -->
+          <div class="alt-right-col">
+
+            <!-- Tarjeta 1: Resumen de alertas -->
+            <div class="alt-summary-card">
+              <h2 class="alt-side-title">Resumen de alertas</h2>
+              <div class="alt-summary-content">
+                <div class="alt-donut-box">
+                  <canvas id="donutChart"></canvas>
+                </div>
+                <div class="alt-donut-legend">
+                  <div class="alt-legend-row">
+                    <div class="alt-legend-left">
+                      <span class="alt-legend-dot alt-dot-red"></span>
+                      <span>Críticas</span>
+                    </div>
+                    <span class="alt-legend-val">1 (14%)</span>
+                  </div>
+                  <div class="alt-legend-row">
+                    <div class="alt-legend-left">
+                      <span class="alt-legend-dot alt-dot-orange"></span>
+                      <span>Importantes</span>
+                    </div>
+                    <span class="alt-legend-val">2 (29%)</span>
+                  </div>
+                  <div class="alt-legend-row">
+                    <div class="alt-legend-left">
+                      <span class="alt-legend-dot alt-dot-yellow"></span>
+                      <span>Leves</span>
+                    </div>
+                    <span class="alt-legend-val">4 (57%)</span>
+                  </div>
+                  <div class="alt-legend-row">
+                    <div class="alt-legend-left">
+                      <span class="alt-legend-dot alt-dot-green"></span>
+                      <span>Reconocidas</span>
+                    </div>
+                    <span class="alt-legend-val">2</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tarjeta 2: Alertas por parámetro (hoy) -->
+            <div class="alt-params-card">
+              <h2 class="alt-side-title">Alertas por parámetro (hoy)</h2>
+              <div class="alt-param-chart-box">
+                <canvas id="barParamsChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Tarjeta 3: Última alerta activa -->
+            <div class="alt-last-card">
+              <h2 class="alt-side-title">Última alerta activa</h2>
+              <div class="alt-last-alert-body">
+                <div class="alt-last-alert-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div class="alt-last-alert-info">
+                  <span class="alt-last-title">Oxígeno disuelto muy bajo</span>
+                  <span class="alt-last-sub">Piscina 3 • Oxígeno Disuelto</span>
+                  <span class="alt-last-badge">Crítica</span>
+                  <div class="alt-last-meta">
+                    <div>Valor actual: <strong>2.8 mg/L</strong></div>
+                    <div>Umbral: <strong>&gt; 5 mg/L</strong></div>
+                  </div>
+                </div>
+              </div>
+              <div class="alt-last-footer">
+                <div class="alt-last-time">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>24/05/2024 10:15 a.m.</span>
+                </div>
+                <button class="alt-btn-details">Ver detalles</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- =====================================================================
+             SECCIÓN INFERIOR: RECOMENDACIONES + ACCIONES RÁPIDAS
+             ===================================================================== -->
+        <div class="alt-bottom-grid">
+
+          <!-- Recomendaciones generales -->
+          <div class="alt-recom-card">
+            <div class="alt-recom-left">
+              <div class="alt-recom-info-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </div>
+              <div class="alt-recom-texts">
+                <h3>Recomendaciones generales</h3>
+                <ul class="alt-recom-list">
+                  <li>Revise las alertas críticas de inmediato para evitar afectaciones en la producción.</li>
+                  <li>Verifique el estado de los sensores si las alertas persisten o son inesperadas.</li>
+                  <li>Consulte el historial de datos para identificar patrones o causas recurrentes.</li>
+                </ul>
+              </div>
+            </div>
+            <!-- Ilustración SVG del monitor y campana -->
+            <div class="alt-recom-illus">
+              <svg width="130" height="85" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Monitor Base -->
+                <rect x="30" y="10" width="90" height="60" rx="6" fill="#1E293B" stroke="#0F172A" stroke-width="2"/>
+                <rect x="35" y="15" width="80" height="50" rx="3" fill="#FFFFFF"/>
+                <path d="M70 70H80V80H70V70Z" fill="#1E293B"/>
+                <path d="M60 80H90V83H60V80Z" rx="1.5" fill="#0F172A"/>
+                
+                <!-- Monitor Screen Graphs -->
+                <line x1="40" y1="55" x2="105" y2="55" stroke="#E2E8F0" stroke-width="1"/>
+                <polyline points="42,50 52,38 62,44 72,32 82,40 92,30 102,36" fill="none" stroke="#0284C7" stroke-width="2"/>
+                <rect x="42" y="20" width="12" height="4" rx="1" fill="#DBEAFE"/>
+                <rect x="58" y="20" width="18" height="4" rx="1" fill="#E2E8F0"/>
+                
+                <!-- Large Notification Bell Overlay -->
+                <g transform="translate(85, 32)">
+                  <ellipse cx="25" cy="40" rx="18" ry="4" fill="#E2E8F0" opacity="0.6"/>
+                  <path d="M25 4C23.9 4 23 4.9 23 6V7.1C16.8 8.1 12 13.5 12 20V32L7 37V39H43V37L38 32V20C38 13.5 33.2 8.1 27 7.1V6C27 4.9 26.1 4 25 4Z" fill="#FBBF24" stroke="#D97706" stroke-width="1.5"/>
+                  <path d="M21 40C21 42.2 22.8 44 25 44C27.2 44 29 42.2 29 40H21Z" fill="#D97706"/>
+                  <path d="M30 16C30 16 35 20 33 28" stroke="#FDE68A" stroke-width="2" stroke-linecap="round"/>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Acciones rápidas -->
+          <div class="alt-quick-actions-card">
+            <h2 class="alt-quick-title">Acciones rápidas</h2>
+            <div class="alt-quick-buttons">
+              <button class="alt-quick-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Ver historial de alertas</span>
+              </button>
+              <button class="alt-quick-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Configurar umbrales</span>
+              </button>
+              <button class="alt-quick-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span>Notificaciones</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =====================================================================
+             FOOTER INFORMATIVO Y COPYRIGHT
+             ===================================================================== -->
+        <footer class="alt-footer">
+          <div class="alt-footer-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>Las alertas se generan automáticamente según los umbrales configurados para cada parámetro.</span>
+          </div>
+          <div class="alt-footer-right">
+            <span>© 2024 SIGMAP-AQUA. Todos los derechos reservados.</span>
+          </div>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       SCRIPTS: CONFIGURACIÓN DE GRÁFICOS CON CHART.JS
+       ========================================================================= -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Gráfico Donut de Resumen de Alertas (14% Críticas, 29% Importantes, 57% Leves)
+      const donutCtx = document.getElementById('donutChart').getContext('2d');
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Críticas', 'Importantes', 'Leves'],
+          datasets: [{
+            data: [1, 2, 4],
+            backgroundColor: [
+              '#D92D20', // Rojo
+              '#F97316', // Naranja
+              '#FBBF24'  // Amarillo
+            ],
+            borderWidth: 0,
+            hoverOffset: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0F172A',
+              titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' },
+              bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
+              cornerRadius: 6,
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const val = context.raw || 0;
+                  const total = 7;
+                  const pct = Math.round((val / total) * 100);
+                  return `${label}: ${val} (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // 2. Gráfico Horizontal de Barras (Alertas por Parámetro)
+      const barCtx = document.getElementById('barParamsChart').getContext('2d');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Turbidez', 'Oxígeno Disuelto', 'pH', 'Temperatura', 'Conductividad'],
+          datasets: [{
+            data: [3, 2, 1, 1, 1],
+            backgroundColor: [
+              '#F97316', // Turbidez: Naranja
+              '#D92D20', // Oxígeno: Rojo
+              '#F97316', // pH: Naranja
+              '#FBBF24', // Temp: Amarillo
+              '#FBBF24'  // Cond: Amarillo
+            ],
+            borderRadius: 4,
+            barThickness: 10
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0F172A',
+              titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' },
+              bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
+              cornerRadius: 6
+            }
+          },
+          scales: {
+            x: {
+              min: 0,
+              max: 4,
+              ticks: {
+                stepSize: 1,
+                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
+                color: '#64748B'
+              },
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              ticks: {
+                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
+                color: '#475569'
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
+
+  <!-- Script para dropdown del perfil de usuario -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('userProfileBtn');
+      const menu = document.getElementById('userDropdownMenu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.toggle('show');
+        });
+        document.addEventListener('click', function(e) {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('show');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

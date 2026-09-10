@@ -1,0 +1,953 @@
+/* ==========================================================================
+   SIGMAP-AQUA - Alertas CSS
+   Módulo: templates/funcionalidades/Alertas.html
+   ========================================================================== */
+
+/* Contenedor principal del módulo */
+.alt-container {
+  padding: 24px 32px 40px;
+  background-color: var(--bg-main, #F4F7FC);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary, #0F172A);
+}
+
+/* ==========================================================================
+   1. HEADER DE LA PÁGINA
+   ========================================================================== */
+.alt-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.alt-title-area {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.alt-title-icon {
+  color: #0F172A;
+  margin-top: 3px;
+}
+
+.alt-title-text h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.alt-title-text p {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.alt-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alt-pill-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #EFF6FF;
+  border: 1px solid #DBEAFE;
+  color: #1E64D4;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alt-pill-select:hover {
+  background: #DBEAFE;
+}
+
+.alt-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  color: #64748B;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.alt-icon-btn:hover {
+  border-color: #CBD5E1;
+  color: #1E293B;
+  background: #F8FAFC;
+}
+
+.alt-badge-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+}
+
+.alt-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 8px;
+  border-left: 1px solid #E2E8F0;
+}
+
+.alt-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  overflow: hidden;
+}
+
+.alt-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.alt-user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  line-height: 1.2;
+}
+
+.alt-user-role {
+  font-size: 11px;
+  color: #94A3B8;
+  line-height: 1.2;
+}
+
+/* ==========================================================================
+   2. TARJETAS SUPERIORES KPI (4 COLUMNAS)
+   ========================================================================== */
+.alt-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.alt-kpi-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alt-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.alt-kpi-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.alt-kpi-criticas {
+  background: #FEE4E2;
+  color: #D92D20;
+}
+
+.alt-kpi-importantes {
+  background: #FFF4ED;
+  color: #F97316;
+}
+
+.alt-kpi-leves {
+  background: #FEF9C3;
+  color: #EAB308;
+}
+
+.alt-kpi-total {
+  background: #E8F8F0;
+  color: #12B76A;
+}
+
+.alt-kpi-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.alt-kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.alt-kpi-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.15;
+  margin: 2px 0 3px 0;
+}
+
+.alt-kpi-subtext {
+  font-size: 11px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   3. SECCIÓN MEDIA: TABLA DE ALERTAS (IZQUIERDA) + PANELES (DERECHA)
+   ========================================================================== */
+.alt-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 18px;
+  align-items: start;
+}
+
+/* Panel Izquierdo: Lista de Alertas */
+.alt-alerts-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 18px 20px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.alt-card-header-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 14px;
+}
+
+/* Barra de Filtros */
+.alt-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.alt-search-box {
+  position: relative;
+  min-width: 120px;
+  max-width: 150px;
+  flex: 1;
+}
+
+.alt-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.alt-search-input {
+  width: 100%;
+  padding: 7px 10px 7px 32px;
+  font-size: 12px;
+  font-family: inherit;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  outline: none;
+  background: #FFFFFF;
+  color: #334155;
+  transition: border-color 0.2s;
+}
+
+.alt-search-input:focus {
+  border-color: #1E64D4;
+}
+
+.alt-select-box {
+  position: relative;
+}
+
+.alt-select-box select {
+  appearance: none;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 7px 28px 7px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.alt-select-box select:focus {
+  border-color: #1E64D4;
+}
+
+.alt-select-arrow {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #94A3B8;
+}
+
+.alt-date-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+}
+
+.alt-date-filter:hover {
+  border-color: #CBD5E1;
+}
+
+.alt-btn-clean {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #1E64D4;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 7px 4px;
+  transition: color 0.2s;
+}
+
+.alt-btn-clean:hover {
+  color: #1853B2;
+  text-decoration: underline;
+}
+
+/* Tabla de Alertas */
+.alt-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.alt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.alt-table th {
+  padding: 10px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  border-bottom: 1px solid #E2E8F0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.alt-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid #F1F5F9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.alt-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.alt-cell-datetime {
+  line-height: 1.35;
+  font-size: 11.5px;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.alt-cell-datetime .alt-subtime {
+  color: #64748B;
+  font-size: 11px;
+}
+
+/* Badges de Severidad */
+.alt-sev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.alt-sev-critica {
+  background: #FEE4E2;
+  color: #D92D20;
+}
+
+.alt-sev-importante {
+  background: #FFF4ED;
+  color: #F97316;
+}
+
+.alt-sev-leve {
+  background: #FEF9C3;
+  color: #CA8A04;
+}
+
+.alt-cell-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alt-alert-title {
+  font-weight: 700;
+  color: #0F172A;
+  font-size: 12px;
+}
+
+.alt-alert-desc {
+  font-size: 11px;
+  color: #64748B;
+}
+
+.alt-cell-param {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.alt-param-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alt-val-crit {
+  color: #D92D20 !important;
+  font-weight: 700;
+}
+
+.alt-val-imp {
+  color: #F97316 !important;
+  font-weight: 700;
+}
+
+.alt-val-lev {
+  color: #CA8A04 !important;
+  font-weight: 700;
+}
+
+/* Badges de Estado */
+.alt-status-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.alt-status-activa {
+  background: #FEE4E2;
+  color: #D92D20;
+}
+
+.alt-status-reconocida {
+  background: #EFF6FF;
+  color: #1E64D4;
+}
+
+/* Botones de acción */
+.alt-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.alt-action-icon-btn {
+  background: none;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.alt-action-icon-btn:hover {
+  color: #1E293B;
+  background: #E2E8F0;
+}
+
+/* Paginación */
+.alt-pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.alt-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alt-page-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  border-radius: 6px;
+  color: #64748B;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.alt-page-btn:hover {
+  border-color: #CBD5E1;
+  color: #1E293B;
+}
+
+.alt-page-btn.active {
+  background: #1E64D4;
+  border-color: #1E64D4;
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
+   4. COLUMNA DERECHA: 3 TARJETAS
+   ========================================================================== */
+.alt-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tarjeta: Resumen de alertas */
+.alt-summary-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.alt-side-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0 0 12px 0;
+}
+
+.alt-summary-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.alt-donut-box {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.alt-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.alt-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #475569;
+}
+
+.alt-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.alt-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.alt-dot-red { background: #D92D20; }
+.alt-dot-orange { background: #F97316; }
+.alt-dot-yellow { background: #EAB308; }
+.alt-dot-green { background: #12B76A; }
+
+.alt-legend-val {
+  font-weight: 600;
+  color: #1E293B;
+}
+
+/* Tarjeta: Alertas por parámetro (hoy) */
+.alt-params-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.alt-param-chart-box {
+  height: 145px;
+  position: relative;
+}
+
+/* Tarjeta: Última alerta activa */
+.alt-last-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alt-last-alert-body {
+  display: flex;
+  gap: 12px;
+}
+
+.alt-last-alert-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #FEF3F2;
+  border: 1px solid #FECDCA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #D92D20;
+  flex-shrink: 0;
+}
+
+.alt-last-alert-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.alt-last-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #D92D20;
+  line-height: 1.2;
+}
+
+.alt-last-sub {
+  font-size: 11.5px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.alt-last-meta {
+  font-size: 11.5px;
+  color: #334155;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.alt-last-badge {
+  display: inline-block;
+  background: #FEE4E2;
+  color: #D92D20;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.alt-last-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 10px;
+}
+
+.alt-last-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64748B;
+}
+
+.alt-btn-details {
+  background: #FFFFFF;
+  border: 1px solid #BFDBFE;
+  color: #1E64D4;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.alt-btn-details:hover {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+}
+
+/* ==========================================================================
+   5. SECCIÓN INFERIOR: RECOMENDACIONES + ACCIONES RÁPIDAS
+   ========================================================================== */
+.alt-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 18px;
+}
+
+/* Recomendaciones generales */
+.alt-recom-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.alt-recom-left {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.alt-recom-info-icon {
+  color: #1E64D4;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.alt-recom-texts h3 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 8px 0;
+}
+
+.alt-recom-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alt-recom-list li {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.4;
+  position: relative;
+  padding-left: 12px;
+}
+
+.alt-recom-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #64748B;
+  font-weight: bold;
+}
+
+.alt-recom-illus {
+  width: 140px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Acciones rápidas */
+.alt-quick-actions-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.alt-quick-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0 0 12px 0;
+}
+
+.alt-quick-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.alt-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 8px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1E64D4;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  flex: 1;
+  white-space: nowrap;
+  justify-content: center;
+}
+
+.alt-quick-btn:hover {
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+}
+
+/* ==========================================================================
+   6. FOOTER INFORMATIVO
+   ========================================================================== */
+.alt-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #64748B;
+  padding-top: 4px;
+}
+
+.alt-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alt-footer-left svg {
+  color: #1E64D4;
+}
+
+/* ==========================================================================
+   7. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .alt-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .alt-main-grid {
+    grid-template-columns: 1fr;
+  }
+  .alt-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .alt-container {
+    padding: 16px;
+  }
+  .alt-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .alt-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

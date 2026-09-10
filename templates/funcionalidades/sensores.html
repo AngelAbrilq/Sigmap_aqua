@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGMAP-AQUA | Módulo de Sensores</title>
+  
+  <!-- Tipografía Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Carga de Django Static -->
+  <!-- {% load static %} -->
+
+  <!-- Vinculación de Estilos CSS -->
+  <link rel="stylesheet" href="../../static/css/InstructorLider.css">
+  <link rel="stylesheet" href="/static/css/InstructorLider.css">
+  <link rel="stylesheet" href="{% static 'css/InstructorLider.css' %}">
+  
+  <link rel="stylesheet" href="../../static/css/sensores.css">
+  <link rel="stylesheet" href="/static/css/sensores.css">
+  <link rel="stylesheet" href="{% static 'css/sensores.css' %}">
+
+  <style>
+    @import url("../../static/css/InstructorLider.css");
+    @import url("/static/css/InstructorLider.css");
+    @import url("../../static/css/sensores.css");
+    @import url("/static/css/sensores.css");
+  </style>
+
+  <!-- Chart.js para Renderizado de Gráficas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- =========================================================================
+         1. BARRA LATERAL (SIDEBAR)
+         ========================================================================= -->
+        <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="../../static/img/logo sigmap-aqua.png" data-django-src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo" onerror="this.onerror=null; this.src='../../static/img/Logo.jpeg';">
+        <h1 class="sidebar-brand">SIGMAP-AQUA</h1>
+        <p class="sidebar-subtitle">Sistema Inteligente de Monitoreo para Acuicultura</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Inicio -->
+        <a href="../roles/InstructorLider.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Inicio</span>
+        </a>
+
+        <!-- Sensores -->
+        <a href="sensores.html" class="nav-item active">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span>Sensores</span>
+        </a>
+
+        <!-- Monitoreo en tiempo real -->
+        <a href="monitoreo.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Monitoreo en tiempo real</span>
+        </a>
+
+        <!-- Historial de datos -->
+        <a href="#" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Historial de datos</span>
+        </a>
+
+        <!-- Gráficas y reportes -->
+        <a href="graficasyreportes.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Gráficas y reportes</span>
+        </a>
+
+        <!-- Comparación de períodos -->
+        <a href="ComoaracionesdePreiodos.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Comparación de períodos</span>
+        </a>
+
+        <!-- Alertas -->
+        <a href="Alertas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas</span>
+          <span class="nav-badge">3</span>
+        </a>
+
+        <!-- IA - Análisis predictivo -->
+        <a href="AI.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12v9.9"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>IA - Análisis predictivo</span>
+        </a>
+
+        <!-- Usuarios -->
+        <a href="usuarios.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Usuarios</span>
+        </a>
+
+        <!-- Geomembranas -->
+        <a href="geomenbranas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Geomembranas</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../usuarios/login.html" class="nav-item logout">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Cerrar sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- =========================================================================
+         2. CONTENEDOR PRINCIPAL DEL MÓDULO DE SENSORES
+         ========================================================================= -->
+    <main class="main-wrapper">
+      
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-title-group">
+          <h1>Sensores</h1>
+          <p>Gestiona y visualiza el estado de todos los sensores instalados en el sistema.</p>
+        </div>
+
+                <div class="header-right-group">
+          <!-- Ayuda -->
+          <button class="topbar-icon-btn" title="Ayuda y Soporte">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+
+          <!-- Notificaciones -->
+          <button class="topbar-icon-btn" title="Notificaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-badge">3</span>
+          </button>
+
+          <!-- Usuario Administrador -->
+          <div class="user-profile-wrap">
+            <div class="topbar-user-pill" id="userProfileBtn" title="Opciones de cuenta">
+              <div class="topbar-user-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+              <div class="topbar-user-info">
+                <span class="topbar-user-name">Administrador</span>
+                <span class="topbar-user-role">Rol: Administrador</span>
+              </div>
+              <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+              <div class="user-dropdown-header">
+                <div class="name">Administrador</div>
+                <div class="email">admin@sigmap-aqua.com</div>
+              </div>
+              <a href="configuraciones.html" class="user-dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Configuración</span>
+              </a>
+              <div class="user-dropdown-divider"></div>
+              <a href="../usuarios/login.html" class="user-dropdown-item text-danger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Cerrar sesión</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content para Sensores -->
+      <div class="dashboard-content">
+
+        <!-- 1. Tarjetas KPI Resumen -->
+        <section class="kpi-grid">
+          <div class="kpi-card total">
+            <div class="kpi-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            </div>
+            <div class="kpi-details">
+              <span class="kpi-title">Total sensores</span>
+              <span class="kpi-value">12</span>
+              <span class="kpi-subtitle">Instalados</span>
+            </div>
+          </div>
+
+          <div class="kpi-card activos">
+            <div class="kpi-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="kpi-details">
+              <span class="kpi-title">Sensores activos</span>
+              <span class="kpi-value">11</span>
+              <span class="kpi-subtitle">En línea</span>
+            </div>
+          </div>
+
+          <div class="kpi-card alerta">
+            <div class="kpi-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="kpi-details">
+              <span class="kpi-title">Sensores con alerta</span>
+              <span class="kpi-value">1</span>
+              <span class="kpi-subtitle">Con alerta</span>
+            </div>
+          </div>
+
+          <div class="kpi-card inactivos">
+            <div class="kpi-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            </div>
+            <div class="kpi-details">
+              <span class="kpi-title">Sensores inactivos</span>
+              <span class="kpi-value">0</span>
+              <span class="kpi-subtitle">Fuera de línea</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Sección Intermedia: Tabla + Columna Derecha -->
+        <section class="middle-grid">
+          <!-- Tabla de Sensores -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Lista de sensores</h2>
+            </div>
+
+            <div class="table-header-controls">
+              <div class="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="Buscar sensor...">
+              </div>
+
+              <select class="select-filter" id="filterTipo">
+                <option value="">Todos los tipos</option>
+                <option value="Temperatura">Temperatura</option>
+                <option value="pH">pH</option>
+                <option value="Oxígeno Disuelto">Oxígeno Disuelto</option>
+                <option value="Turbidez">Turbidez</option>
+                <option value="Conductividad">Conductividad</option>
+              </select>
+
+              <select class="select-filter" id="filterPiscina">
+                <option value="">Todas las piscinas</option>
+                <option value="Piscina 1">Piscina 1</option>
+                <option value="Piscina 2">Piscina 2</option>
+                <option value="Piscina 3">Piscina 3</option>
+              </select>
+
+              <select class="select-filter" id="filterEstado">
+                <option value="">Estado: Todos</option>
+                <option value="En línea">En línea</option>
+                <option value="Alerta">Alerta</option>
+              </select>
+
+              <button class="btn-primary" id="btnAgregarSensor">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Agregar sensor</span>
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="sensor-table" id="sensorsTable">
+                <thead>
+                  <tr>
+                    <th>ID SENSOR</th>
+                    <th>NOMBRE</th>
+                    <th>TIPO</th>
+                    <th>PISCINA</th>
+                    <th>ESTADO</th>
+                    <th>ÚLTIMA LECTURA</th>
+                    <th>ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-id="SEN-001" data-nombre="Temperatura P1" data-tipo="Temperatura" data-piscina="Piscina 1" data-estado="En línea" data-lectura="27.5 °C" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-temp">🌡️</div><span>SEN-001</span></div></td>
+                    <td>Temperatura P1</td>
+                    <td>Temperatura</td>
+                    <td>Piscina 1</td>
+                    <td><span class="badge badge-en-linea">En línea</span></td>
+                    <td><div class="reading-val">27.5 °C</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+
+                  <tr data-id="SEN-002" data-nombre="pH P1" data-tipo="pH" data-piscina="Piscina 1" data-estado="En línea" data-lectura="7.2 pH" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-ph">🧪</div><span>SEN-002</span></div></td>
+                    <td>pH P1</td>
+                    <td>pH</td>
+                    <td>Piscina 1</td>
+                    <td><span class="badge badge-en-linea">En línea</span></td>
+                    <td><div class="reading-val">7.2 pH</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+
+                  <tr data-id="SEN-003" data-nombre="Oxigeno Disuelto P1" data-tipo="Oxígeno Disuelto" data-piscina="Piscina 1" data-estado="En línea" data-lectura="6.8 mg/L" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-o2">O₂</div><span>SEN-003</span></div></td>
+                    <td>Oxigeno Disuelto P1</td>
+                    <td>Oxígeno Disuelto</td>
+                    <td>Piscina 1</td>
+                    <td><span class="badge badge-en-linea">En línea</span></td>
+                    <td><div class="reading-val">6.8 mg/L</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+
+                  <tr data-id="SEN-004" data-nombre="Turbidez P1" data-tipo="Turbidez" data-piscina="Piscina 1" data-estado="En línea" data-lectura="12.3 NTU" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-turbidez">💧</div><span>SEN-004</span></div></td>
+                    <td>Turbidez P1</td>
+                    <td>Turbidez</td>
+                    <td>Piscina 1</td>
+                    <td><span class="badge badge-en-linea">En línea</span></td>
+                    <td><div class="reading-val">12.3 NTU</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+
+                  <tr data-id="SEN-005" data-nombre="Conductividad P1" data-tipo="Conductividad" data-piscina="Piscina 1" data-estado="En línea" data-lectura="420 µS/cm" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-conductividad">⚡</div><span>SEN-005</span></div></td>
+                    <td>Conductividad P1</td>
+                    <td>Conductividad</td>
+                    <td>Piscina 1</td>
+                    <td><span class="badge badge-en-linea">En línea</span></td>
+                    <td><div class="reading-val">420 µS/cm</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+
+                  <tr data-id="SEN-006" data-nombre="Temperatura P2" data-tipo="Temperatura" data-piscina="Piscina 2" data-estado="En línea" data-lectura="28.1 °C" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-temp">🌡️</div><span>SEN-006</span></div></td>
+                    <td>Temperatura P2</td>
+                    <td>Temperatura</td>
+                    <td>Piscina 2</td>
+                    <td><span class="badge badge-en-linea">En línea</span></td>
+                    <td><div class="reading-val">28.1 °C</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+
+                  <tr class="row-alert row-selected" data-id="SEN-007" data-nombre="Turbidez P2" data-tipo="Turbidez" data-piscina="Piscina 2" data-estado="Alerta" data-lectura="18.7 NTU" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-turbidez">💥</div><span>SEN-007</span></div></td>
+                    <td>Turbidez P2</td>
+                    <td>Turbidez</td>
+                    <td>Piscina 2</td>
+                    <td><span class="badge badge-alerta">Alerta</span></td>
+                    <td><div class="reading-val" style="color: #D92D20;">18.7 NTU</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+
+                  <tr data-id="SEN-008" data-nombre="pH P3" data-tipo="pH" data-piscina="Piscina 3" data-estado="En línea" data-lectura="7.1 pH" data-fecha="24/05/2024 10:30">
+                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-ph">🧪</div><span>SEN-008</span></div></td>
+                    <td>pH P3</td>
+                    <td>pH</td>
+                    <td>Piscina 3</td>
+                    <td><span class="badge badge-en-linea">En línea</span></td>
+                    <td><div class="reading-val">7.1 pH</div><span class="reading-time">24/05/2024 10:30</span></td>
+                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Columna Derecha -->
+          <div class="right-column">
+            <!-- Ubicación de sensores -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Ubicación de sensores</h3>
+                <select class="select-filter" style="padding: 4px 24px 4px 10px; font-size: 0.78rem;">
+                  <option>Piscina 1</option>
+                  <option>Piscina 2</option>
+                  <option>Piscina 3</option>
+                </select>
+              </div>
+              <div class="pond-map-container">
+                <div class="pond-water-ripple"></div>
+                <div class="pond-pin pin-temp" title="Temperatura P1 (27.5 °C)">🌡️</div>
+                <div class="pond-pin pin-ph" title="pH P1 (7.2 pH)">🧪</div>
+                <div class="pond-pin pin-o2" title="Oxígeno Disuelto P1 (6.8 mg/L)">O₂</div>
+                <div class="pond-pin pin-turbidez" title="Turbidez P1 (12.3 NTU)">💧</div>
+                <div class="pond-pin pin-conductividad" title="Conductividad P1 (420 µS/cm)">⚡</div>
+              </div>
+              <div class="pond-map-footer">
+                <span class="map-count-text">5 sensores instalados</span>
+                <a href="#" class="btn-link-map">Ver en mapa</a>
+              </div>
+            </div>
+
+            <!-- Estado por tipo de sensor -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Estado por tipo de sensor</h3>
+              </div>
+              <div class="donut-chart-layout">
+                <div class="chart-donut-wrapper">
+                  <canvas id="donutChart"></canvas>
+                </div>
+                <div class="sensor-legend-list">
+                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #1E64D4;"></span><span class="legend-name">Temperatura</span></div><span class="legend-value">3 (100%)</span></div>
+                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #12B76A;"></span><span class="legend-name">pH</span></div><span class="legend-value">3 (100%)</span></div>
+                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #06B6D4;"></span><span class="legend-name">Oxígeno Disuelto</span></div><span class="legend-value">3 (100%)</span></div>
+                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #F97316;"></span><span class="legend-name">Turbidez</span></div><span class="legend-value">2 (50%)</span></div>
+                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #9333EA;"></span><span class="legend-name">Conductividad</span></div><span class="legend-value">1 (100%)</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Fila Inferior -->
+        <section class="bottom-grid" style="margin-top: 24px;">
+          <!-- Información del sensor seleccionado -->
+          <div class="card selected-sensor-card">
+            <div class="card-header">
+              <h3 class="card-title">Información del sensor seleccionado</h3>
+            </div>
+            <div class="sensor-title-header">
+              <div class="sensor-main-icon" id="detailIcon">💥</div>
+              <div><h4 class="sensor-main-title" id="detailTitle">Turbidez P2 (SEN-007)</h4></div>
+            </div>
+            <div class="info-details-grid">
+              <div class="info-item"><span class="info-label">Tipo</span><span class="info-value" id="detailTipo">Turbidez</span></div>
+              <div class="info-item"><span class="info-label">Piscina</span><span class="info-value" id="detailPiscina">Piscina 2</span></div>
+              <div class="info-item"><span class="info-label">Estado</span><span class="info-value" id="detailEstado"><span class="badge badge-alerta">Alerta</span></span></div>
+              <div class="info-item"><span class="info-label">Última lectura</span><span class="info-value" id="detailLectura" style="font-size: 1rem; color: #D92D20;">18.7 NTU</span></div>
+              <div class="info-item"><span class="info-label">Última actualización</span><span class="info-value" id="detailFecha">24/05/2024 10:30</span></div>
+              <div class="info-item"><span class="info-label">Frecuencia de muestreo</span><span class="info-value" id="detailFrecuencia">Cada 1 minuto</span></div>
+            </div>
+          </div>
+
+          <!-- Histórico de últimas lecturas -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Histórico de últimas lecturas</h3>
+              <select class="select-filter" style="padding: 4px 24px 4px 10px; font-size: 0.78rem;">
+                <option>Última hora</option>
+                <option>Últimas 24 horas</option>
+                <option>Últimos 7 días</option>
+              </select>
+            </div>
+            <div class="chart-line-wrapper">
+              <canvas id="lineChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: AGREGAR NUEVO SENSOR -->
+  <div class="modal-backdrop" id="sensorModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Agregar Nuevo Sensor</h3>
+        <button class="btn-close-modal" id="btnCloseModal">&times;</button>
+      </div>
+
+      <form id="addSensorForm">
+        <div class="form-group">
+          <label class="form-label">ID del Sensor</label>
+          <input type="text" class="form-input" placeholder="Ej. SEN-009" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nombre del Sensor</label>
+          <input type="text" class="form-input" placeholder="Ej. Temperatura P3" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tipo de Sensor</label>
+          <select class="form-select" required>
+            <option value="Temperatura">Temperatura</option>
+            <option value="pH">pH</option>
+            <option value="Oxígeno Disuelto">Oxígeno Disuelto</option>
+            <option value="Turbidez">Turbidez</option>
+            <option value="Conductividad">Conductividad</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Piscina Asignada</label>
+          <select class="form-select" required>
+            <option value="Piscina 1">Piscina 1</option>
+            <option value="Piscina 2">Piscina 2</option>
+            <option value="Piscina 3">Piscina 3</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelModal">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Sensor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT EXCLUSIVO DE SENSORES -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // 1. Gráfica de Dona
+      const ctxDonut = document.getElementById('donutChart').getContext('2d');
+      new Chart(ctxDonut, {
+        type: 'doughnut',
+        data: {
+          labels: ['Temperatura', 'pH', 'Oxígeno Disuelto', 'Turbidez', 'Conductividad'],
+          datasets: [{
+            data: [3, 3, 3, 2, 1],
+            backgroundColor: ['#1E64D4', '#12B76A', '#06B6D4', '#F97316', '#9333EA'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // 2. Gráfica de Histórico
+      const ctxLine = document.getElementById('lineChart').getContext('2d');
+      let lineChart = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+          labels: ['09:30', '09:45', '10:00', '10:15', '10:30'],
+          datasets: [{
+            label: 'Lectura (NTU)',
+            data: [12, 10, 19, 16, 18.7],
+            borderColor: '#F97316',
+            backgroundColor: 'rgba(249, 115, 22, 0.08)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.35
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // 3. Filtros de Tabla
+      const searchInput = document.getElementById('searchInput');
+      const filterTipo = document.getElementById('filterTipo');
+      const filterPiscina = document.getElementById('filterPiscina');
+      const filterEstado = document.getElementById('filterEstado');
+      const tableRows = document.querySelectorAll('#sensorsTable tbody tr');
+
+      function filterTable() {
+        const query = searchInput.value.toLowerCase();
+        const tipoVal = filterTipo.value;
+        const piscinaVal = filterPiscina.value;
+        const estadoVal = filterEstado.value;
+
+        tableRows.forEach(row => {
+          const text = row.innerText.toLowerCase();
+          const matchesQuery = text.includes(query);
+          const matchesTipo = !tipoVal || row.dataset.tipo === tipoVal;
+          const matchesPiscina = !piscinaVal || row.dataset.piscina === piscinaVal;
+          const matchesEstado = !estadoVal || row.dataset.estado === estadoVal;
+
+          row.style.display = (matchesQuery && matchesTipo && matchesPiscina && matchesEstado) ? '' : 'none';
+        });
+      }
+
+      if (searchInput) searchInput.addEventListener('input', filterTable);
+      if (filterTipo) filterTipo.addEventListener('change', filterTable);
+      if (filterPiscina) filterPiscina.addEventListener('change', filterTable);
+      if (filterEstado) filterEstado.addEventListener('change', filterTable);
+
+      // 4. Seleccionar Fila -> Actualizar Detalle e Histórico
+      tableRows.forEach(row => {
+        row.addEventListener('click', () => {
+          tableRows.forEach(r => r.classList.remove('row-selected'));
+          row.classList.add('row-selected');
+
+          const id = row.dataset.id;
+          const nombre = row.dataset.nombre;
+          const tipo = row.dataset.tipo;
+          const piscina = row.dataset.piscina;
+          const estado = row.dataset.estado;
+          const lectura = row.dataset.lectura;
+          const fecha = row.dataset.fecha;
+
+          document.getElementById('detailTitle').innerText = `${nombre} (${id})`;
+          document.getElementById('detailTipo').innerText = tipo;
+          document.getElementById('detailPiscina').innerText = piscina;
+          document.getElementById('detailFecha').innerText = fecha;
+
+          const detailEstadoEl = document.getElementById('detailEstado');
+          const detailLecturaEl = document.getElementById('detailLectura');
+          const detailIconEl = document.getElementById('detailIcon');
+
+          if (estado === 'Alerta') {
+            detailEstadoEl.innerHTML = '<span class="badge badge-alerta">Alerta</span>';
+            detailLecturaEl.style.color = '#D92D20';
+            detailIconEl.innerText = '💥';
+          } else {
+            detailEstadoEl.innerHTML = '<span class="badge badge-en-linea">En línea</span>';
+            detailLecturaEl.style.color = '#1E293B';
+            detailIconEl.innerText = tipo === 'Temperatura' ? '🌡️' : (tipo === 'pH' ? '🧪' : (tipo === 'Oxígeno Disuelto' ? 'O₂' : '⚡'));
+          }
+          detailLecturaEl.innerText = lectura;
+
+          let newData = [12, 10, 19, 16, parseFloat(lectura) || 18.7];
+          let color = '#F97316';
+          if (tipo === 'Temperatura') { newData = [26.0, 26.5, 27.0, 27.2, 27.5]; color = '#1E64D4'; }
+          else if (tipo === 'pH') { newData = [7.0, 7.1, 7.1, 7.2, 7.2]; color = '#12B76A'; }
+          else if (tipo === 'Oxígeno Disuelto') { newData = [6.2, 6.4, 6.5, 6.7, 6.8]; color = '#06B6D4'; }
+
+          lineChart.data.datasets[0].data = newData;
+          lineChart.data.datasets[0].borderColor = color;
+          lineChart.update();
+        });
+      });
+
+      // 5. Modal
+      const modal = document.getElementById('sensorModal');
+      const btnOpenModal = document.getElementById('btnAgregarSensor');
+      const btnCloseModal = document.getElementById('btnCloseModal');
+      const btnCancelModal = document.getElementById('btnCancelModal');
+      const addForm = document.getElementById('addSensorForm');
+
+      if (btnOpenModal) btnOpenModal.addEventListener('click', () => modal.classList.add('active'));
+      if (btnCloseModal) btnCloseModal.addEventListener('click', () => modal.classList.remove('active'));
+      if (btnCancelModal) btnCancelModal.addEventListener('click', () => modal.classList.remove('active'));
+      if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+      if (addForm) {
+        addForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          alert('Sensor registrado exitosamente.');
+          modal.classList.remove('active');
+        });
+      }
+    });
+  </script>
+
+  <!-- Script para dropdown del perfil de usuario -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('userProfileBtn');
+      const menu = document.getElementById('userDropdownMenu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.toggle('show');
+        });
+        document.addEventListener('click', function(e) {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('show');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

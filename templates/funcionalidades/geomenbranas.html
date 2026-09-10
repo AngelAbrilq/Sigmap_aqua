@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGMAP-AQUA | Geomembranas</title>
+
+  <!-- Tipografía -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos base -->
+  <link rel="stylesheet" href="../../static/css/InstructorLider.css">
+  <link rel="stylesheet" href="/static/css/InstructorLider.css">
+
+  <!-- Estilos módulo -->
+  <link rel="stylesheet" href="../../static/css/geomembranas.css">
+  <link rel="stylesheet" href="/static/css/geomembranas.css">
+
+  <style>
+    @import url("../../static/css/InstructorLider.css");
+    @import url("/static/css/InstructorLider.css");
+    @import url("../../static/css/geomembranas.css");
+    @import url("/static/css/geomembranas.css");
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- =========================================================================
+         1. BARRA LATERAL (SIDEBAR)
+         ========================================================================= -->
+        <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="../../static/img/logo sigmap-aqua.png" data-django-src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo" onerror="this.onerror=null; this.src='../../static/img/Logo.jpeg';">
+        <h1 class="sidebar-brand">SIGMAP-AQUA</h1>
+        <p class="sidebar-subtitle">Sistema Inteligente de Monitoreo para Acuicultura</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Inicio -->
+        <a href="../roles/InstructorLider.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Inicio</span>
+        </a>
+
+        <!-- Sensores -->
+        <a href="sensores.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span>Sensores</span>
+        </a>
+
+        <!-- Monitoreo en tiempo real -->
+        <a href="monitoreo.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Monitoreo en tiempo real</span>
+        </a>
+
+        <!-- Historial de datos -->
+        <a href="#" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Historial de datos</span>
+        </a>
+
+        <!-- Gráficas y reportes -->
+        <a href="graficasyreportes.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Gráficas y reportes</span>
+        </a>
+
+        <!-- Comparación de períodos -->
+        <a href="ComoaracionesdePreiodos.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Comparación de períodos</span>
+        </a>
+
+        <!-- Alertas -->
+        <a href="Alertas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas</span>
+          <span class="nav-badge">3</span>
+        </a>
+
+        <!-- IA - Análisis predictivo -->
+        <a href="AI.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12v9.9"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>IA - Análisis predictivo</span>
+        </a>
+
+        <!-- Usuarios -->
+        <a href="usuarios.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Usuarios</span>
+        </a>
+
+        <!-- Geomembranas -->
+        <a href="geomenbranas.html" class="nav-item active">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Geomembranas</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../usuarios/login.html" class="nav-item logout">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Cerrar sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- =========================================================================
+         2. CONTENIDO PRINCIPAL
+         ========================================================================= -->
+    <main class="main-content">
+      <div class="gm-container">
+
+        <!-- =====================================================================
+             HEADER
+             ===================================================================== -->
+        <header class="gm-header">
+          <div class="gm-title-area">
+            <h1>Geomembranas</h1>
+            <p>Gestiona y monitorea el estado de las geomembranas instaladas en tus piscinas.</p>
+          </div>
+
+          <div class="gm-header-actions">
+            <!-- Pill Piscina -->
+            <div class="gm-pill-select">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Piscina 1</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+
+            <!-- Pill Fecha -->
+            <div class="gm-date-pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>17/05/2024 - 24/05/2024</span>
+            </div>
+
+        <div class="header-right-group">
+          <!-- Ayuda -->
+          <button class="topbar-icon-btn" title="Ayuda y Soporte">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+
+          <!-- Notificaciones -->
+          <button class="topbar-icon-btn" title="Notificaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-badge">3</span>
+          </button>
+
+          <!-- Usuario Administrador -->
+          <div class="user-profile-wrap">
+            <div class="topbar-user-pill" id="userProfileBtn" title="Opciones de cuenta">
+              <div class="topbar-user-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+              <div class="topbar-user-info">
+                <span class="topbar-user-name">Administrador</span>
+                <span class="topbar-user-role">Rol: Administrador</span>
+              </div>
+              <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+              <div class="user-dropdown-header">
+                <div class="name">Administrador</div>
+                <div class="email">admin@sigmap-aqua.com</div>
+              </div>
+              <a href="configuraciones.html" class="user-dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Configuración</span>
+              </a>
+              <div class="user-dropdown-divider"></div>
+              <a href="../usuarios/login.html" class="user-dropdown-item text-danger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Cerrar sesión</span>
+              </a>
+            </div>
+          </div>
+        </div>
+          </div>
+        </header>
+
+        <!-- =====================================================================
+             KPI CARDS (5 columnas)
+             ===================================================================== -->
+        <div class="gm-kpi-row">
+          <!-- KPI 1: Geomembranas totales -->
+          <div class="gm-kpi-card">
+            <div class="gm-kpi-icon gm-kpi-icon--total">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="gm-kpi-info">
+              <span class="gm-kpi-label">Geomembranas totales</span>
+              <span class="gm-kpi-value">4</span>
+              <span class="gm-kpi-sub">En todas las piscinas</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Estado general -->
+          <div class="gm-kpi-card">
+            <div class="gm-kpi-icon gm-kpi-icon--status">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="gm-kpi-info">
+              <span class="gm-kpi-label">Estado general</span>
+              <span class="gm-kpi-value gm-kpi-value--green">Óptimo</span>
+              <span class="gm-kpi-sub">Sin riesgos detectados</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Vida útil promedio -->
+          <div class="gm-kpi-card">
+            <div class="gm-kpi-icon gm-kpi-icon--life">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="gm-kpi-info">
+              <span class="gm-kpi-label">Vida útil promedio</span>
+              <span class="gm-kpi-value">78%</span>
+              <span class="gm-kpi-sub">Estimado restante</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Última inspección -->
+          <div class="gm-kpi-card">
+            <div class="gm-kpi-icon gm-kpi-icon--last">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="gm-kpi-info">
+              <span class="gm-kpi-label">Última inspección</span>
+              <span class="gm-kpi-value">24/05/2024</span>
+              <span class="gm-kpi-sub">Hace 2 días</span>
+            </div>
+          </div>
+
+          <!-- KPI 5: Próxima inspección -->
+          <div class="gm-kpi-card">
+            <div class="gm-kpi-icon gm-kpi-icon--next">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+            </div>
+            <div class="gm-kpi-info">
+              <span class="gm-kpi-label">Próxima inspección</span>
+              <span class="gm-kpi-value">07/06/2024</span>
+              <span class="gm-kpi-sub">En 14 días</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================================
+             LAYOUT DOS COLUMNAS: LISTA + DETALLE
+             ===================================================================== -->
+        <div class="gm-main-layout">
+
+          <!-- ---- COLUMNA IZQUIERDA: LISTA DE GEOMEMBRANAS ---- -->
+          <div class="gm-list-panel">
+
+            <!-- Header lista -->
+            <div class="gm-list-header">
+              <h2>Lista de geomembranas</h2>
+              <button class="gm-btn-add" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Agregar geomembrana</span>
+              </button>
+            </div>
+
+            <!-- Search + Filter -->
+            <div class="gm-list-controls">
+              <div class="gm-search-wrap">
+                <svg class="gm-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" class="gm-search-input" placeholder="Buscar geomembrana...">
+              </div>
+              <button class="gm-btn-filter" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <span>Filtrar</span>
+              </button>
+            </div>
+
+            <!-- Lista de items -->
+            <div class="gm-list-items">
+              <!-- Item 1 - Seleccionado -->
+              <div class="gm-list-item gm-list-item--active" data-index="0">
+                <div class="gm-list-item-info">
+                  <div class="gm-list-item-title-row">
+                    <span class="gm-list-item-name">Geomembrana Piscina 1</span>
+                    <span class="gm-status-dot gm-status-dot--ok"></span>
+                    <span class="gm-status-label gm-status-label--ok">Óptimo</span>
+                  </div>
+                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
+                  <span class="gm-list-item-detail">Instalada: 15/03/2023</span>
+                </div>
+                <div class="gm-list-item-gauge">
+                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#16a34a" stroke-width="4" stroke-dasharray="138.88" stroke-dashoffset="20.83" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">85%</text>
+                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
+                  </svg>
+                </div>
+                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="gm-list-item" data-index="1">
+                <div class="gm-list-item-info">
+                  <div class="gm-list-item-title-row">
+                    <span class="gm-list-item-name">Geomembrana Piscina 2</span>
+                    <span class="gm-status-dot gm-status-dot--ok"></span>
+                    <span class="gm-status-label gm-status-label--ok">Óptimo</span>
+                  </div>
+                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
+                  <span class="gm-list-item-detail">Instalada: 20/02/2023</span>
+                </div>
+                <div class="gm-list-item-gauge">
+                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#16a34a" stroke-width="4" stroke-dasharray="117.65" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">72%</text>
+                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
+                  </svg>
+                </div>
+                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="gm-list-item" data-index="2">
+                <div class="gm-list-item-info">
+                  <div class="gm-list-item-title-row">
+                    <span class="gm-list-item-name">Geomembrana Piscina 3</span>
+                    <span class="gm-status-dot gm-status-dot--warn"></span>
+                    <span class="gm-status-label gm-status-label--warn">Atención</span>
+                  </div>
+                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
+                  <span class="gm-list-item-detail">Instalada: 10/01/2023</span>
+                </div>
+                <div class="gm-list-item-gauge">
+                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="78.37" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">48%</text>
+                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
+                  </svg>
+                </div>
+                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+
+              <!-- Item 4 -->
+              <div class="gm-list-item" data-index="3">
+                <div class="gm-list-item-info">
+                  <div class="gm-list-item-title-row">
+                    <span class="gm-list-item-name">Geomembrana Piscina 4</span>
+                    <span class="gm-status-dot gm-status-dot--ok"></span>
+                    <span class="gm-status-label gm-status-label--ok">Óptimo</span>
+                  </div>
+                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
+                  <span class="gm-list-item-detail">Instalada: 05/04/2023</span>
+                </div>
+                <div class="gm-list-item-gauge">
+                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#16a34a" stroke-width="4" stroke-dasharray="143.72" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 30 30)"/>
+                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">88%</text>
+                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
+                  </svg>
+                </div>
+                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="gm-pagination">
+              <div class="gm-pagination-btns">
+                <button class="gm-page-btn" disabled>&lt;</button>
+                <button class="gm-page-btn gm-page-btn--active">1</button>
+                <button class="gm-page-btn">&gt;</button>
+              </div>
+              <span class="gm-pagination-info">1-4 de 4</span>
+            </div>
+          </div>
+
+          <!-- ---- COLUMNA DERECHA: DETALLE DE GEOMEMBRANA ---- -->
+          <div class="gm-detail-panel">
+
+            <!-- Encabezado detalle -->
+            <div class="gm-detail-header">
+              <div class="gm-detail-title-row">
+                <h2>Geomembrana Piscina 1</h2>
+                <span class="gm-status-dot gm-status-dot--ok"></span>
+                <span class="gm-status-label gm-status-label--ok">Óptimo</span>
+              </div>
+              <button class="gm-btn-edit" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <span>Editar información</span>
+              </button>
+            </div>
+
+            <!-- Tabs detalle -->
+            <nav class="gm-detail-tabs">
+              <a class="gm-detail-tab active">Resumen</a>
+              <a class="gm-detail-tab">Inspecciones</a>
+              <a class="gm-detail-tab">Mantenimiento</a>
+              <a class="gm-detail-tab">Documentos</a>
+              <a class="gm-detail-tab">Historial</a>
+            </nav>
+
+            <!-- Contenido del detalle: Resumen -->
+            <div class="gm-detail-body">
+
+              <!-- Fila superior: Info general + Vista de referencia -->
+              <div class="gm-detail-top-row">
+
+                <!-- Info general -->
+                <div class="gm-info-general">
+                  <h3>Información general</h3>
+                  <table class="gm-info-table">
+                    <tbody>
+                      <tr>
+                        <td class="gm-info-label">Tipo de geomembrana</td>
+                        <td class="gm-info-value">HDPE</td>
+                      </tr>
+                      <tr>
+                        <td class="gm-info-label">Espesor</td>
+                        <td class="gm-info-value">1.5 mm</td>
+                      </tr>
+                      <tr>
+                        <td class="gm-info-label">Área cubierta</td>
+                        <td class="gm-info-value">2,500 m²</td>
+                      </tr>
+                      <tr>
+                        <td class="gm-info-label">Fecha de instalación</td>
+                        <td class="gm-info-value">15/03/2023</td>
+                      </tr>
+                      <tr>
+                        <td class="gm-info-label">Proveedor</td>
+                        <td class="gm-info-value">GeoLáminas S.A.S.</td>
+                      </tr>
+                      <tr>
+                        <td class="gm-info-label">Garantía del fabricante</td>
+                        <td class="gm-info-value">10 años</td>
+                      </tr>
+                      <tr>
+                        <td class="gm-info-label">Vida útil estimada</td>
+                        <td class="gm-info-value">10 años</td>
+                      </tr>
+                      <tr>
+                        <td class="gm-info-label">Vida útil restante</td>
+                        <td class="gm-info-value">
+                          <div class="gm-progress-row">
+                            <span class="gm-progress-pct">85%</span>
+                            <div class="gm-progress-bar">
+                              <div class="gm-progress-fill" style="width: 85%;"></div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Vista de referencia -->
+                <div class="gm-ref-image">
+                  <h3>Vista de referencia</h3>
+                  <div class="gm-ref-image-container">
+                    <img src="../../static/img/geomembrana_ref.jpg" alt="Vista de referencia de geomembrana" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.src='/static/img/geomembrana_ref.jpg';}">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fila inferior: Estado actual + Parámetros + Inspecciones -->
+              <div class="gm-detail-bottom-row">
+
+                <!-- Estado actual -->
+                <div class="gm-estado-card">
+                  <h3>Estado actual</h3>
+                  <div class="gm-estado-body">
+                    <div class="gm-estado-icon">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="#16a34a" stroke-width="2"/></svg>
+                    </div>
+                    <div class="gm-estado-texts">
+                      <span class="gm-estado-title">Sin daños detectados</span>
+                      <span class="gm-estado-desc">La geomembrana se encuentra en óptimas condiciones.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Parámetros de integridad -->
+                <div class="gm-params-card">
+                  <h3>Parámetros de integridad</h3>
+                  <div class="gm-params-list">
+                    <div class="gm-param-row">
+                      <span class="gm-param-name">Perforaciones</span>
+                      <span class="gm-param-value gm-param-value--ok">0 detectadas</span>
+                    </div>
+                    <div class="gm-param-row">
+                      <span class="gm-param-name">Desgarros</span>
+                      <span class="gm-param-value gm-param-value--ok">0 detectados</span>
+                    </div>
+                    <div class="gm-param-row">
+                      <span class="gm-param-name">Deformaciones</span>
+                      <span class="gm-param-value gm-param-value--ok">0 detectadas</span>
+                    </div>
+                    <div class="gm-param-row">
+                      <span class="gm-param-name">Adherencia</span>
+                      <span class="gm-param-value gm-param-value--ok">Óptima</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Última inspección -->
+                <div class="gm-inspec-card">
+                  <h3>Última inspección</h3>
+                  <div class="gm-inspec-body">
+                    <div class="gm-inspec-icon">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <div class="gm-inspec-data">
+                      <span class="gm-inspec-date">24/05/2024 10:30 a. m.</span>
+                      <span class="gm-inspec-detail">Realizada por: Juan Pérez</span>
+                      <span class="gm-inspec-detail">Resultado: Sin observaciones</span>
+                    </div>
+                  </div>
+                  <button class="gm-btn-outline-sm" type="button">Ver informe completo</button>
+                </div>
+
+                <!-- Próxima inspección -->
+                <div class="gm-inspec-card">
+                  <h3>Próxima inspección</h3>
+                  <div class="gm-inspec-body">
+                    <div class="gm-inspec-icon">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <div class="gm-inspec-data">
+                      <span class="gm-inspec-date">07/06/2024</span>
+                      <span class="gm-inspec-detail">Programada</span>
+                      <span class="gm-inspec-detail">En 14 días</span>
+                    </div>
+                  </div>
+                  <button class="gm-btn-outline-sm" type="button">Reprogramar</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================================
+             BARRA DE RECOMENDACIÓN INFERIOR
+             ===================================================================== -->
+        <div class="gm-recommendation-bar">
+          <div class="gm-rec-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </div>
+          <div class="gm-rec-texts">
+            <span class="gm-rec-title">Recomendación</span>
+            <span class="gm-rec-desc">Se recomienda continuar con el monitoreo periódico y realizar limpieza de sedimentación en bordes.</span>
+          </div>
+          <button class="gm-btn-rec" type="button">Ver recomendaciones</button>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Datos de las geomembranas
+      const geomembranasData = [
+        {
+          name: 'Geomembrana Piscina 1',
+          status: 'Óptimo',
+          statusClass: 'ok',
+          tipo: 'HDPE',
+          espesor: '1.5 mm',
+          area: '2,500 m²',
+          fechaInstalacion: '15/03/2023',
+          proveedor: 'GeoLáminas S.A.S.',
+          garantia: '10 años',
+          vidaUtil: '10 años',
+          vidaRestante: 85,
+          estadoDanos: 'Sin daños detectados',
+          estadoDesc: 'La geomembrana se encuentra en óptimas condiciones.',
+          ultimaInspec: '24/05/2024 10:30 a. m.',
+          ultimaPor: 'Juan Pérez',
+          ultimaResult: 'Sin observaciones',
+          proximaInspec: '07/06/2024',
+          proximaDias: 'En 14 días'
+        },
+        {
+          name: 'Geomembrana Piscina 2',
+          status: 'Óptimo',
+          statusClass: 'ok',
+          tipo: 'HDPE',
+          espesor: '1.5 mm',
+          area: '2,800 m²',
+          fechaInstalacion: '20/02/2023',
+          proveedor: 'GeoLáminas S.A.S.',
+          garantia: '10 años',
+          vidaUtil: '10 años',
+          vidaRestante: 72,
+          estadoDanos: 'Sin daños detectados',
+          estadoDesc: 'Estructura e impermeabilidad conservadas.',
+          ultimaInspec: '22/05/2024 09:15 a. m.',
+          ultimaPor: 'Carlos Ruiz',
+          ultimaResult: 'Sin observaciones',
+          proximaInspec: '05/06/2024',
+          proximaDias: 'En 12 días'
+        },
+        {
+          name: 'Geomembrana Piscina 3',
+          status: 'Atención',
+          statusClass: 'warn',
+          tipo: 'HDPE',
+          espesor: '1.5 mm',
+          area: '3,100 m²',
+          fechaInstalacion: '10/01/2023',
+          proveedor: 'TecnoMembranas Ltda.',
+          garantia: '8 años',
+          vidaUtil: '8 años',
+          vidaRestante: 48,
+          estadoDanos: 'Sedimentación en bordes',
+          estadoDesc: 'Se requiere limpieza y revisión de tensión superficial.',
+          ultimaInspec: '18/05/2024 11:00 a. m.',
+          ultimaPor: 'Ana Mendoza',
+          ultimaResult: 'Observación menor en borde oeste',
+          proximaInspec: '01/06/2024',
+          proximaDias: 'En 8 días'
+        },
+        {
+          name: 'Geomembrana Piscina 4',
+          status: 'Óptimo',
+          statusClass: 'ok',
+          tipo: 'HDPE',
+          espesor: '1.5 mm',
+          area: '2,600 m²',
+          fechaInstalacion: '05/04/2023',
+          proveedor: 'GeoLáminas S.A.S.',
+          garantia: '10 años',
+          vidaUtil: '10 años',
+          vidaRestante: 88,
+          estadoDanos: 'Sin daños detectados',
+          estadoDesc: 'Excelente tensión y estado superficial óptimo.',
+          ultimaInspec: '23/05/2024 03:20 p. m.',
+          ultimaPor: 'Juan Pérez',
+          ultimaResult: 'Sin observaciones',
+          proximaInspec: '06/06/2024',
+          proximaDias: 'En 13 días'
+        }
+      ];
+
+      // Selección de items de la lista
+      const listItems = document.querySelectorAll('.gm-list-item');
+      const detailTitle = document.querySelector('.gm-detail-title-row h2');
+      const detailDot = document.querySelector('.gm-detail-title-row .gm-status-dot');
+      const detailBadge = document.querySelector('.gm-detail-title-row .gm-status-label');
+      const infoValues = document.querySelectorAll('.gm-info-value');
+      const progressPct = document.querySelector('.gm-progress-pct');
+      const progressFill = document.querySelector('.gm-progress-fill');
+      const estadoTitle = document.querySelector('.gm-estado-title');
+      const estadoDesc = document.querySelector('.gm-estado-desc');
+      const inspecDates = document.querySelectorAll('.gm-inspec-date');
+      const inspecDetails = document.querySelectorAll('.gm-inspec-detail');
+
+      listItems.forEach(item => {
+        item.addEventListener('click', () => {
+          listItems.forEach(i => i.classList.remove('gm-list-item--active'));
+          item.classList.add('gm-list-item--active');
+
+          const index = parseInt(item.dataset.index, 10);
+          const data = geomembranasData[index];
+          if (!data) return;
+
+          if (detailTitle) detailTitle.textContent = data.name;
+          if (detailDot) {
+            detailDot.className = `gm-status-dot gm-status-dot--${data.statusClass}`;
+          }
+          if (detailBadge) {
+            detailBadge.className = `gm-status-label gm-status-label--${data.statusClass}`;
+            detailBadge.textContent = data.status;
+          }
+
+          if (infoValues.length >= 7) {
+            infoValues[0].textContent = data.tipo;
+            infoValues[1].textContent = data.espesor;
+            infoValues[2].textContent = data.area;
+            infoValues[3].textContent = data.fechaInstalacion;
+            infoValues[4].textContent = data.proveedor;
+            infoValues[5].textContent = data.garantia;
+            infoValues[6].textContent = data.vidaUtil;
+          }
+
+          if (progressPct) progressPct.textContent = `${data.vidaRestante}%`;
+          if (progressFill) progressFill.style.width = `${data.vidaRestante}%`;
+
+          if (estadoTitle) estadoTitle.textContent = data.estadoDanos;
+          if (estadoDesc) estadoDesc.textContent = data.estadoDesc;
+
+          if (inspecDates.length >= 2) {
+            inspecDates[0].textContent = data.ultimaInspec;
+            inspecDates[1].textContent = data.proximaInspec;
+          }
+          if (inspecDetails.length >= 4) {
+            inspecDetails[0].textContent = `Realizada por: ${data.ultimaPor}`;
+            inspecDetails[1].textContent = `Resultado: ${data.ultimaResult}`;
+            inspecDetails[2].textContent = 'Programada';
+            inspecDetails[3].textContent = data.proximaDias;
+          }
+        });
+      });
+
+      // Tabs de detalle
+      const tabs = document.querySelectorAll('.gm-detail-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          e.preventDefault();
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+        });
+      });
+
+      // Buscador
+      const searchInput = document.querySelector('.gm-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          listItems.forEach(item => {
+            const name = item.querySelector('.gm-list-item-name')?.textContent.toLowerCase() || '';
+            const detail = item.querySelector('.gm-list-item-detail')?.textContent.toLowerCase() || '';
+            if (name.includes(query) || detail.includes(query)) {
+              item.style.display = 'flex';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+      }
+    });
+  </script>
+
+  <!-- Script para dropdown del perfil de usuario -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('userProfileBtn');
+      const menu = document.getElementById('userDropdownMenu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.toggle('show');
+        });
+        document.addEventListener('click', function(e) {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('show');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

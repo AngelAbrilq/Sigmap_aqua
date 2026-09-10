@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGMAP-AQUA | IA - Análisis predictivo</title>
+
+  <!-- Tipografía -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos base -->
+  <link rel="stylesheet" href="../../static/css/InstructorLider.css">
+  <link rel="stylesheet" href="/static/css/InstructorLider.css">
+
+  <!-- Estilos módulo -->
+  <link rel="stylesheet" href="../../static/css/ai.css">
+  <link rel="stylesheet" href="/static/css/ai.css">
+
+  <style>
+    @import url("../../static/css/InstructorLider.css");
+    @import url("/static/css/InstructorLider.css");
+    @import url("../../static/css/ai.css");
+    @import url("/static/css/ai.css");
+  </style>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- =========================================================================
+         1. BARRA LATERAL (SIDEBAR)
+         ========================================================================= -->
+        <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="../../static/img/logo sigmap-aqua.png" data-django-src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo" onerror="this.onerror=null; this.src='../../static/img/Logo.jpeg';">
+        <h1 class="sidebar-brand">SIGMAP-AQUA</h1>
+        <p class="sidebar-subtitle">Sistema Inteligente de Monitoreo para Acuicultura</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Inicio -->
+        <a href="../roles/InstructorLider.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Inicio</span>
+        </a>
+
+        <!-- Sensores -->
+        <a href="sensores.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span>Sensores</span>
+        </a>
+
+        <!-- Monitoreo en tiempo real -->
+        <a href="monitoreo.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Monitoreo en tiempo real</span>
+        </a>
+
+        <!-- Historial de datos -->
+        <a href="#" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Historial de datos</span>
+        </a>
+
+        <!-- Gráficas y reportes -->
+        <a href="graficasyreportes.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Gráficas y reportes</span>
+        </a>
+
+        <!-- Comparación de períodos -->
+        <a href="ComoaracionesdePreiodos.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Comparación de períodos</span>
+        </a>
+
+        <!-- Alertas -->
+        <a href="Alertas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas</span>
+          <span class="nav-badge">3</span>
+        </a>
+
+        <!-- IA - Análisis predictivo -->
+        <a href="AI.html" class="nav-item active">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12v9.9"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>IA - Análisis predictivo</span>
+        </a>
+
+        <!-- Usuarios -->
+        <a href="usuarios.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Usuarios</span>
+        </a>
+
+        <!-- Geomembranas -->
+        <a href="geomenbranas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Geomembranas</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../usuarios/login.html" class="nav-item logout">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Cerrar sesión</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- =========================================================================
+         2. CONTENIDO PRINCIPAL
+         ========================================================================= -->
+    <main class="main-content">
+      <div class="ai-container">
+
+        <!-- =====================================================================
+             HEADER: TÍTULO, SUBTÍTULO Y ACCIONES DE USUARIO
+             ===================================================================== -->
+        <header class="ai-header">
+          <div class="ai-title-area">
+            <h1>IA - Análisis predictivo</h1>
+            <p>Análisis inteligente de datos para predicción de tendencias, detección de anomalías y recomendaciones.</p>
+          </div>
+
+          <div class="ai-header-actions">
+            <!-- Pill Piscina 1 -->
+            <div class="ai-pill-select">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Piscina 1</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
+
+            <!-- Pill Rango de Fecha -->
+            <div class="ai-date-pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>17/05/2024 - 24/05/2024</span>
+            </div>
+
+        <div class="header-right-group">
+          <!-- Ayuda -->
+          <button class="topbar-icon-btn" title="Ayuda y Soporte">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+
+          <!-- Notificaciones -->
+          <button class="topbar-icon-btn" title="Notificaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-badge">3</span>
+          </button>
+
+          <!-- Usuario Administrador -->
+          <div class="user-profile-wrap">
+            <div class="topbar-user-pill" id="userProfileBtn" title="Opciones de cuenta">
+              <div class="topbar-user-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+              <div class="topbar-user-info">
+                <span class="topbar-user-name">Administrador</span>
+                <span class="topbar-user-role">Rol: Administrador</span>
+              </div>
+              <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+              <div class="user-dropdown-header">
+                <div class="name">Administrador</div>
+                <div class="email">admin@sigmap-aqua.com</div>
+              </div>
+              <a href="configuraciones.html" class="user-dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Configuración</span>
+              </a>
+              <div class="user-dropdown-divider"></div>
+              <a href="../usuarios/login.html" class="user-dropdown-item text-danger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Cerrar sesión</span>
+              </a>
+            </div>
+          </div>
+        </div>
+          </div>
+        </header>
+
+        <!-- =====================================================================
+             PESTAÑAS DE NAVEGACIÓN (TABS)
+             ===================================================================== -->
+        <nav class="ai-tabs-nav">
+          <a class="ai-tab-item active">Resumen predictivo</a>
+          <a class="ai-tab-item">Predicciones</a>
+          <a class="ai-tab-item">Anomalías detectadas</a>
+          <a class="ai-tab-item">Recomendaciones</a>
+          <a class="ai-tab-item">Modelo y rendimiento</a>
+        </nav>
+
+        <!-- =====================================================================
+             FILA SUPERIOR: ESTADO GENERAL + RECOMENDACIÓN DESTACADA
+             ===================================================================== -->
+        <section class="ai-top-row">
+
+          <!-- Estado predictivo general -->
+          <div class="ai-status-card">
+            <h2 class="ai-card-title">Estado predictivo general</h2>
+            
+            <div class="ai-status-grid">
+              <!-- Bloque 1: Estado general -->
+              <div class="ai-status-box">
+                <div class="ai-status-icon-circle ai-icon-circle-green">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                </div>
+                <div class="ai-status-info">
+                  <span class="ai-status-label">Estado general</span>
+                  <span class="ai-status-val" style="color: #12B76A;">Óptimo</span>
+                  <span class="ai-status-sub">● Condiciones estables</span>
+                </div>
+              </div>
+
+              <!-- Bloque 2: Confianza del modelo -->
+              <div class="ai-status-box">
+                <div class="ai-status-icon-circle ai-icon-circle-blue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="ai-status-info">
+                  <span class="ai-status-label">Confianza del modelo</span>
+                  <span class="ai-status-val">92%</span>
+                  <span class="ai-status-sub ai-sub-blue">● Alta confiabilidad</span>
+                </div>
+              </div>
+
+              <!-- Bloque 3: Horizonte de predicción -->
+              <div class="ai-status-box">
+                <div class="ai-status-icon-circle ai-icon-circle-purple">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div class="ai-status-info">
+                  <span class="ai-status-label">Horizonte de predicción</span>
+                  <span class="ai-status-val">7 días</span>
+                  <span class="ai-status-sub ai-sub-teal">● Predicción a corto plazo</span>
+                </div>
+              </div>
+
+              <!-- Bloque 4: Tendencia general -->
+              <div class="ai-status-box">
+                <div class="ai-status-icon-circle ai-icon-circle-teal">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 17 17 7 17 17"/><line x1="7" y1="7" x2="17" y2="7"/></svg>
+                </div>
+                <div class="ai-status-info">
+                  <span class="ai-status-label">Tendencia general</span>
+                  <span class="ai-status-val">Estable</span>
+                  <span class="ai-status-sub ai-sub-gray">● Sin cambios significativos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recomendación destacada -->
+          <div class="ai-rec-highlight-card">
+            <div class="ai-rec-header">
+              <div class="ai-rec-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/></svg>
+              </div>
+              <h3>Recomendación destacada</h3>
+            </div>
+            <p class="ai-rec-text">
+              La turbidez muestra una tendencia ascendente para los próximos 3 días. Se recomienda revisar el sistema de filtración y realizar limpieza preventiva.
+            </p>
+            <button class="ai-btn-rec-detail">
+              <span>Ver recomendaciones detalladas</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+        </section>
+
+        <!-- =====================================================================
+             SECCIÓN MEDIA: PREDICCIÓN DE PARÁMETROS + PROBABILIDAD DE EVENTOS
+             ===================================================================== -->
+        <section class="ai-middle-row">
+
+          <!-- Gráfico de Predicción -->
+          <div class="ai-chart-card">
+            <div class="ai-chart-header">
+              <h2 class="ai-card-title">
+                <span>Predicción de parámetros (próximos 7 días)</span>
+                <svg class="ai-card-info-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </h2>
+              <div class="ai-chart-legend">
+                <div class="ai-leg-item">
+                  <span class="ai-leg-line" style="background-color: #1E64D4;"></span>
+                  <span>Temperatura (°C)</span>
+                </div>
+                <div class="ai-leg-item">
+                  <span class="ai-leg-line" style="background-color: #10B981;"></span>
+                  <span>pH</span>
+                </div>
+                <div class="ai-leg-item">
+                  <span class="ai-leg-line" style="background-color: #0284C7;"></span>
+                  <span>Oxígeno Disuelto (mg/L)</span>
+                </div>
+                <div class="ai-leg-item">
+                  <span class="ai-leg-line" style="background-color: #F97316;"></span>
+                  <span>Turbidez (NTU)</span>
+                </div>
+                <div class="ai-leg-item">
+                  <span class="ai-leg-line" style="background-color: #9333EA;"></span>
+                  <span>Conductividad (µS/cm)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-chart-canvas-wrap">
+              <canvas id="predictionChart"></canvas>
+            </div>
+
+            <div class="ai-chart-note">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Las predicciones se basan en datos históricos y condiciones actuales del sistema.</span>
+            </div>
+          </div>
+
+          <!-- Probabilidad de eventos críticos -->
+          <div class="ai-prob-card">
+            <div class="ai-prob-header">
+              <h3>Probabilidad de eventos críticos (próximos 7 días)</h3>
+              <span class="ai-prob-col-label">Probabilidad</span>
+            </div>
+
+            <div class="ai-prob-list">
+              <!-- Item 1: Turbidez -->
+              <div class="ai-prob-item">
+                <div class="ai-prob-icon ai-prob-icon-orange">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+                </div>
+                <span class="ai-prob-name">Turbidez elevada (&gt; 25 NTU)</span>
+                <span class="ai-prob-pct ai-prob-pct-orange">65%</span>
+                <div class="ai-prob-bar-track">
+                  <div class="ai-prob-bar-fill ai-bg-orange" style="width: 65%;"></div>
+                </div>
+              </div>
+
+              <!-- Item 2: Oxígeno disuelto -->
+              <div class="ai-prob-item">
+                <div class="ai-prob-icon ai-prob-icon-blue">
+                  <span>O₂</span>
+                </div>
+                <span class="ai-prob-name">Oxígeno disuelto bajo (&lt; 4 mg/L)</span>
+                <span class="ai-prob-pct ai-prob-pct-amber">28%</span>
+                <div class="ai-prob-bar-track">
+                  <div class="ai-prob-bar-fill ai-bg-amber" style="width: 28%;"></div>
+                </div>
+              </div>
+
+              <!-- Item 3: pH -->
+              <div class="ai-prob-item">
+                <div class="ai-prob-icon ai-prob-icon-green">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                </div>
+                <span class="ai-prob-name">pH fuera de rango (&lt; 6.5 o &gt; 8.5)</span>
+                <span class="ai-prob-pct ai-prob-pct-green">15%</span>
+                <div class="ai-prob-bar-track">
+                  <div class="ai-prob-bar-fill ai-bg-green" style="width: 15%;"></div>
+                </div>
+              </div>
+
+              <!-- Item 4: Temperatura -->
+              <div class="ai-prob-item">
+                <div class="ai-prob-icon ai-prob-icon-purple">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                </div>
+                <span class="ai-prob-name">Temperatura extrema (&lt; 22 °C o &gt; 32 °C)</span>
+                <span class="ai-prob-pct ai-prob-pct-green">10%</span>
+                <div class="ai-prob-bar-track">
+                  <div class="ai-prob-bar-fill ai-bg-green" style="width: 10%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-prob-note">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Probabilidades calculadas con el modelo de IA en base a datos históricos.</span>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- =====================================================================
+             FILA INFERIOR: FACTORES + ANOMALÍAS + RESUMEN DEL MODELO
+             ===================================================================== -->
+        <section class="ai-bottom-row">
+
+          <!-- Card 1: Factores que más influyen -->
+          <div class="ai-bot-card">
+            <h2 class="ai-card-title">
+              <span>Factores que más influyen</span>
+              <svg class="ai-card-info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </h2>
+
+            <div class="ai-factors-list">
+              <!-- 1. Temp agua -->
+              <div class="ai-factor-item">
+                <span class="ai-factor-name">Temperatura del agua</span>
+                <div class="ai-factor-bar-track">
+                  <div class="ai-factor-bar-fill" style="width: 28%; background-color: #1E64D4;"></div>
+                </div>
+                <span class="ai-factor-pct">28%</span>
+              </div>
+
+              <!-- 2. Hora del día -->
+              <div class="ai-factor-item">
+                <span class="ai-factor-name">Hora del día</span>
+                <div class="ai-factor-bar-track">
+                  <div class="ai-factor-bar-fill" style="width: 18%; background-color: #06B6D4;"></div>
+                </div>
+                <span class="ai-factor-pct">18%</span>
+              </div>
+
+              <!-- 3. Histórico de turbidez -->
+              <div class="ai-factor-item">
+                <span class="ai-factor-name">Histórico de turbidez</span>
+                <div class="ai-factor-bar-track">
+                  <div class="ai-factor-bar-fill" style="width: 17%; background-color: #F97316;"></div>
+                </div>
+                <span class="ai-factor-pct">17%</span>
+              </div>
+
+              <!-- 4. Oxígeno disuelto -->
+              <div class="ai-factor-item">
+                <span class="ai-factor-name">Oxígeno disuelto</span>
+                <div class="ai-factor-bar-track">
+                  <div class="ai-factor-bar-fill" style="width: 15%; background-color: #10B981;"></div>
+                </div>
+                <span class="ai-factor-pct">15%</span>
+              </div>
+
+              <!-- 5. pH actual -->
+              <div class="ai-factor-item">
+                <span class="ai-factor-name">pH actual</span>
+                <div class="ai-factor-bar-track">
+                  <div class="ai-factor-bar-fill" style="width: 12%; background-color: #8B5CF6;"></div>
+                </div>
+                <span class="ai-factor-pct">12%</span>
+              </div>
+
+              <!-- 6. Conductividad -->
+              <div class="ai-factor-item">
+                <span class="ai-factor-name">Conductividad</span>
+                <div class="ai-factor-bar-track">
+                  <div class="ai-factor-bar-fill" style="width: 10%; background-color: #EC4899;"></div>
+                </div>
+                <span class="ai-factor-pct">10%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Detección de anomalías con IA -->
+          <div class="ai-bot-card">
+            <h2 class="ai-card-title">
+              <span>Detección de anomalías con IA</span>
+              <svg class="ai-card-info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </h2>
+
+            <div class="ai-anomaly-box">
+              <svg class="ai-anomaly-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+              <div class="ai-anomaly-texts">
+                <span class="ai-anomaly-title">No se han detectado anomalías significativas</span>
+                <span class="ai-anomaly-desc">El comportamiento de los parámetros se encuentra dentro de los patrones normales.</span>
+              </div>
+            </div>
+
+            <div class="ai-anomaly-stats">
+              <div class="ai-astat-col">
+                <span class="ai-astat-label">Anomalías detectadas</span>
+                <span class="ai-astat-val">0</span>
+                <span class="ai-astat-sub">Últimas 24 horas</span>
+              </div>
+              <div class="ai-astat-col">
+                <span class="ai-astat-label">Parámetros monitoreados</span>
+                <span class="ai-astat-val">5</span>
+                <span class="ai-astat-sub">&nbsp;</span>
+              </div>
+              <div class="ai-astat-col">
+                <span class="ai-astat-label">Precisión del modelo</span>
+                <span class="ai-astat-val">94%</span>
+                <span class="ai-astat-sub">Últimos 30 días</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Resumen del modelo -->
+          <div class="ai-bot-card">
+            <h2 class="ai-card-title">
+              <span>Resumen del modelo</span>
+              <svg class="ai-card-info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </h2>
+
+            <div class="ai-model-list">
+              <div class="ai-model-row">
+                <span class="ai-model-key">Modelo utilizado</span>
+                <span class="ai-model-val">LSTM - Redes Neuronales</span>
+              </div>
+              <div class="ai-model-row">
+                <span class="ai-model-key">Entrenado con</span>
+                <span class="ai-model-val">18 meses de datos históricos</span>
+              </div>
+              <div class="ai-model-row">
+                <span class="ai-model-key">Último entrenamiento</span>
+                <span class="ai-model-val">23/05/2024 02:15 a. m.</span>
+              </div>
+              <div class="ai-model-row">
+                <span class="ai-model-key">Próximo entrenamiento</span>
+                <span class="ai-model-val">30/05/2024 02:00 a. m.</span>
+              </div>
+              <div class="ai-model-row">
+                <span class="ai-model-key">Rendimiento (MAPE)</span>
+                <div style="display: flex; align-items: center;">
+                  <span class="ai-model-val">6.2%</span>
+                  <span class="ai-badge-excellent">Excelente</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       SCRIPTS: CONFIGURACIÓN DEL GRÁFICO PREDICTIVO CON CHART.JS
+       ========================================================================= -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const ctx = document.getElementById('predictionChart').getContext('2d');
+
+      const labels = [
+        '17/05', '18/05', '19/05', '20/05', '21/05', '22/05', '23/05',
+        '24/05', '25/05', '26/05', '27/05', '28/05', '29/05', '30/05', '31/05'
+      ];
+
+      // Plugin para línea divisoria "Real" vs "Predicción"
+      const realVsPredictionPlugin = {
+        id: 'realVsPrediction',
+        afterDraw: (chart) => {
+          const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
+          // Línea divisoria entre índice 6 (23/05) e índice 7 (24/05)
+          const x1 = x.getPixelForValue(6);
+          const x2 = x.getPixelForValue(7);
+          const midX = (x1 + x2) / 2;
+
+          ctx.save();
+          // Línea vertical punteada
+          ctx.beginPath();
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = '#94A3B8';
+          ctx.moveTo(midX, top + 15);
+          ctx.lineTo(midX, bottom);
+          ctx.stroke();
+
+          // Textos "Real" y "Predicción"
+          ctx.font = '600 11px Plus Jakarta Sans';
+          ctx.fillStyle = '#475569';
+          ctx.textAlign = 'right';
+          ctx.fillText('Real', midX - 8, top + 8);
+          ctx.textAlign = 'left';
+          ctx.fillText('Predicción', midX + 8, top + 8);
+
+          ctx.restore();
+        }
+      };
+
+      const data = {
+        labels: labels,
+        datasets: [
+          // 1. Conductividad (eje derecho y1: 0 - 1000)
+          {
+            label: 'Conductividad (Real)',
+            data: [410, 425, 400, 430, 415, 420, 440, 420, null, null, null, null, null, null, null],
+            borderColor: '#9333EA',
+            backgroundColor: '#9333EA',
+            yAxisID: 'y1',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          {
+            label: 'Conductividad (Predicción)',
+            data: [null, null, null, null, null, null, null, 420, 430, 410, 440, 425, 435, 445, 430],
+            borderColor: '#9333EA',
+            backgroundColor: '#9333EA',
+            borderDash: [4, 4],
+            yAxisID: 'y1',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          // 2. Temperatura (eje y: 0 - 40)
+          {
+            label: 'Temperatura (Real)',
+            data: [21.5, 21.8, 21.2, 22.1, 21.6, 22.3, 22.0, 21.8, null, null, null, null, null, null, null],
+            borderColor: '#1E64D4',
+            backgroundColor: '#1E64D4',
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          {
+            label: 'Temperatura (Predicción)',
+            data: [null, null, null, null, null, null, null, 21.8, 22.0, 22.2, 22.4, 22.5, 22.6, 22.8, 23.0],
+            borderColor: '#1E64D4',
+            backgroundColor: '#1E64D4',
+            borderDash: [4, 4],
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          // 3. Turbidez (eje y: 0 - 40)
+          {
+            label: 'Turbidez (Real)',
+            data: [15.0, 15.5, 14.8, 14.2, 14.0, 15.2, 15.6, 14.5, null, null, null, null, null, null, null],
+            borderColor: '#F97316',
+            backgroundColor: '#F97316',
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          {
+            label: 'Turbidez (Predicción)',
+            data: [null, null, null, null, null, null, null, 14.5, 15.0, 15.3, 15.8, 15.4, 15.6, 15.8, 16.0],
+            borderColor: '#F97316',
+            backgroundColor: '#F97316',
+            borderDash: [4, 4],
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          // 4. pH (eje y: 0 - 40)
+          {
+            label: 'pH (Real)',
+            data: [6.8, 7.3, 7.5, 7.0, 7.2, 7.8, 7.4, 7.1, null, null, null, null, null, null, null],
+            borderColor: '#10B981',
+            backgroundColor: '#10B981',
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          {
+            label: 'pH (Predicción)',
+            data: [null, null, null, null, null, null, null, 7.1, 7.3, 7.5, 7.4, 7.6, 7.7, 7.8, 7.9],
+            borderColor: '#10B981',
+            backgroundColor: '#10B981',
+            borderDash: [4, 4],
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          // 5. Oxígeno Disuelto (eje y: 0 - 40)
+          {
+            label: 'Oxígeno Disuelto (Real)',
+            data: [2.5, 2.7, 2.4, 2.6, 2.5, 2.8, 2.6, 2.5, null, null, null, null, null, null, null],
+            borderColor: '#0284C7',
+            backgroundColor: '#0284C7',
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          },
+          {
+            label: 'Oxígeno Disuelto (Predicción)',
+            data: [null, null, null, null, null, null, null, 2.5, 2.6, 2.7, 2.8, 2.7, 2.9, 3.0, 3.1],
+            borderColor: '#0284C7',
+            backgroundColor: '#0284C7',
+            borderDash: [4, 4],
+            yAxisID: 'y',
+            tension: 0.25,
+            borderWidth: 1.8,
+            pointRadius: 2.5
+          }
+        ]
+      };
+
+      new Chart(ctx, {
+        type: 'line',
+        data: data,
+        plugins: [realVsPredictionPlugin],
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              top: 10,
+              right: 18
+            }
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: '#0F172A',
+              titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' },
+              bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
+              cornerRadius: 6
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              },
+              ticks: {
+                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
+                color: '#64748B'
+              }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              min: 0,
+              max: 40,
+              ticks: {
+                stepSize: 10,
+                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
+                color: '#64748B'
+              },
+              grid: {
+                color: '#F1F5F9'
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              min: 0,
+              max: 1000,
+              ticks: {
+                stepSize: 200,
+                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
+                color: '#64748B'
+              },
+              grid: {
+                drawOnChartArea: false
+              }
+            }
+          }
+        }
+      });
+    });
+  </script>
+
+  <!-- Script para dropdown del perfil de usuario -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('userProfileBtn');
+      const menu = document.getElementById('userDropdownMenu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.toggle('show');
+        });
+        document.addEventListener('click', function(e) {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('show');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

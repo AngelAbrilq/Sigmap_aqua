@@ -1,0 +1,802 @@
+/* ==========================================================================
+   SIGMAP-AQUA - IA Análisis Predictivo CSS
+   Módulo: templates/funcionalidades/AI.html
+   ========================================================================== */
+
+/* Contenedor principal del módulo */
+.ai-container {
+  padding: 24px 32px 40px;
+  background-color: var(--bg-main, #F4F7FC);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary, #0F172A);
+}
+
+/* ==========================================================================
+   1. HEADER DE LA PÁGINA
+   ========================================================================== */
+.ai-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.ai-title-area h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.ai-title-area p {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.ai-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-pill-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #EFF6FF;
+  border: 1px solid #DBEAFE;
+  color: #1E64D4;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-pill-select:hover {
+  background: #DBEAFE;
+}
+
+.ai-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.ai-date-pill svg {
+  color: #64748B;
+}
+
+.ai-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  color: #64748B;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.ai-icon-btn:hover {
+  border-color: #CBD5E1;
+  color: #1E293B;
+  background: #F8FAFC;
+}
+
+.ai-badge-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+}
+
+.ai-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 8px;
+  border-left: 1px solid #E2E8F0;
+}
+
+.ai-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  overflow: hidden;
+}
+
+.ai-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  line-height: 1.2;
+}
+
+.ai-user-role {
+  font-size: 11px;
+  color: #94A3B8;
+  line-height: 1.2;
+}
+
+/* ==========================================================================
+   2. PESTAÑAS (TABS)
+   ========================================================================== */
+.ai-tabs-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0;
+  margin-top: -4px;
+}
+
+.ai-tab-item {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  text-decoration: none;
+  padding: 8px 4px 12px 4px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-tab-item:hover {
+  color: #1E64D4;
+}
+
+.ai-tab-item.active {
+  color: #1E64D4;
+  border-bottom-color: #1E64D4;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   3. FILA SUPERIOR: ESTADO PREDICTIVO GENERAL + RECOMENDACIÓN DESTACADA
+   ========================================================================== */
+.ai-top-row {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+}
+
+/* Tarjeta: Estado predictivo general */
+.ai-status-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-card-info-icon {
+  color: #94A3B8;
+  cursor: pointer;
+}
+
+.ai-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.ai-status-box {
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-status-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-icon-circle-green {
+  background: #E8F8F0;
+  color: #12B76A;
+}
+
+.ai-icon-circle-blue {
+  background: #EBF3FC;
+  color: #1E64D4;
+}
+
+.ai-icon-circle-purple {
+  background: #F3E8FF;
+  color: #9333EA;
+}
+
+.ai-icon-circle-teal {
+  background: #E0F2FE;
+  color: #0284C7;
+}
+
+.ai-status-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-status-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 2px;
+}
+
+.ai-status-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.ai-status-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #12B76A;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-status-sub.ai-sub-blue {
+  color: #0284C7;
+}
+
+.ai-status-sub.ai-sub-teal {
+  color: #06B6D4;
+}
+
+.ai-status-sub.ai-sub-gray {
+  color: #64748B;
+}
+
+/* Tarjeta: Recomendación destacada */
+.ai-rec-highlight-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ai-rec-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-rec-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #F3E8FF;
+  color: #9333EA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-rec-header h3 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+}
+
+.ai-rec-text {
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ai-btn-rec-detail {
+  background: #4F46E5;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s, transform 0.15s;
+  width: 100%;
+}
+
+.ai-btn-rec-detail:hover {
+  background: #4338CA;
+}
+
+/* ==========================================================================
+   4. SECCIÓN MEDIA: GRÁFICO DE PREDICCIÓN + PROBABILIDAD DE EVENTOS
+   ========================================================================== */
+.ai-middle-row {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+}
+
+/* Tarjeta del Gráfico */
+.ai-chart-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 20px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ai-leg-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-leg-line {
+  width: 16px;
+  height: 2px;
+  position: relative;
+  display: inline-block;
+}
+
+.ai-leg-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.ai-chart-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 230px;
+}
+
+.ai-chart-note {
+  background: #F8FAFC;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #64748B;
+}
+
+.ai-chart-note svg {
+  color: #1E64D4;
+  flex-shrink: 0;
+}
+
+/* Tarjeta: Probabilidad de eventos críticos */
+.ai-prob-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-prob-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-prob-header h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0;
+}
+
+.ai-prob-col-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.ai-prob-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-prob-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-prob-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-prob-icon-orange {
+  background: #FFF4ED;
+  color: #F97316;
+}
+
+.ai-prob-icon-blue {
+  background: #EBF3FC;
+  color: #0284C7;
+  font-weight: 700;
+  font-size: 10.5px;
+}
+
+.ai-prob-icon-green {
+  background: #E8F8F0;
+  color: #12B76A;
+}
+
+.ai-prob-icon-purple {
+  background: #F3E8FF;
+  color: #9333EA;
+}
+
+.ai-prob-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+  flex-grow: 1;
+}
+
+.ai-prob-pct {
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: right;
+}
+
+.ai-prob-pct-orange { color: #F97316; }
+.ai-prob-pct-amber { color: #F59E0B; }
+.ai-prob-pct-green { color: #12B76A; }
+
+.ai-prob-bar-track {
+  width: 65px;
+  height: 6px;
+  background: #F1F5F9;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ai-prob-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.ai-bg-orange { background: #F97316; }
+.ai-bg-amber { background: #F59E0B; }
+.ai-bg-green { background: #12B76A; }
+
+.ai-prob-note {
+  font-size: 10.5px;
+  color: #64748B;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-prob-note svg {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   5. FILA INFERIOR: FACTORES + ANOMALÍAS + RESUMEN MODELO (3 COLUMNAS)
+   ========================================================================== */
+.ai-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.ai-bot-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Card 1: Factores */
+.ai-factors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.ai-factor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ai-factor-name {
+  font-size: 11px;
+  color: #475569;
+  font-weight: 500;
+  min-width: 115px;
+}
+
+.ai-factor-bar-track {
+  flex-grow: 1;
+  height: 6px;
+  background: #F1F5F9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ai-factor-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.ai-factor-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1E293B;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Card 2: Anomalías */
+.ai-anomaly-box {
+  background: #F0FDF4;
+  border: 1px solid #DCFCE7;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ai-anomaly-icon {
+  color: #166534;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.ai-anomaly-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ai-anomaly-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.ai-anomaly-desc {
+  font-size: 10.5px;
+  color: #4B5563;
+  line-height: 1.35;
+}
+
+.ai-anomaly-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  text-align: center;
+  border-top: 1px solid #F1F5F9;
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.ai-astat-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-astat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748B;
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+
+.ai-astat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 2px 0;
+}
+
+.ai-astat-sub {
+  font-size: 9.5px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+/* Card 3: Resumen del Modelo */
+.ai-model-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.ai-model-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #F8FAFC;
+  padding-bottom: 5px;
+}
+
+.ai-model-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ai-model-key {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.ai-model-val {
+  color: #0F172A;
+  font-weight: 600;
+}
+
+.ai-badge-excellent {
+  background: #DCFCE7;
+  color: #166534;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+/* ==========================================================================
+   6. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .ai-top-row {
+    grid-template-columns: 1fr;
+  }
+  .ai-middle-row {
+    grid-template-columns: 1fr;
+  }
+  .ai-bottom-row {
+    grid-template-columns: 1fr;
+  }
+  .ai-status-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .ai-container {
+    padding: 16px;
+  }
+  .ai-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ai-status-grid {
+    grid-template-columns: 1fr;
+  }
+  .ai-tabs-nav {
+    overflow-x: auto;
+  }
+}

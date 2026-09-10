@@ -1,0 +1,854 @@
+/* ==========================================================================
+   SIGMAP-AQUA - Configuraciones CSS
+   Módulo: templates/funcionalidades/configuraciones.html
+   ========================================================================== */
+
+/* Contenedor principal del módulo */
+.cfg-container {
+  padding: 24px 32px 40px;
+  background-color: var(--bg-main, #F4F7FC);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0F172A;
+  box-sizing: border-box;
+}
+
+.cfg-container *, .cfg-container *::before, .cfg-container *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   1. HEADER DE LA PÁGINA
+   ========================================================================== */
+.cfg-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.cfg-title-area h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.cfg-title-area p {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+.cfg-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Pill selector Piscina */
+.cfg-pill-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #1E293B;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.cfg-pill-select:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.cfg-pill-select svg:first-child {
+  color: #2563EB;
+}
+
+.cfg-pill-select svg:last-child {
+  color: #94A3B8;
+}
+
+/* Botones de acción */
+.cfg-icon-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  color: #64748B;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.cfg-icon-btn:hover {
+  border-color: #CBD5E1;
+  color: #1E293B;
+  background: #F8FAFC;
+}
+
+.cfg-badge-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 17px;
+  height: 17px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+}
+
+/* User pill interactivo con dropdown */
+.cfg-user-wrap {
+  position: relative;
+}
+
+.cfg-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 4px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.cfg-user-pill:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.cfg-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #E2E8F0;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cfg-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.cfg-user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.cfg-user-role {
+  font-size: 11px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+/* User dropdown menu */
+.user-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  padding: 6px;
+  z-index: 1000;
+  display: none;
+  animation: dropdownFadeIn 0.15s ease;
+}
+
+.user-dropdown-menu.show {
+  display: block;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-dropdown-header {
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.user-dropdown-header .name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.user-dropdown-header .email {
+  font-size: 11.5px;
+  color: #64748B;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background-color: #F1F5F9;
+  margin: 4px 0;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.user-dropdown-item:hover {
+  background-color: #F1F5F9;
+  color: #0F172A;
+}
+
+.user-dropdown-item.active {
+  background-color: #EFF6FF;
+  color: #2563EB;
+}
+
+.user-dropdown-item.text-danger {
+  color: #EF4444;
+}
+
+.user-dropdown-item.text-danger:hover {
+  background-color: #FEF2F2;
+  color: #DC2626;
+}
+
+/* ==========================================================================
+   2. PESTAÑAS HORIZONTALES (TABS)
+   ========================================================================== */
+.cfg-tabs {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.cfg-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 4px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #64748B;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cfg-tab svg {
+  color: #64748B;
+  transition: color 0.2s ease;
+}
+
+.cfg-tab:hover {
+  color: #0F172A;
+}
+
+.cfg-tab:hover svg {
+  color: #0F172A;
+}
+
+.cfg-tab.active {
+  color: #2563EB;
+  font-weight: 700;
+}
+
+.cfg-tab.active svg {
+  color: #2563EB;
+}
+
+.cfg-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: #2563EB;
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   3. GRID DE 4 TARJETAS (2x2)
+   ========================================================================== */
+.cfg-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.cfg-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cfg-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cfg-card-header svg {
+  color: #2563EB;
+  flex-shrink: 0;
+}
+
+.cfg-card-header h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.cfg-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+
+.cfg-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+  padding-top: 14px;
+}
+
+/* Botón Guardar Cambios */
+.cfg-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.15);
+}
+
+.cfg-btn-save:hover {
+  background: #1D4ED8;
+}
+
+.cfg-btn-save svg {
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
+   FORM CONTROLS & FIELDS
+   ========================================================================== */
+.cfg-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cfg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cfg-field-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.cfg-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.cfg-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.cfg-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #0F172A;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.cfg-textarea:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Custom Select Dropdown */
+.cfg-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cfg-select {
+  width: 100%;
+  padding: 9px 32px 9px 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #0F172A;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.cfg-select:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.cfg-select-arrow {
+  position: absolute;
+  right: 12px;
+  color: #64748B;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   CARD 2: TEMA SELECTOR
+   ========================================================================== */
+.cfg-theme-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.cfg-theme-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 14px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cfg-theme-card:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+
+.cfg-theme-card.active {
+  border: 1.5px solid #2563EB;
+  background: #EFF6FF;
+}
+
+.cfg-theme-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0F172A;
+}
+
+.cfg-theme-card.active .cfg-theme-icon {
+  color: #2563EB;
+}
+
+.cfg-theme-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.cfg-theme-radio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid #CBD5E1;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.cfg-theme-card.active .cfg-theme-radio {
+  border-color: #2563EB;
+  background: #FFFFFF;
+}
+
+.cfg-theme-card.active .cfg-theme-radio::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2563EB;
+}
+
+/* Radio buttons unidad de temperatura */
+.cfg-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0;
+}
+
+.cfg-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+  cursor: pointer;
+}
+
+.cfg-radio-label input[type="radio"] {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid #CBD5E1;
+  outline: none;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: all 0.2s ease;
+  margin: 0;
+}
+
+.cfg-radio-label input[type="radio"]:checked {
+  border-color: #2563EB;
+}
+
+.cfg-radio-label input[type="radio"]:checked::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2563EB;
+}
+
+/* ==========================================================================
+   CARD 3: AJUSTES REGIONALES Y DE SISTEMA (ROWS + TOGGLES + SELECTS)
+   ========================================================================== */
+.cfg-setting-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cfg-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cfg-setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cfg-setting-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.cfg-setting-desc {
+  font-size: 11.5px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.cfg-setting-control {
+  flex-shrink: 0;
+}
+
+/* Toggle Switch Verde */
+.cfg-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.cfg-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cfg-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #CBD5E1;
+  transition: 0.25s;
+  border-radius: 24px;
+}
+
+.cfg-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.25s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.cfg-switch input:checked + .cfg-slider {
+  background-color: #10B981;
+}
+
+.cfg-switch input:checked + .cfg-slider:before {
+  transform: translateX(20px);
+}
+
+/* Select en row */
+.cfg-select-sm {
+  width: 150px;
+  padding: 8px 30px 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: #0F172A;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+
+/* ==========================================================================
+   CARD 4: ADMINISTRACIÓN DEL SISTEMA (ACTION BUTTONS)
+   ========================================================================== */
+.cfg-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cfg-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cfg-action-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cfg-action-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.cfg-action-desc {
+  font-size: 11.5px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+/* Action buttons */
+.cfg-btn-action {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  background: #FFFFFF;
+  min-width: 100px;
+  text-align: center;
+}
+
+.cfg-btn-action--blue {
+  border: 1px solid #BFDBFE;
+  color: #2563EB;
+}
+
+.cfg-btn-action--blue:hover {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+}
+
+.cfg-btn-action--red {
+  border: 1px solid #FECACA;
+  color: #EF4444;
+}
+
+.cfg-btn-action--red:hover {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+}
+
+/* ==========================================================================
+   4. AVISO INFERIOR (IMPORTANTE)
+   ========================================================================== */
+.cfg-notice-banner {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.cfg-notice-icon {
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cfg-notice-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cfg-notice-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1E3A8A;
+}
+
+.cfg-notice-desc {
+  font-size: 12.5px;
+  color: #3B82F6;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   5. RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .cfg-grid-2x2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .cfg-container {
+    padding: 16px;
+  }
+  .cfg-form-row {
+    grid-template-columns: 1fr;
+  }
+  .cfg-theme-row {
+    grid-template-columns: 1fr;
+  }
+  .cfg-setting-row,
+  .cfg-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cfg-btn-action {
+    align-self: flex-start;
+  }
+}
