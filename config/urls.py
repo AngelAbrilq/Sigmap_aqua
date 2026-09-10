@@ -18,10 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.usuarios.views import login_view
 
 admin.site.site_header = 'SIGMAP AQUA'
 admin.site.site_title = 'SIGMAP AQUA'
 admin.site.index_title = 'Panel de administración'
+# El admin usa el login propio del proyecto en lugar del suyo
+admin.site.login = login_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),

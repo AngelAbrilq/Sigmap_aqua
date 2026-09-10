@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGMAP-AQUA | Historial de Datos</title>
+
+  <!-- Tipografía -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos base -->
+  <link rel="stylesheet" href="../../static/css/InstructorLider.css">
+  <link rel="stylesheet" href="/static/css/InstructorLider.css">
+
+  <!-- Estilos módulo -->
+  <link rel="stylesheet" href="../../static/css/Historial.css">
+  <link rel="stylesheet" href="/static/css/Historial.css">
+
+  <style>
+    @import url("../../static/css/InstructorLider.css");
+    @import url("/static/css/InstructorLider.css");
+    @import url("../../static/css/Historial.css");
+    @import url("/static/css/Historial.css");
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- =========================================================================
+         1. BARRA LATERAL (SIDEBAR)
+         ========================================================================= -->
+        <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="../../static/img/logo sigmap-aqua.png" data-django-src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo" onerror="this.onerror=null; this.src='../../static/img/Logo.jpeg';">
+        <h1 class="sidebar-brand">SIGMAP-AQUA</h1>
+        <p class="sidebar-subtitle">Sistema Inteligente de Monitoreo para Acuicultura</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Inicio -->
+        <a href="../roles/InstructorLider.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Inicio</span>
+        </a>
+
+        <!-- Sensores -->
+        <a href="sensores.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span>Sensores</span>
+        </a>
+
+        <!-- Monitoreo en tiempo real -->
+        <a href="monitoreo.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Monitoreo en tiempo real</span>
+        </a>
+
+        <!-- Historial de datos (ACTIVO) -->
+        <a href="Historial.html" class="nav-item active">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Historial de datos</span>
+        </a>
+
+        <!-- Gráficas y reportes -->
+        <a href="graficasyreportes.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Gráficas y reportes</span>
+        </a>
+
+        <!-- Comparación de períodos -->
+        <a href="ComoaracionesdePreiodos.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Comparación de períodos</span>
+        </a>
+
+        <!-- Alertas -->
+        <a href="Alertas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas</span>
+          <span class="nav-badge">3</span>
+        </a>
+
+        <!-- IA - Análisis predictivo -->
+        <a href="AI.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12v9.9"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>IA - Análisis predictivo</span>
+        </a>
+
+        <!-- Usuarios -->
+        <a href="usuarios.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Usuarios</span>
+        </a>
+
+        <!-- Geomembranas -->
+        <a href="geomenbranas.html" class="nav-item">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Geomembranas</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- =========================================================================
+         2. CONTENEDOR PRINCIPAL
+         ========================================================================= -->
+    <main class="main-wrapper">
+
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-title-group">
+          <h1>Historial de datos</h1>
+          <p>Consulta, filtra y exporta el historial completo de mediciones de calidad del agua.</p>
+        </div>
+
+        <div class="header-actions">
+          <!-- Selector de Piscina -->
+          <button class="hist-pool-pill">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Piscina 1</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+
+          <div class="header-right-group">
+          <!-- Notificaciones -->
+          <button class="topbar-icon-btn" title="Notificaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-badge">3</span>
+          </button>
+
+          <!-- Ayuda -->
+          <button class="topbar-icon-btn" title="Ayuda y Soporte">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+
+          <!-- Usuario Administrador -->
+          <div class="user-profile-wrap">
+            <div class="topbar-user-pill" id="userProfileBtn" title="Opciones de cuenta">
+              <div class="topbar-user-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+              <div class="topbar-user-info">
+                <span class="topbar-user-name">Administrador</span>
+                <span class="topbar-user-role">Rol: Administrador</span>
+              </div>
+              <svg class="topbar-user-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            <div class="user-dropdown-menu" id="userDropdownMenu">
+              <div class="user-dropdown-header">
+                <div class="name">Administrador</div>
+                <div class="email">admin@sigmap-aqua.com</div>
+              </div>
+              <a href="configuraciones.html" class="user-dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Configuración</span>
+              </a>
+              <div class="user-dropdown-divider"></div>
+              <a href="../usuarios/login.html" class="user-dropdown-item text-danger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Cerrar sesión</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content -->
+      <div class="dashboard-content">
+
+        <!-- ===============================================================
+             FILTROS
+             =============================================================== -->
+        <section class="hist-filters-card">
+          <div class="hist-filters-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Filtros de búsqueda
+          </div>
+          <div class="hist-filters-row">
+            <div class="hist-filter-group">
+              <label class="hist-filter-label">Parámetro</label>
+              <div class="hist-filter-select-wrap">
+                <select id="filterParam">
+                  <option value="todos">Todos los parámetros</option>
+                  <option value="temperatura">Temperatura (°C)</option>
+                  <option value="ph">pH</option>
+                  <option value="oxigeno">Oxígeno Disuelto (mg/L)</option>
+                  <option value="turbidez">Turbidez (NTU)</option>
+                  <option value="conductividad">Conductividad (µS/cm)</option>
+                </select>
+                <div class="hist-filter-select-arrow">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="hist-filter-group">
+              <label class="hist-filter-label">Sensor</label>
+              <div class="hist-filter-select-wrap">
+                <select id="filterSensor">
+                  <option value="todos">Todos los sensores</option>
+                  <option value="sensor-01">Sensor 01 (Entrada)</option>
+                  <option value="sensor-02">Sensor 02 (Centro)</option>
+                  <option value="sensor-03">Sensor 03 (Salida)</option>
+                </select>
+                <div class="hist-filter-select-arrow">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="hist-filter-group">
+              <label class="hist-filter-label">Fecha inicio</label>
+              <div class="hist-filter-date-wrap">
+                <input type="date" id="filterDateFrom" value="2024-05-01">
+              </div>
+            </div>
+
+            <div class="hist-filter-group">
+              <label class="hist-filter-label">Fecha fin</label>
+              <div class="hist-filter-date-wrap">
+                <input type="date" id="filterDateTo" value="2024-05-24">
+              </div>
+            </div>
+
+            <div class="hist-filter-group" style="flex: 0; gap: 8px; flex-direction: row; align-items: flex-end;">
+              <button class="hist-btn-filter">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Buscar
+              </button>
+              <button class="hist-btn-clear">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Limpiar
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             TARJETAS DE RESUMEN
+             =============================================================== -->
+        <section class="hist-stats-row">
+          <div class="hist-stat-card">
+            <div class="hist-stat-icon blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="hist-stat-info">
+              <span class="hist-stat-value">12,847</span>
+              <span class="hist-stat-label">Total registros</span>
+            </div>
+          </div>
+
+          <div class="hist-stat-card">
+            <div class="hist-stat-icon green">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="hist-stat-info">
+              <span class="hist-stat-value">11,205</span>
+              <span class="hist-stat-label">Lecturas normales</span>
+            </div>
+          </div>
+
+          <div class="hist-stat-card">
+            <div class="hist-stat-icon orange">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="hist-stat-info">
+              <span class="hist-stat-value">1,432</span>
+              <span class="hist-stat-label">Advertencias</span>
+            </div>
+          </div>
+
+          <div class="hist-stat-card">
+            <div class="hist-stat-icon purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="hist-stat-info">
+              <span class="hist-stat-value">24 días</span>
+              <span class="hist-stat-label">Período seleccionado</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             TABLA DE HISTORIAL
+             =============================================================== -->
+        <section class="hist-table-card">
+          <div class="hist-table-header">
+            <div class="hist-table-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+              Registros de mediciones
+              <span class="record-count">12,847 registros</span>
+            </div>
+            <div class="hist-table-actions">
+              <div class="hist-search-wrap">
+                <svg class="hist-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Buscar registro..." id="searchInput">
+              </div>
+              <button class="hist-btn-export">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                CSV
+              </button>
+              <button class="hist-btn-export primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Excel
+              </button>
+            </div>
+          </div>
+
+          <div class="hist-table-wrap">
+            <table class="hist-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha / Hora <span class="sort-icon">↕</span></th>
+                  <th>Sensor <span class="sort-icon">↕</span></th>
+                  <th>Temp. (°C) <span class="sort-icon">↕</span></th>
+                  <th>pH <span class="sort-icon">↕</span></th>
+                  <th>O₂ (mg/L) <span class="sort-icon">↕</span></th>
+                  <th>Turbidez (NTU) <span class="sort-icon">↕</span></th>
+                  <th>Conduct. (µS/cm) <span class="sort-icon">↕</span></th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>24/05/2024 10:30:45</td>
+                  <td>Sensor 01</td>
+                  <td>27.5</td>
+                  <td>7.2</td>
+                  <td>6.8</td>
+                  <td>12.3</td>
+                  <td>485</td>
+                  <td><span class="hist-status-badge normal"><span class="hist-status-dot"></span>Normal</span></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>24/05/2024 10:15:30</td>
+                  <td>Sensor 02</td>
+                  <td>28.1</td>
+                  <td>6.9</td>
+                  <td>5.4</td>
+                  <td>18.7</td>
+                  <td>512</td>
+                  <td><span class="hist-status-badge warning"><span class="hist-status-dot"></span>Alerta</span></td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td>24/05/2024 10:00:15</td>
+                  <td>Sensor 03</td>
+                  <td>26.8</td>
+                  <td>7.4</td>
+                  <td>7.1</td>
+                  <td>10.2</td>
+                  <td>478</td>
+                  <td><span class="hist-status-badge normal"><span class="hist-status-dot"></span>Normal</span></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>24/05/2024 09:45:00</td>
+                  <td>Sensor 01</td>
+                  <td>27.3</td>
+                  <td>7.1</td>
+                  <td>6.5</td>
+                  <td>13.1</td>
+                  <td>490</td>
+                  <td><span class="hist-status-badge normal"><span class="hist-status-dot"></span>Normal</span></td>
+                </tr>
+                <tr>
+                  <td>5</td>
+                  <td>24/05/2024 09:30:45</td>
+                  <td>Sensor 02</td>
+                  <td>29.4</td>
+                  <td>6.5</td>
+                  <td>4.2</td>
+                  <td>25.8</td>
+                  <td>548</td>
+                  <td><span class="hist-status-badge critical"><span class="hist-status-dot"></span>Crítico</span></td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>24/05/2024 09:15:30</td>
+                  <td>Sensor 03</td>
+                  <td>26.5</td>
+                  <td>7.3</td>
+                  <td>7.0</td>
+                  <td>11.5</td>
+                  <td>472</td>
+                  <td><span class="hist-status-badge normal"><span class="hist-status-dot"></span>Normal</span></td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td>24/05/2024 09:00:15</td>
+                  <td>Sensor 01</td>
+                  <td>27.0</td>
+                  <td>7.0</td>
+                  <td>6.3</td>
+                  <td>14.0</td>
+                  <td>495</td>
+                  <td><span class="hist-status-badge normal"><span class="hist-status-dot"></span>Normal</span></td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>24/05/2024 08:45:00</td>
+                  <td>Sensor 02</td>
+                  <td>28.6</td>
+                  <td>6.7</td>
+                  <td>5.1</td>
+                  <td>20.3</td>
+                  <td>525</td>
+                  <td><span class="hist-status-badge warning"><span class="hist-status-dot"></span>Alerta</span></td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td>24/05/2024 08:30:45</td>
+                  <td>Sensor 03</td>
+                  <td>26.2</td>
+                  <td>7.5</td>
+                  <td>7.3</td>
+                  <td>9.8</td>
+                  <td>465</td>
+                  <td><span class="hist-status-badge normal"><span class="hist-status-dot"></span>Normal</span></td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td>24/05/2024 08:15:30</td>
+                  <td>Sensor 01</td>
+                  <td>26.9</td>
+                  <td>7.1</td>
+                  <td>6.6</td>
+                  <td>12.8</td>
+                  <td>488</td>
+                  <td><span class="hist-status-badge normal"><span class="hist-status-dot"></span>Normal</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="hist-pagination">
+            <div class="hist-pagination-info">
+              Mostrando <strong>1 - 10</strong> de <strong>12,847</strong> registros
+            </div>
+            <div class="hist-pagination-controls">
+              <button class="hist-page-btn" disabled>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="hist-page-btn active">1</button>
+              <button class="hist-page-btn">2</button>
+              <button class="hist-page-btn">3</button>
+              <button class="hist-page-btn">4</button>
+              <button class="hist-page-btn">5</button>
+              <button class="hist-page-btn">...</button>
+              <button class="hist-page-btn">1285</button>
+              <button class="hist-page-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Script para dropdown del perfil de usuario -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('userProfileBtn');
+      const menu = document.getElementById('userDropdownMenu');
+      if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.toggle('show');
+          btn.classList.toggle('active');
+        });
+        document.addEventListener('click', function(e) {
+          if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('show');
+            btn.classList.remove('active');
+          }
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>

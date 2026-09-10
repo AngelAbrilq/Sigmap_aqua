@@ -4,7 +4,8 @@ from . import views
 app_name = 'core'
 
 urlpatterns = [
-    path('', views.instructor_lider, name='index'),
+    path('', views.index, name='index'),                                          # Bienvenida pública
+    path('dashboard/', views.dashboard, name='dashboard'),                        # Panel principal (requiere login)
     path('instructor-lider/', views.instructor_lider, name='instructor_lider'),
     path('sensores/', views.sensores, name='sensores'),
     path('monitoreo/', views.monitoreo, name='monitoreo'),

@@ -260,48 +260,51 @@ body {
 .header-right-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  flex-shrink: 0;
 }
 
 .header-btn,
 .topbar-icon-btn {
-  background: var(--card-bg, #FFFFFF);
-  border: 1px solid var(--border-color, #E2E8F0);
-  width: 40px;
-  height: 40px;
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary, #64748B);
+  color: #334155;
   cursor: pointer;
   position: relative;
-  transition: var(--transition, all 0.2s ease);
+  transition: background 0.2s ease, color 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .header-btn:hover,
 .topbar-icon-btn:hover {
   background: #F1F5F9;
-  color: var(--text-primary, #0F172A);
-  border-color: #CBD5E1;
+  color: #0F172A;
 }
 
 .header-btn .notification-dot,
 .topbar-badge {
   position: absolute;
-  top: -2px;
-  right: -2px;
+  top: 1px;
+  right: 1px;
   background-color: #EF4444;
-  color: white;
+  color: #FFFFFF;
   font-size: 0.65rem;
   font-weight: 700;
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid #FFFFFF;
+  line-height: 1;
 }
 
 .user-profile,
@@ -309,38 +312,40 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--card-bg, #FFFFFF);
-  padding: 6px 14px 6px 8px;
-  border-radius: 30px;
-  border: 1px solid var(--border-color, #E2E8F0);
+  background: transparent;
+  padding: 4px 6px;
+  border-radius: 24px;
+  border: none;
   cursor: pointer;
-  transition: var(--transition, all 0.2s ease);
+  transition: background 0.2s ease;
   user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .user-profile:hover,
-.topbar-user-pill:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border-color: #CBD5E1;
+.topbar-user-pill:hover,
+.topbar-user-pill.active {
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .user-avatar,
 .topbar-user-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1E64D4, #3B82F6);
+  background: #CBD5E1;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
+  color: #475569;
   flex-shrink: 0;
 }
 
 .user-avatar svg,
 .topbar-user-avatar svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   fill: currentColor;
 }
 
@@ -348,26 +353,37 @@ body {
 .topbar-user-info {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  text-align: left;
 }
 
 .user-name,
 .topbar-user-name {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: var(--text-primary, #0F172A);
-  line-height: 1.1;
+  color: #0F172A;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .user-role,
 .topbar-user-role {
   font-size: 0.72rem;
-  color: var(--text-secondary, #64748B);
+  color: #64748B;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .topbar-user-chevron {
-  color: #94A3B8;
+  color: #0F172A;
   margin-left: 2px;
   transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.topbar-user-pill.active .topbar-user-chevron,
+.user-profile-wrap.open .topbar-user-chevron {
+  transform: rotate(180deg);
 }
 
 .user-profile-wrap {

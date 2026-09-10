@@ -70,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.usuario_context',
             ],
         },
     },
@@ -140,6 +141,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth
-LOGIN_URL          = '/auth/login/'
-LOGIN_REDIRECT_URL = '/admin/'
+LOGIN_URL           = '/auth/login/'
+LOGIN_REDIRECT_URL  = '/admin/'
 LOGOUT_REDIRECT_URL = '/auth/login/'

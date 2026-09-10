@@ -1,15 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 
 
 def login_view(request):
     """
-    Vista de login.
-    Acepta correo electrónico como credencial (USERNAME_FIELD = 'email').
+    Vista de login. Valida credenciales y redirige al admin de Django.
     """
-    # Si ya está autenticado, manda directo al admin
     if request.user.is_authenticated:
         return redirect('/admin/')
 
@@ -21,13 +18,11 @@ def login_view(request):
             messages.error(request, 'Por favor completa todos los campos.')
             return render(request, 'usuarios/login.html')
 
-        # authenticate espera el campo USERNAME_FIELD (email) como 'username'
         usuario = authenticate(request, username=email, password=password)
 
         if usuario is not None:
             if usuario.estado == 'activo':
                 login(request, usuario)
-                # Redirige al dashboard provisional (admin)
                 return redirect('/admin/')
             else:
                 messages.error(request, 'Tu cuenta está inactiva. Contacta al administrador.')
