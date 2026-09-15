@@ -1,0 +1,30 @@
+{% comment %}
+  Paginacion que conserva los filtros activos de la querystring.
+
+  Uso:  {% include "componentes/paginacion.html" with pagina=pagina extra=querystring_extra %}
+
+  `extra` es una cadena ya formada tipo "&q=ph&estado=activo" (sin el page).
+{% endcomment %}
+
+{% if pagina.paginator.num_pages > 1 %}
+  <div class="sg-paginacion">
+    <div class="sg-paginacion-btns">
+      <a class="sg-page {% if not pagina.has_previous %}sg-page--off{% endif %}"
+         {% if pagina.has_previous %}href="?page={{ pagina.previous_page_number }}{{ extra }}"{% endif %}>‹</a>
+
+      {% for num in pagina.paginator.page_range %}
+        {% if num == pagina.number %}
+          <span class="sg-page sg-page--activa">{{ num }}</span>
+        {% elif num > pagina.number|add:"-3" and num < pagina.number|add:"3" %}
+          <a class="sg-page" href="?page={{ num }}{{ extra }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      <a class="sg-page {% if not pagina.has_next %}sg-page--off{% endif %}"
+         {% if pagina.has_next %}href="?page={{ pagina.next_page_number }}{{ extra }}"{% endif %}>›</a>
+    </div>
+    <span class="sg-paginacion-info">
+      {{ pagina.start_index }}–{{ pagina.end_index }} de {{ pagina.paginator.count }}
+    </span>
+  </div>
+{% endif %}

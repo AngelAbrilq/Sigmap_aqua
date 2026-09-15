@@ -1,0 +1,1446 @@
+{
+  "alertas": [],
+  "auth_group": [],
+  "auth_group_permissions": [],
+  "auth_permission": [
+    {
+      "id": 1,
+      "name": "Can add log entry",
+      "content_type_id": 1,
+      "codename": "add_logentry"
+    },
+    {
+      "id": 2,
+      "name": "Can change log entry",
+      "content_type_id": 1,
+      "codename": "change_logentry"
+    },
+    {
+      "id": 3,
+      "name": "Can delete log entry",
+      "content_type_id": 1,
+      "codename": "delete_logentry"
+    },
+    {
+      "id": 4,
+      "name": "Can view log entry",
+      "content_type_id": 1,
+      "codename": "view_logentry"
+    },
+    {
+      "id": 5,
+      "name": "Can add permission",
+      "content_type_id": 2,
+      "codename": "add_permission"
+    },
+    {
+      "id": 6,
+      "name": "Can change permission",
+      "content_type_id": 2,
+      "codename": "change_permission"
+    },
+    {
+      "id": 7,
+      "name": "Can delete permission",
+      "content_type_id": 2,
+      "codename": "delete_permission"
+    },
+    {
+      "id": 8,
+      "name": "Can view permission",
+      "content_type_id": 2,
+      "codename": "view_permission"
+    },
+    {
+      "id": 9,
+      "name": "Can add group",
+      "content_type_id": 3,
+      "codename": "add_group"
+    },
+    {
+      "id": 10,
+      "name": "Can change group",
+      "content_type_id": 3,
+      "codename": "change_group"
+    },
+    {
+      "id": 11,
+      "name": "Can delete group",
+      "content_type_id": 3,
+      "codename": "delete_group"
+    },
+    {
+      "id": 12,
+      "name": "Can view group",
+      "content_type_id": 3,
+      "codename": "view_group"
+    },
+    {
+      "id": 13,
+      "name": "Can add content type",
+      "content_type_id": 4,
+      "codename": "add_contenttype"
+    },
+    {
+      "id": 14,
+      "name": "Can change content type",
+      "content_type_id": 4,
+      "codename": "change_contenttype"
+    },
+    {
+      "id": 15,
+      "name": "Can delete content type",
+      "content_type_id": 4,
+      "codename": "delete_contenttype"
+    },
+    {
+      "id": 16,
+      "name": "Can view content type",
+      "content_type_id": 4,
+      "codename": "view_contenttype"
+    },
+    {
+      "id": 17,
+      "name": "Can add session",
+      "content_type_id": 5,
+      "codename": "add_session"
+    },
+    {
+      "id": 18,
+      "name": "Can change session",
+      "content_type_id": 5,
+      "codename": "change_session"
+    },
+    {
+      "id": 19,
+      "name": "Can delete session",
+      "content_type_id": 5,
+      "codename": "delete_session"
+    },
+    {
+      "id": 20,
+      "name": "Can view session",
+      "content_type_id": 5,
+      "codename": "view_session"
+    },
+    {
+      "id": 21,
+      "name": "Can add Rol",
+      "content_type_id": 6,
+      "codename": "add_rol"
+    },
+    {
+      "id": 22,
+      "name": "Can change Rol",
+      "content_type_id": 6,
+      "codename": "change_rol"
+    },
+    {
+      "id": 23,
+      "name": "Can delete Rol",
+      "content_type_id": 6,
+      "codename": "delete_rol"
+    },
+    {
+      "id": 24,
+      "name": "Can view Rol",
+      "content_type_id": 6,
+      "codename": "view_rol"
+    },
+    {
+      "id": 25,
+      "name": "Can add Usuario",
+      "content_type_id": 7,
+      "codename": "add_usuario"
+    },
+    {
+      "id": 26,
+      "name": "Can change Usuario",
+      "content_type_id": 7,
+      "codename": "change_usuario"
+    },
+    {
+      "id": 27,
+      "name": "Can delete Usuario",
+      "content_type_id": 7,
+      "codename": "delete_usuario"
+    },
+    {
+      "id": 28,
+      "name": "Can view Usuario",
+      "content_type_id": 7,
+      "codename": "view_usuario"
+    },
+    {
+      "id": 29,
+      "name": "Can add Etapa de producción",
+      "content_type_id": 8,
+      "codename": "add_etapaproduccion"
+    },
+    {
+      "id": 30,
+      "name": "Can change Etapa de producción",
+      "content_type_id": 8,
+      "codename": "change_etapaproduccion"
+    },
+    {
+      "id": 31,
+      "name": "Can delete Etapa de producción",
+      "content_type_id": 8,
+      "codename": "delete_etapaproduccion"
+    },
+    {
+      "id": 32,
+      "name": "Can view Etapa de producción",
+      "content_type_id": 8,
+      "codename": "view_etapaproduccion"
+    },
+    {
+      "id": 33,
+      "name": "Can add Geomembrana",
+      "content_type_id": 9,
+      "codename": "add_geomembrana"
+    },
+    {
+      "id": 34,
+      "name": "Can change Geomembrana",
+      "content_type_id": 9,
+      "codename": "change_geomembrana"
+    },
+    {
+      "id": 35,
+      "name": "Can delete Geomembrana",
+      "content_type_id": 9,
+      "codename": "delete_geomembrana"
+    },
+    {
+      "id": 36,
+      "name": "Can view Geomembrana",
+      "content_type_id": 9,
+      "codename": "view_geomembrana"
+    },
+    {
+      "id": 37,
+      "name": "Can add Tipo de parámetro",
+      "content_type_id": 10,
+      "codename": "add_tipoparametro"
+    },
+    {
+      "id": 38,
+      "name": "Can change Tipo de parámetro",
+      "content_type_id": 10,
+      "codename": "change_tipoparametro"
+    },
+    {
+      "id": 39,
+      "name": "Can delete Tipo de parámetro",
+      "content_type_id": 10,
+      "codename": "delete_tipoparametro"
+    },
+    {
+      "id": 40,
+      "name": "Can view Tipo de parámetro",
+      "content_type_id": 10,
+      "codename": "view_tipoparametro"
+    },
+    {
+      "id": 41,
+      "name": "Can add Dispositivo",
+      "content_type_id": 11,
+      "codename": "add_dispositivo"
+    },
+    {
+      "id": 42,
+      "name": "Can change Dispositivo",
+      "content_type_id": 11,
+      "codename": "change_dispositivo"
+    },
+    {
+      "id": 43,
+      "name": "Can delete Dispositivo",
+      "content_type_id": 11,
+      "codename": "delete_dispositivo"
+    },
+    {
+      "id": 44,
+      "name": "Can view Dispositivo",
+      "content_type_id": 11,
+      "codename": "view_dispositivo"
+    },
+    {
+      "id": 45,
+      "name": "Can add Sensor",
+      "content_type_id": 12,
+      "codename": "add_sensor"
+    },
+    {
+      "id": 46,
+      "name": "Can change Sensor",
+      "content_type_id": 12,
+      "codename": "change_sensor"
+    },
+    {
+      "id": 47,
+      "name": "Can delete Sensor",
+      "content_type_id": 12,
+      "codename": "delete_sensor"
+    },
+    {
+      "id": 48,
+      "name": "Can view Sensor",
+      "content_type_id": 12,
+      "codename": "view_sensor"
+    },
+    {
+      "id": 49,
+      "name": "Can add Lectura",
+      "content_type_id": 13,
+      "codename": "add_lectura"
+    },
+    {
+      "id": 50,
+      "name": "Can change Lectura",
+      "content_type_id": 13,
+      "codename": "change_lectura"
+    },
+    {
+      "id": 51,
+      "name": "Can delete Lectura",
+      "content_type_id": 13,
+      "codename": "delete_lectura"
+    },
+    {
+      "id": 52,
+      "name": "Can view Lectura",
+      "content_type_id": 13,
+      "codename": "view_lectura"
+    },
+    {
+      "id": 53,
+      "name": "Can add Alerta",
+      "content_type_id": 14,
+      "codename": "add_alerta"
+    },
+    {
+      "id": 54,
+      "name": "Can change Alerta",
+      "content_type_id": 14,
+      "codename": "change_alerta"
+    },
+    {
+      "id": 55,
+      "name": "Can delete Alerta",
+      "content_type_id": 14,
+      "codename": "delete_alerta"
+    },
+    {
+      "id": 56,
+      "name": "Can view Alerta",
+      "content_type_id": 14,
+      "codename": "view_alerta"
+    },
+    {
+      "id": 57,
+      "name": "Can add Estado del agua",
+      "content_type_id": 15,
+      "codename": "add_historialestadoagua"
+    },
+    {
+      "id": 58,
+      "name": "Can change Estado del agua",
+      "content_type_id": 15,
+      "codename": "change_historialestadoagua"
+    },
+    {
+      "id": 59,
+      "name": "Can delete Estado del agua",
+      "content_type_id": 15,
+      "codename": "delete_historialestadoagua"
+    },
+    {
+      "id": 60,
+      "name": "Can view Estado del agua",
+      "content_type_id": 15,
+      "codename": "view_historialestadoagua"
+    }
+  ],
+  "dispositivos": [
+    {
+      "id": 1,
+      "codigo": "NODO-001",
+      "descripcion": "Nodo de monitoreo - Piscina Alevin A1",
+      "token": "f3fab392a0d54aa5185829ff5d10e4a72f796e0fb4d0632479c8dc79150262b9",
+      "mac_address": null,
+      "firmware_version": "1.0",
+      "ultima_conexion": null,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.939504",
+      "geomembrana_id": 1
+    },
+    {
+      "id": 2,
+      "codigo": "NODO-002",
+      "descripcion": "Nodo de monitoreo - Piscina Levante L1",
+      "token": "404a8429fa0cf2cdd1a617835f5dd71f93de24c727d6b76068e23889f1365a12",
+      "mac_address": null,
+      "firmware_version": "1.0",
+      "ultima_conexion": null,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.944490",
+      "geomembrana_id": 3
+    },
+    {
+      "id": 3,
+      "codigo": "NODO-003",
+      "descripcion": "Nodo de monitoreo - Piscina Engorde E1",
+      "token": "fe0b1f89a33727f8aefdbd68b1c47c499cda6a8f141c880e121a029d97b1ab77",
+      "mac_address": null,
+      "firmware_version": "1.0",
+      "ultima_conexion": null,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.950940",
+      "geomembrana_id": 5
+    }
+  ],
+  "django_admin_log": [],
+  "django_content_type": [
+    {
+      "id": 1,
+      "app_label": "admin",
+      "model": "logentry"
+    },
+    {
+      "id": 14,
+      "app_label": "alertas",
+      "model": "alerta"
+    },
+    {
+      "id": 15,
+      "app_label": "alertas",
+      "model": "historialestadoagua"
+    },
+    {
+      "id": 3,
+      "app_label": "auth",
+      "model": "group"
+    },
+    {
+      "id": 2,
+      "app_label": "auth",
+      "model": "permission"
+    },
+    {
+      "id": 4,
+      "app_label": "contenttypes",
+      "model": "contenttype"
+    },
+    {
+      "id": 11,
+      "app_label": "monitoreo",
+      "model": "dispositivo"
+    },
+    {
+      "id": 13,
+      "app_label": "monitoreo",
+      "model": "lectura"
+    },
+    {
+      "id": 12,
+      "app_label": "monitoreo",
+      "model": "sensor"
+    },
+    {
+      "id": 10,
+      "app_label": "monitoreo",
+      "model": "tipoparametro"
+    },
+    {
+      "id": 8,
+      "app_label": "piscinas",
+      "model": "etapaproduccion"
+    },
+    {
+      "id": 9,
+      "app_label": "piscinas",
+      "model": "geomembrana"
+    },
+    {
+      "id": 5,
+      "app_label": "sessions",
+      "model": "session"
+    },
+    {
+      "id": 6,
+      "app_label": "usuarios",
+      "model": "rol"
+    },
+    {
+      "id": 7,
+      "app_label": "usuarios",
+      "model": "usuario"
+    }
+  ],
+  "django_migrations": [
+    {
+      "id": 1,
+      "app": "contenttypes",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:21.527994"
+    },
+    {
+      "id": 2,
+      "app": "contenttypes",
+      "name": "0002_remove_content_type_name",
+      "applied": "2026-08-27T19:20:21.637846"
+    },
+    {
+      "id": 3,
+      "app": "auth",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:21.956558"
+    },
+    {
+      "id": 4,
+      "app": "auth",
+      "name": "0002_alter_permission_name_max_length",
+      "applied": "2026-08-27T19:20:22.026037"
+    },
+    {
+      "id": 5,
+      "app": "auth",
+      "name": "0003_alter_user_email_max_length",
+      "applied": "2026-08-27T19:20:22.032995"
+    },
+    {
+      "id": 6,
+      "app": "auth",
+      "name": "0004_alter_user_username_opts",
+      "applied": "2026-08-27T19:20:22.040621"
+    },
+    {
+      "id": 7,
+      "app": "auth",
+      "name": "0005_alter_user_last_login_null",
+      "applied": "2026-08-27T19:20:22.048165"
+    },
+    {
+      "id": 8,
+      "app": "auth",
+      "name": "0006_require_contenttypes_0002",
+      "applied": "2026-08-27T19:20:22.053180"
+    },
+    {
+      "id": 9,
+      "app": "auth",
+      "name": "0007_alter_validators_add_error_messages",
+      "applied": "2026-08-27T19:20:22.061699"
+    },
+    {
+      "id": 10,
+      "app": "auth",
+      "name": "0008_alter_user_username_max_length",
+      "applied": "2026-08-27T19:20:22.068218"
+    },
+    {
+      "id": 11,
+      "app": "auth",
+      "name": "0009_alter_user_last_name_max_length",
+      "applied": "2026-08-27T19:20:22.075215"
+    },
+    {
+      "id": 12,
+      "app": "auth",
+      "name": "0010_alter_group_name_max_length",
+      "applied": "2026-08-27T19:20:22.095588"
+    },
+    {
+      "id": 13,
+      "app": "auth",
+      "name": "0011_update_proxy_permissions",
+      "applied": "2026-08-27T19:20:22.104643"
+    },
+    {
+      "id": 14,
+      "app": "auth",
+      "name": "0012_alter_user_first_name_max_length",
+      "applied": "2026-08-27T19:20:22.113158"
+    },
+    {
+      "id": 15,
+      "app": "usuarios",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:22.541072"
+    },
+    {
+      "id": 16,
+      "app": "admin",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:22.698594"
+    },
+    {
+      "id": 17,
+      "app": "admin",
+      "name": "0002_logentry_remove_auto_add",
+      "applied": "2026-08-27T19:20:22.707116"
+    },
+    {
+      "id": 18,
+      "app": "admin",
+      "name": "0003_logentry_add_action_flag_choices",
+      "applied": "2026-08-27T19:20:22.717128"
+    },
+    {
+      "id": 19,
+      "app": "piscinas",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:22.875682"
+    },
+    {
+      "id": 20,
+      "app": "monitoreo",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:23.616021"
+    },
+    {
+      "id": 21,
+      "app": "alertas",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:24.123166"
+    },
+    {
+      "id": 22,
+      "app": "sessions",
+      "name": "0001_initial",
+      "applied": "2026-08-27T19:20:24.167876"
+    }
+  ],
+  "django_session": [
+    {
+      "session_key": "4c2ir7zv42pssbywm377z9hxkmquhy8h",
+      "session_data": ".eJxVjMsOwiAQRf-FtSHQGZBx6b7fQIYBpGrapI-V8d-1SRe6veec-1KRt7XFbSlzHLK6qKBOv1tieZRxB_nO423SMo3rPCS9K_qgi-6nXJ7Xw_07aLy0bw1CaEMIriI59GfokDpJ2Rh0QJVTtR7EQEAExzaRWC-UoMsSiKWq9wexVTcj:1x2Avb:LT293B_1WeLmJWSrt2Vf0h8ylOdiBw_8wxyws3oWy44",
+      "expire_date": "2026-09-17T17:08:43.748141"
+    },
+    {
+      "session_key": "e2rryqqvqycnwjak22n0l8gbds083rec",
+      "session_data": ".eJxVjMsOwiAQRf-FtSEwDS-X7v0GMgyDVA0kpV0Z_12bdKHbe865LxFxW2vcBi9xzuIstBKn3zEhPbjtJN-x3bqk3tZlTnJX5EGHvPbMz8vh_h1UHPVblwBMVtmUg7dMngCSCcVZQ5BKUJz1pAny5Bzb4FkzaFQGWQdOwEW8PxbMOKA:1x2HXZ:Fi_P_Ddx4KXTcikKCjveV8Fiw5F6wExlZO7rJHtMLbs",
+      "expire_date": "2026-09-18T00:12:21.663117"
+    }
+  ],
+  "etapas_produccion": [
+    {
+      "id": 1,
+      "nombre_etapa": "Alevin",
+      "descripcion": "Peces recien eclosionados, desarrollo inicial",
+      "dias_duracion": 30,
+      "peso_inicial_promedio": "0.05",
+      "peso_final_promedio": "1.00",
+      "densidad_peces_por_m2": "200.00",
+      "rango_temperatura_min": "25.00",
+      "rango_temperatura_max": "30.00",
+      "rango_ph_min": "6.50",
+      "rango_ph_max": "7.50",
+      "rango_oxigeno_min": "5.00",
+      "rango_oxigeno_max": "8.00",
+      "rango_turbidez_min": null,
+      "rango_turbidez_max": null,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.891299"
+    },
+    {
+      "id": 2,
+      "nombre_etapa": "Levante",
+      "descripcion": "Crecimiento intermedio, desarrollo de estructuras",
+      "dias_duracion": 45,
+      "peso_inicial_promedio": "1.00",
+      "peso_final_promedio": "5.00",
+      "densidad_peces_por_m2": "100.00",
+      "rango_temperatura_min": "24.00",
+      "rango_temperatura_max": "30.00",
+      "rango_ph_min": "6.80",
+      "rango_ph_max": "7.80",
+      "rango_oxigeno_min": "4.50",
+      "rango_oxigeno_max": "8.50",
+      "rango_turbidez_min": null,
+      "rango_turbidez_max": null,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.896831"
+    },
+    {
+      "id": 3,
+      "nombre_etapa": "Engorde",
+      "descripcion": "Fase final de crecimiento, ganancia de peso maxima",
+      "dias_duracion": 90,
+      "peso_inicial_promedio": "5.00",
+      "peso_final_promedio": "150.00",
+      "densidad_peces_por_m2": "40.00",
+      "rango_temperatura_min": "24.00",
+      "rango_temperatura_max": "30.00",
+      "rango_ph_min": "6.50",
+      "rango_ph_max": "7.80",
+      "rango_oxigeno_min": "4.00",
+      "rango_oxigeno_max": "8.00",
+      "rango_turbidez_min": null,
+      "rango_turbidez_max": null,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.899833"
+    },
+    {
+      "id": 4,
+      "nombre_etapa": "Cosecha",
+      "descripcion": "Peces listos para comercializacion",
+      "dias_duracion": 7,
+      "peso_inicial_promedio": "150.00",
+      "peso_final_promedio": "150.00",
+      "densidad_peces_por_m2": "20.00",
+      "rango_temperatura_min": "22.00",
+      "rango_temperatura_max": "28.00",
+      "rango_ph_min": "6.50",
+      "rango_ph_max": "7.50",
+      "rango_oxigeno_min": "5.00",
+      "rango_oxigeno_max": "9.00",
+      "rango_turbidez_min": null,
+      "rango_turbidez_max": null,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.901832"
+    }
+  ],
+  "geomembranas": [
+    {
+      "id": 1,
+      "nombre_piscina": "Piscina Alevin A1",
+      "codigo_identificacion": "PSC-AL-001",
+      "descripcion": "Piscina para fase alevin - Sector Norte",
+      "ubicacion": "Sector Norte, Lote 1",
+      "area_m2": "50.00",
+      "profundidad_promedio": "1.50",
+      "volumen_agua_m3": "75.00",
+      "capacidad_maxima_peces": 15000,
+      "fecha_instalacion": "2025-06-15",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 2.0mm",
+      "apta_para_produccion": 1,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.908355",
+      "fecha_edicion": "2026-08-27T19:24:06.908355",
+      "etapa_actual_id": 1
+    },
+    {
+      "id": 2,
+      "nombre_piscina": "Piscina Alevin A2",
+      "codigo_identificacion": "PSC-AL-002",
+      "descripcion": "Piscina para fase alevin - Sector Norte (Backup)",
+      "ubicacion": "Sector Norte, Lote 2",
+      "area_m2": "50.00",
+      "profundidad_promedio": "1.50",
+      "volumen_agua_m3": "75.00",
+      "capacidad_maxima_peces": 15000,
+      "fecha_instalacion": "2025-07-01",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 2.0mm",
+      "apta_para_produccion": 1,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.912359",
+      "fecha_edicion": "2026-08-27T19:24:06.912359",
+      "etapa_actual_id": 1
+    },
+    {
+      "id": 3,
+      "nombre_piscina": "Piscina Levante L1",
+      "codigo_identificacion": "PSC-LV-001",
+      "descripcion": "Piscina para fase levante - Sector Central",
+      "ubicacion": "Sector Central, Lote 3",
+      "area_m2": "100.00",
+      "profundidad_promedio": "1.80",
+      "volumen_agua_m3": "180.00",
+      "capacidad_maxima_peces": 18000,
+      "fecha_instalacion": "2025-08-10",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 1.5mm",
+      "apta_para_produccion": 1,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.915419",
+      "fecha_edicion": "2026-08-27T19:24:06.915419",
+      "etapa_actual_id": 2
+    },
+    {
+      "id": 4,
+      "nombre_piscina": "Piscina Levante L2",
+      "codigo_identificacion": "PSC-LV-002",
+      "descripcion": "Piscina para fase levante - Sector Central (Backup)",
+      "ubicacion": "Sector Central, Lote 4",
+      "area_m2": "100.00",
+      "profundidad_promedio": "1.80",
+      "volumen_agua_m3": "180.00",
+      "capacidad_maxima_peces": 18000,
+      "fecha_instalacion": "2025-08-20",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 1.5mm",
+      "apta_para_produccion": 1,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.918412",
+      "fecha_edicion": "2026-08-27T19:24:06.918412",
+      "etapa_actual_id": 2
+    },
+    {
+      "id": 5,
+      "nombre_piscina": "Piscina Engorde E1",
+      "codigo_identificacion": "PSC-EG-001",
+      "descripcion": "Piscina para fase engorde - Sector Sur",
+      "ubicacion": "Sector Sur, Lote 5",
+      "area_m2": "200.00",
+      "profundidad_promedio": "2.00",
+      "volumen_agua_m3": "400.00",
+      "capacidad_maxima_peces": 16000,
+      "fecha_instalacion": "2025-09-05",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 1.5mm",
+      "apta_para_produccion": 1,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.922389",
+      "fecha_edicion": "2026-08-27T19:24:06.922389",
+      "etapa_actual_id": 3
+    },
+    {
+      "id": 6,
+      "nombre_piscina": "Piscina Engorde E2",
+      "codigo_identificacion": "PSC-EG-002",
+      "descripcion": "Piscina para fase engorde - Sector Sur (Backup)",
+      "ubicacion": "Sector Sur, Lote 6",
+      "area_m2": "200.00",
+      "profundidad_promedio": "2.00",
+      "volumen_agua_m3": "400.00",
+      "capacidad_maxima_peces": 16000,
+      "fecha_instalacion": "2025-09-15",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 1.5mm",
+      "apta_para_produccion": 1,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.926922",
+      "fecha_edicion": "2026-08-27T19:24:06.926922",
+      "etapa_actual_id": 3
+    },
+    {
+      "id": 7,
+      "nombre_piscina": "Piscina Cosecha C1",
+      "codigo_identificacion": "PSC-CS-001",
+      "descripcion": "Piscina para cosecha - Sector Este",
+      "ubicacion": "Sector Este, Lote 7",
+      "area_m2": "150.00",
+      "profundidad_promedio": "2.00",
+      "volumen_agua_m3": "300.00",
+      "capacidad_maxima_peces": 20000,
+      "fecha_instalacion": "2025-10-01",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 1.5mm",
+      "apta_para_produccion": 1,
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.930931",
+      "fecha_edicion": "2026-08-27T19:24:06.930931",
+      "etapa_actual_id": 4
+    },
+    {
+      "id": 8,
+      "nombre_piscina": "Piscina Experimental E3",
+      "codigo_identificacion": "PSC-EXP-001",
+      "descripcion": "Piscina experimental - Sector Oeste",
+      "ubicacion": "Sector Oeste, Lote 8",
+      "area_m2": "75.00",
+      "profundidad_promedio": "1.50",
+      "volumen_agua_m3": "112.50",
+      "capacidad_maxima_peces": 10000,
+      "fecha_instalacion": "2025-06-01",
+      "fecha_ultimo_mantenimiento": null,
+      "material": "HDPE 2.0mm",
+      "apta_para_produccion": 0,
+      "estado": "mantenimiento",
+      "fecha_creacion": "2026-08-27T19:24:06.932941",
+      "fecha_edicion": "2026-08-27T19:24:06.932941",
+      "etapa_actual_id": 2
+    }
+  ],
+  "historial_estado_agua": [],
+  "lecturas_sensores": [],
+  "roles": [
+    {
+      "id": 1,
+      "nombre_rol": "Instructor Lider",
+      "descripcion": "Administrador del sistema, gestiona usuarios, sensores y geomembranas",
+      "permisos": "{\"ver_alertas\": true, \"ver_reportes\": true, \"crear_usuario\": true, \"editar_usuario\": true, \"eliminar_usuario\": true, \"gestionar_etapas\": true, \"gestionar_sensores\": true, \"gestionar_geomembranas\": true}",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.853159"
+    },
+    {
+      "id": 2,
+      "nombre_rol": "Operario",
+      "descripcion": "Monitorea parametros en tiempo real y actua ante alertas",
+      "permisos": "{\"acceder_panel\": true, \"ver_parametros\": true, \"recibir_alertas\": true, \"ver_estado_agua\": true, \"consultar_historial\": true}",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.856195"
+    },
+    {
+      "id": 3,
+      "nombre_rol": "Aprendiz",
+      "descripcion": "Visualiza datos y aprende del sistema",
+      "permisos": "{\"ver_graficas\": true, \"comparar_datos\": true, \"ver_parametros\": true, \"ver_estado_agua\": true, \"consultar_historial\": true}",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.859180"
+    },
+    {
+      "id": 4,
+      "nombre_rol": "Agente IA",
+      "descripcion": "Sistema de analisis automatico de datos y predicciones",
+      "permisos": "{\"analizar_datos\": true, \"detectar_anomalias\": true, \"generar_predicciones\": true, \"proporcionar_recomendaciones\": true}",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:06.862712"
+    }
+  ],
+  "sensores": [
+    {
+      "id": 1,
+      "nombre_sensor": "pH Sensor - Alevin A1",
+      "codigo_hardware": "HW-AL-001-PH",
+      "ubicacion_exacta": "Esquina NW, 30cm profundidad",
+      "modelo_sensor": "DS18B20",
+      "marca_sensor": "DallasTemp",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "14.0000",
+      "precision_valor": "0.1000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 85,
+      "ultima_calibracion": "2026-04-01",
+      "proxima_calibracion": "2026-07-01",
+      "mac_address": "00:1A:2B:3C:4D:01",
+      "ip_address": null,
+      "firmware_version": "2.1",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.957451",
+      "fecha_edicion": "2026-08-27T19:24:06.957451",
+      "geomembrana_id": 1,
+      "tipo_parametro_id": 1
+    },
+    {
+      "id": 2,
+      "nombre_sensor": "Oxigeno Disuelto - Alevin A1",
+      "codigo_hardware": "HW-AL-001-OX",
+      "ubicacion_exacta": "Centro, 60cm profundidad",
+      "modelo_sensor": "AS-211",
+      "marca_sensor": "Hach",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "20.0000",
+      "precision_valor": "0.1000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 92,
+      "ultima_calibracion": "2026-04-05",
+      "proxima_calibracion": "2026-07-05",
+      "mac_address": "00:1A:2B:3C:4D:02",
+      "ip_address": null,
+      "firmware_version": "1.8",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.962475",
+      "fecha_edicion": "2026-08-27T19:24:06.962475",
+      "geomembrana_id": 1,
+      "tipo_parametro_id": 2
+    },
+    {
+      "id": 3,
+      "nombre_sensor": "Temperatura - Alevin A1",
+      "codigo_hardware": "HW-AL-001-TEMP",
+      "ubicacion_exacta": "Salida agua, 10cm profundidad",
+      "modelo_sensor": "PT100",
+      "marca_sensor": "Omron",
+      "rango_medicion_min": "-20.0000",
+      "rango_medicion_max": "80.0000",
+      "precision_valor": "0.5000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 88,
+      "ultima_calibracion": "2026-03-20",
+      "proxima_calibracion": "2026-06-20",
+      "mac_address": "00:1A:2B:3C:4D:03",
+      "ip_address": null,
+      "firmware_version": "3.0",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.966483",
+      "fecha_edicion": "2026-08-27T19:24:06.966483",
+      "geomembrana_id": 1,
+      "tipo_parametro_id": 3
+    },
+    {
+      "id": 4,
+      "nombre_sensor": "Turbidez - Alevin A1",
+      "codigo_hardware": "HW-AL-001-TURB",
+      "ubicacion_exacta": "Centro-Sur, 40cm profundidad",
+      "modelo_sensor": "OBS-3",
+      "marca_sensor": "YSI",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "1000.0000",
+      "precision_valor": "0.5000",
+      "intervalo_lectura_segundos": 600,
+      "bateria_nivel_actual": 78,
+      "ultima_calibracion": "2026-04-10",
+      "proxima_calibracion": "2026-07-10",
+      "mac_address": "00:1A:2B:3C:4D:04",
+      "ip_address": null,
+      "firmware_version": "2.3",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.969018",
+      "fecha_edicion": "2026-08-27T19:24:06.969018",
+      "geomembrana_id": 1,
+      "tipo_parametro_id": 4
+    },
+    {
+      "id": 5,
+      "nombre_sensor": "pH Sensor - Levante L1",
+      "codigo_hardware": "HW-LV-001-PH",
+      "ubicacion_exacta": "Esquina NE, 50cm profundidad",
+      "modelo_sensor": "DS18B20",
+      "marca_sensor": "DallasTemp",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "14.0000",
+      "precision_valor": "0.1000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 80,
+      "ultima_calibracion": "2026-04-02",
+      "proxima_calibracion": "2026-07-02",
+      "mac_address": "00:1A:2B:3C:4D:05",
+      "ip_address": null,
+      "firmware_version": "2.1",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.972522",
+      "fecha_edicion": "2026-08-27T19:24:06.972522",
+      "geomembrana_id": 3,
+      "tipo_parametro_id": 1
+    },
+    {
+      "id": 6,
+      "nombre_sensor": "Oxigeno Disuelto - Levante L1",
+      "codigo_hardware": "HW-LV-001-OX",
+      "ubicacion_exacta": "Centro, 80cm profundidad",
+      "modelo_sensor": "AS-211",
+      "marca_sensor": "Hach",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "20.0000",
+      "precision_valor": "0.1000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 90,
+      "ultima_calibracion": "2026-04-06",
+      "proxima_calibracion": "2026-07-06",
+      "mac_address": "00:1A:2B:3C:4D:06",
+      "ip_address": null,
+      "firmware_version": "1.8",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.976552",
+      "fecha_edicion": "2026-08-27T19:24:06.976552",
+      "geomembrana_id": 3,
+      "tipo_parametro_id": 2
+    },
+    {
+      "id": 7,
+      "nombre_sensor": "Temperatura - Levante L1",
+      "codigo_hardware": "HW-LV-001-TEMP",
+      "ubicacion_exacta": "Salida agua, 20cm profundidad",
+      "modelo_sensor": "PT100",
+      "marca_sensor": "Omron",
+      "rango_medicion_min": "-20.0000",
+      "rango_medicion_max": "80.0000",
+      "precision_valor": "0.5000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 87,
+      "ultima_calibracion": "2026-03-21",
+      "proxima_calibracion": "2026-06-21",
+      "mac_address": "00:1A:2B:3C:4D:07",
+      "ip_address": null,
+      "firmware_version": "3.0",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.981094",
+      "fecha_edicion": "2026-08-27T19:24:06.981094",
+      "geomembrana_id": 3,
+      "tipo_parametro_id": 3
+    },
+    {
+      "id": 8,
+      "nombre_sensor": "pH Sensor - Engorde E1",
+      "codigo_hardware": "HW-EG-001-PH",
+      "ubicacion_exacta": "Rincon NW, 80cm profundidad",
+      "modelo_sensor": "DS18B20",
+      "marca_sensor": "DallasTemp",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "14.0000",
+      "precision_valor": "0.1000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 82,
+      "ultima_calibracion": "2026-03-28",
+      "proxima_calibracion": "2026-06-28",
+      "mac_address": "00:1A:2B:3C:4D:08",
+      "ip_address": null,
+      "firmware_version": "2.1",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.985091",
+      "fecha_edicion": "2026-08-27T19:24:06.985091",
+      "geomembrana_id": 5,
+      "tipo_parametro_id": 1
+    },
+    {
+      "id": 9,
+      "nombre_sensor": "Oxigeno Disuelto - Engorde E1",
+      "codigo_hardware": "HW-EG-001-OX",
+      "ubicacion_exacta": "Centro, 100cm profundidad",
+      "modelo_sensor": "AS-211",
+      "marca_sensor": "Hach",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "20.0000",
+      "precision_valor": "0.1000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 95,
+      "ultima_calibracion": "2026-04-03",
+      "proxima_calibracion": "2026-07-03",
+      "mac_address": "00:1A:2B:3C:4D:09",
+      "ip_address": null,
+      "firmware_version": "1.8",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.989622",
+      "fecha_edicion": "2026-08-27T19:24:06.989622",
+      "geomembrana_id": 5,
+      "tipo_parametro_id": 2
+    },
+    {
+      "id": 10,
+      "nombre_sensor": "Temperatura - Engorde E1",
+      "codigo_hardware": "HW-EG-001-TEMP",
+      "ubicacion_exacta": "Salida agua, 30cm profundidad",
+      "modelo_sensor": "PT100",
+      "marca_sensor": "Omron",
+      "rango_medicion_min": "-20.0000",
+      "rango_medicion_max": "80.0000",
+      "precision_valor": "0.5000",
+      "intervalo_lectura_segundos": 300,
+      "bateria_nivel_actual": 89,
+      "ultima_calibracion": "2026-03-25",
+      "proxima_calibracion": "2026-06-25",
+      "mac_address": "00:1A:2B:3C:4D:0A",
+      "ip_address": null,
+      "firmware_version": "3.0",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.992663",
+      "fecha_edicion": "2026-08-27T19:24:06.992663",
+      "geomembrana_id": 5,
+      "tipo_parametro_id": 3
+    },
+    {
+      "id": 11,
+      "nombre_sensor": "Turbidez - Engorde E1",
+      "codigo_hardware": "HW-EG-001-TURB",
+      "ubicacion_exacta": "Centro, 70cm profundidad",
+      "modelo_sensor": "OBS-3",
+      "marca_sensor": "YSI",
+      "rango_medicion_min": "0.0000",
+      "rango_medicion_max": "1000.0000",
+      "precision_valor": "0.5000",
+      "intervalo_lectura_segundos": 600,
+      "bateria_nivel_actual": 76,
+      "ultima_calibracion": "2026-04-12",
+      "proxima_calibracion": "2026-07-12",
+      "mac_address": "00:1A:2B:3C:4D:0B",
+      "ip_address": null,
+      "firmware_version": "2.3",
+      "estado": "activo",
+      "fecha_instalacion": "2026-08-27T19:24:06.995632",
+      "fecha_edicion": "2026-08-27T19:24:06.995632",
+      "geomembrana_id": 5,
+      "tipo_parametro_id": 4
+    }
+  ],
+  "tipos_parametros": [
+    {
+      "id": 1,
+      "nombre_parametro": "pH",
+      "unidad_medida": "unidades pH",
+      "rango_normal_min": "6.5000",
+      "rango_normal_max": "7.8000",
+      "rango_riesgo_min": "6.0000",
+      "rango_riesgo_max": "8.5000",
+      "rango_critico_min": "5.5000",
+      "rango_critico_max": "9.0000",
+      "descripcion": "Nivel de acidez/alcalinidad del agua",
+      "importancia": "alta",
+      "estado": "activo"
+    },
+    {
+      "id": 2,
+      "nombre_parametro": "Oxigeno Disuelto",
+      "unidad_medida": "mg/L",
+      "rango_normal_min": "4.0000",
+      "rango_normal_max": "8.0000",
+      "rango_riesgo_min": "2.5000",
+      "rango_riesgo_max": "4.0000",
+      "rango_critico_min": "0.0000",
+      "rango_critico_max": "2.5000",
+      "descripcion": "Concentracion de oxigeno disponible para los peces",
+      "importancia": "alta",
+      "estado": "activo"
+    },
+    {
+      "id": 3,
+      "nombre_parametro": "Temperatura",
+      "unidad_medida": "°C",
+      "rango_normal_min": "24.0000",
+      "rango_normal_max": "30.0000",
+      "rango_riesgo_min": "20.0000",
+      "rango_riesgo_max": "32.0000",
+      "rango_critico_min": "15.0000",
+      "rango_critico_max": "35.0000",
+      "descripcion": "Temperatura del agua en la piscina",
+      "importancia": "alta",
+      "estado": "activo"
+    },
+    {
+      "id": 4,
+      "nombre_parametro": "Turbidez",
+      "unidad_medida": "NTU",
+      "rango_normal_min": "10.0000",
+      "rango_normal_max": "50.0000",
+      "rango_riesgo_min": "50.0000",
+      "rango_riesgo_max": "100.0000",
+      "rango_critico_min": "100.0000",
+      "rango_critico_max": "500.0000",
+      "descripcion": "Claridad del agua, presencia de solidos suspendidos",
+      "importancia": "media",
+      "estado": "activo"
+    },
+    {
+      "id": 5,
+      "nombre_parametro": "Amoniaco",
+      "unidad_medida": "mg/L",
+      "rango_normal_min": "0.0000",
+      "rango_normal_max": "0.5000",
+      "rango_riesgo_min": "0.5000",
+      "rango_riesgo_max": "1.0000",
+      "rango_critico_min": "1.0000",
+      "rango_critico_max": "5.0000",
+      "descripcion": "Nivel de amoniaco (toxico para peces)",
+      "importancia": "alta",
+      "estado": "activo"
+    },
+    {
+      "id": 6,
+      "nombre_parametro": "Nitrito",
+      "unidad_medida": "mg/L",
+      "rango_normal_min": "0.0000",
+      "rango_normal_max": "0.1000",
+      "rango_riesgo_min": "0.1000",
+      "rango_riesgo_max": "0.5000",
+      "rango_critico_min": "0.5000",
+      "rango_critico_max": "2.0000",
+      "descripcion": "Nivel de nitrito (compuesto intermedio del ciclo del nitrogeno)",
+      "importancia": "media",
+      "estado": "activo"
+    },
+    {
+      "id": 7,
+      "nombre_parametro": "Nitrato",
+      "unidad_medida": "mg/L",
+      "rango_normal_min": "0.0000",
+      "rango_normal_max": "40.0000",
+      "rango_riesgo_min": "40.0000",
+      "rango_riesgo_max": "80.0000",
+      "rango_critico_min": "80.0000",
+      "rango_critico_max": "160.0000",
+      "descripcion": "Nivel de nitrato (producto final del ciclo del nitrogeno)",
+      "importancia": "media",
+      "estado": "activo"
+    }
+  ],
+  "usuarios": [
+    {
+      "id": 1,
+      "password": "pbkdf2_sha256$1000000$5GT3mWQkgjKFeaOe4vYgJh$670icXfWSDam5tRJdZd6ejWhReuFBvqSeP9m9D2Oh7Q=",
+      "last_login": null,
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:24:06.999161",
+      "email": "juan.garcia@sigmap.com",
+      "nombre_completo": "Juan Jose Garcia Cocoma",
+      "documento_identidad": "1087654321",
+      "numero_celular": "3105555001",
+      "numero_whatsapp": "573105555001",
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:07.000171",
+      "fecha_edicion": "2026-08-27T19:24:07.000171",
+      "rol_id": 1
+    },
+    {
+      "id": 2,
+      "password": "pbkdf2_sha256$1000000$k7txHzQWTNGqtr4NmT82oJ$b+W8llGZlbR7CLpGYBzvWTaamqsK9tNbtmqMPckUDCY=",
+      "last_login": null,
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:24:07.467840",
+      "email": "maria.lopez@sigmap.com",
+      "nombre_completo": "Maria Lopez Torres",
+      "documento_identidad": "1087654322",
+      "numero_celular": "3105555002",
+      "numero_whatsapp": "573105555002",
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:07.467840",
+      "fecha_edicion": "2026-08-27T19:24:07.467840",
+      "rol_id": 2
+    },
+    {
+      "id": 3,
+      "password": "pbkdf2_sha256$1000000$fJHb29FFgHULewnwA0Tz7Z$rWAoev/CdRLvcvjSislD4iPObD/mIQMYFFLRPbueuSY=",
+      "last_login": null,
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:24:07.964227",
+      "email": "carlos.mendez@sigmap.com",
+      "nombre_completo": "Carlos Mendez Silva",
+      "documento_identidad": "1087654323",
+      "numero_celular": "3105555003",
+      "numero_whatsapp": "573105555003",
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:07.964227",
+      "fecha_edicion": "2026-08-27T19:24:07.964227",
+      "rol_id": 2
+    },
+    {
+      "id": 4,
+      "password": "pbkdf2_sha256$1000000$IUDuKpIBG6hRQBGPRSXslE$27Hp7eZkKbz1kh3ps3HKUG5kAWVDH6pxfkbMlTZZonk=",
+      "last_login": null,
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:24:08.420319",
+      "email": "ana.rodriguez@sigmap.com",
+      "nombre_completo": "Ana Rodriguez Perez",
+      "documento_identidad": "1087654324",
+      "numero_celular": "3105555004",
+      "numero_whatsapp": "573105555004",
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:08.420319",
+      "fecha_edicion": "2026-08-27T19:24:08.420319",
+      "rol_id": 2
+    },
+    {
+      "id": 5,
+      "password": "pbkdf2_sha256$1000000$KuMoJpEsNt0yhQ7r3lZhCU$D/pqpRKBQNF/MFBz84RZFNJrKG0jldwtXuVXoAydrNQ=",
+      "last_login": null,
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:24:08.840426",
+      "email": "luis.diaz@sigmap.com",
+      "nombre_completo": "Luis Fernando Diaz",
+      "documento_identidad": "1087654325",
+      "numero_celular": "3105555005",
+      "numero_whatsapp": "573105555005",
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:08.840426",
+      "fecha_edicion": "2026-08-27T19:24:08.840426",
+      "rol_id": 3
+    },
+    {
+      "id": 6,
+      "password": "pbkdf2_sha256$1000000$e7QvnSzwidK8nQdR8B0J48$6E+dulvCyJOBWKxRkUP0vCthgQnDCtPl8KycJ2bBCc8=",
+      "last_login": null,
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:24:09.285277",
+      "email": "patricia.gomez@sigmap.com",
+      "nombre_completo": "Patricia Gomez Ruiz",
+      "documento_identidad": "1087654326",
+      "numero_celular": "3105555006",
+      "numero_whatsapp": "573105555006",
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:09.286274",
+      "fecha_edicion": "2026-08-27T19:24:09.286274",
+      "rol_id": 3
+    },
+    {
+      "id": 7,
+      "password": "pbkdf2_sha256$1000000$3g32X8v3dv4sByqed7t6FJ$AZjvIJaNPhYsPz2KYxy+BUk3Q6LovXuUkRtGR1oz66Y=",
+      "last_login": null,
+      "is_superuser": 0,
+      "is_staff": 0,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:24:09.723759",
+      "email": "ia@sigmap-system.local",
+      "nombre_completo": "Sistema IA SIGMAP",
+      "documento_identidad": "SISTEMA",
+      "numero_celular": null,
+      "numero_whatsapp": null,
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:24:09.723759",
+      "fecha_edicion": "2026-08-27T19:24:09.723759",
+      "rol_id": 4
+    },
+    {
+      "id": 8,
+      "password": "pbkdf2_sha256$1000000$u5A7P6HvLGza4o5ian6xQo$CK9+RH/awIFi5kEqRD/CswbsrXlv8QSn+EKXxWl7tXg=",
+      "last_login": "2026-09-03T17:08:43.743127",
+      "is_superuser": 1,
+      "is_staff": 1,
+      "is_active": 1,
+      "date_joined": "2026-08-27T19:28:04.840327",
+      "email": "yesmano975@gmail.com",
+      "nombre_completo": "Yesman Ronaldo Ortega Avila",
+      "documento_identidad": null,
+      "numero_celular": null,
+      "numero_whatsapp": null,
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-08-27T19:28:05.267830",
+      "fecha_edicion": "2026-08-27T19:28:05.267830",
+      "rol_id": 1
+    },
+    {
+      "id": 9,
+      "password": "pbkdf2_sha256$1000000$ryALhPZvnrKG4RwCuwqWix$Yj6a75XPGBTKtlOX1GBznzlORvRR1ZISXKHPR0EvlWE=",
+      "last_login": null,
+      "is_superuser": 1,
+      "is_staff": 1,
+      "is_active": 1,
+      "date_joined": "2026-09-03T16:52:42.515124",
+      "email": "admin@gmail.com",
+      "nombre_completo": "Admin",
+      "documento_identidad": null,
+      "numero_celular": null,
+      "numero_whatsapp": null,
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-09-03T16:52:42.937428",
+      "fecha_edicion": "2026-09-03T16:52:42.937428",
+      "rol_id": 1
+    },
+    {
+      "id": 10,
+      "password": "pbkdf2_sha256$1000000$GahyP6giTs6r2lJfg397aD$NpePCT+Op6mhG50+zrUbNQrCi9k7KSUKkAyc1/N9aiQ=",
+      "last_login": "2026-09-04T00:12:21.658274",
+      "is_superuser": 1,
+      "is_staff": 1,
+      "is_active": 1,
+      "date_joined": "2026-09-04T00:11:16.655011",
+      "email": "angelnicolasabril@gmail.com",
+      "nombre_completo": "Angel Nicolas Abril Quimbaya",
+      "documento_identidad": null,
+      "numero_celular": null,
+      "numero_whatsapp": null,
+      "foto_perfil": "",
+      "estado": "activo",
+      "fecha_creacion": "2026-09-04T00:11:17.656246",
+      "fecha_edicion": "2026-09-04T00:11:17.656246",
+      "rol_id": 1
+    }
+  ],
+  "usuarios_groups": [],
+  "usuarios_user_permissions": []
+}

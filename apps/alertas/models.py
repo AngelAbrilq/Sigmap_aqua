@@ -116,3 +116,62 @@ class HistorialEstadoAgua(models.Model):
 
     def __str__(self):
         return f'{self.geomembrana.codigo_identificacion}: {self.get_estado_general_display()}'
+
+
+class Notificacion(models.Model):
+    """
+    Aviso dirigido a un usuario concreto (tabla `notificaciones_push` del ERD).
+
+    Una Alerta describe el problema del agua una sola vez; la Notificacion es
+    su entrega a cada persona que debe enterarse. Separarlas permite que el
+    Operario marque la suya como leida sin alterar el estado de la alerta ni
+    el aviso que le llego al Instructor Lider.
+    """
+
+    CANALES = [
+        ('sistema', 'En el sistema'),
+        ('push', 'Push'),
+        ('whatsapp', 'WhatsApp'),
+        ('email', 'Correo'),
+    ]
+
+    usuario = models.ForeignKey(
+        'usuarios.Usuario', on_delete=models.CASCADE,
+        related_name='notificaciones', verbose_name='Destinatario'
+    )
+    alerta = models.ForeignKey(
+        Alerta, on_delete=models.CASCADE,
+        related_name='notificaciones', null=True, blank=True
+    )
+
+    titulo = models.CharField('Título', max_length=255)
+    mensaje = models.TextField('Mensaje')
+    canal = models.CharField(max_length=10, choices=CANALES, default='sistema')
+
+    enviada = models.BooleanField('Enviada', default=True)
+    leida = models.BooleanField('Leída', default=False)
+
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_lectura = models.DateTimeField('Leída en', null=True, blank=True)
+
+    class Meta:
+        db_table = 'notificaciones_push'
+        verbose_name = 'Notificación'
+        verbose_name_plural = 'Notificaciones'
+        ordering = ['-fecha_creacion']
+        indexes = [
+            # La campanita del header consulta exactamente por este par.
+            models.Index(fields=['usuario', 'leida', '-fecha_creacion'],
+                         name='idx_notif_usuario_leida'),
+        ]
+
+    def __str__(self):
+        return f'{self.usuario_id}: {self.titulo}'
+
+    def marcar_leida(self):
+        """Marca la notificacion como leida. Idempotente."""
+        if self.leida:
+            return
+        self.leida = True
+        self.fecha_lectura = timezone.now()
+        self.save(update_fields=['leida', 'fecha_lectura'])

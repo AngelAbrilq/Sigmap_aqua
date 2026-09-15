@@ -1,773 +1,256 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}SIGMAP-AQUA | Comparación de períodos{% endblock %}
+{% comment %}
+  Comparacion entre dos periodos de la misma piscina.
+  Responde a la pregunta operativa: ¿el agua está mejor o peor que antes?
+{% endcomment %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/comparacion.css' %}">
-{% endblock %}
+{% block title %}SIGMAP-AQUA | Comparación de periodos{% endblock %}
 
 {% block page_title %}
-  <h1>Comparación de Períodos</h1>
-  <p>Compara métricas de calidad de agua entre diferentes rangos de fecha y detecta patrones.</p>
+  <h1>Comparación de periodos</h1>
+  <p>Contrasta dos rangos de fechas para ver cómo evolucionó el cultivo.</p>
 {% endblock %}
 
 {% block content %}
-      <div class="cmp-container">
-        <!-- =====================================================================
-             HEADER: TÍTULO, SUBTÍTULO Y ACCIONES DE USUARIO
-             ===================================================================== -->
+<div class="sg-modulo">
 
-        <!-- =====================================================================
-             CARD DE FILTROS: SELECCIONA LOS PERÍODOS A COMPARAR
-             ===================================================================== -->
-        <section class="cmp-filter-card">
-          <div class="cmp-filter-title">Selecciona los períodos a comparar</div>
-          
-          <div class="cmp-filter-row">
-            <!-- Período A -->
-            <div class="cmp-filter-group">
-              <label class="cmp-period-label">
-                <span class="cmp-dot-indicator cmp-dot-a"></span>
-                <span>Período A</span>
-              </label>
-              <div class="cmp-date-input-wrap">
-                <span class="cmp-date-text">01/05/2024 - 15/05/2024</span>
-                <span class="cmp-date-icon">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                </span>
-              </div>
-            </div>
-
-            <!-- Período B -->
-            <div class="cmp-filter-group">
-              <label class="cmp-period-label">
-                <span class="cmp-dot-indicator cmp-dot-b"></span>
-                <span>Período B</span>
-              </label>
-              <div class="cmp-date-input-wrap">
-                <span class="cmp-date-text">16/05/2024 - 31/05/2024</span>
-                <span class="cmp-date-icon">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                </span>
-              </div>
-            </div>
-
-            <!-- Parámetros Select -->
-            <div class="cmp-select-group">
-              <label>Parámetros</label>
-              <div class="cmp-select-wrap">
-                <select id="paramSelect">
-                  <option value="todos">Todos los parámetros</option>
-                  <option value="temperatura">Temperatura (°C)</option>
-                  <option value="ph">pH</option>
-                  <option value="oxigeno">Oxígeno Disuelto (mg/L)</option>
-                  <option value="turbidez">Turbidez (NTU)</option>
-                  <option value="conductividad">Conductividad (µS/cm)</option>
-                </select>
-                <div class="cmp-select-arrow">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                </div>
-              </div>
-            </div>
-
-            <!-- Botón Comparar Períodos -->
-            <button class="cmp-btn-compare">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-              <span>Comparar períodos</span>
-            </button>
-          </div>
-        </section>
-
-        <!-- =====================================================================
-             5 TARJETAS DE COMPARACIÓN DE PARÁMETROS
-             ===================================================================== -->
-        <section class="cmp-cards-grid">
-          
-          <!-- 1. Temperatura -->
-          <div class="cmp-param-card">
-            <div class="cmp-param-header">
-              <div class="cmp-param-icon-badge cmp-icon-temp">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-              </div>
-              <span class="cmp-param-name">Temperatura (°C)</span>
-            </div>
-            <div class="cmp-param-values-row">
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-a">A</span>
-                <span class="cmp-val-number">26.7</span>
-              </div>
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-b">B</span>
-                <span class="cmp-val-number cmp-green">27.4</span>
-              </div>
-            </div>
-            <div class="cmp-param-delta cmp-delta-up-red">
-              <span>Δ 0.7 °C ↑</span>
-            </div>
-          </div>
-
-          <!-- 2. pH -->
-          <div class="cmp-param-card">
-            <div class="cmp-param-header">
-              <div class="cmp-param-icon-badge cmp-icon-ph">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-              </div>
-              <span class="cmp-param-name">pH</span>
-            </div>
-            <div class="cmp-param-values-row">
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-a">A</span>
-                <span class="cmp-val-number">7.0</span>
-              </div>
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-b">B</span>
-                <span class="cmp-val-number cmp-green">7.3</span>
-              </div>
-            </div>
-            <div class="cmp-param-delta cmp-delta-up-green">
-              <span>Δ 0.3 ↑</span>
-            </div>
-          </div>
-
-          <!-- 3. Oxígeno Disuelto -->
-          <div class="cmp-param-card">
-            <div class="cmp-param-header">
-              <div class="cmp-param-icon-badge cmp-icon-od">
-                <span>O₂</span>
-              </div>
-              <span class="cmp-param-name">Oxígeno Disuelto (mg/L)</span>
-            </div>
-            <div class="cmp-param-values-row">
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-a">A</span>
-                <span class="cmp-val-number">6.1</span>
-              </div>
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-b">B</span>
-                <span class="cmp-val-number cmp-green">6.8</span>
-              </div>
-            </div>
-            <div class="cmp-param-delta cmp-delta-up-green">
-              <span>Δ 0.7 mg/L ↑</span>
-            </div>
-          </div>
-
-          <!-- 4. Turbidez -->
-          <div class="cmp-param-card">
-            <div class="cmp-param-header">
-              <div class="cmp-param-icon-badge cmp-icon-turb">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-              </div>
-              <span class="cmp-param-name">Turbidez (NTU)</span>
-            </div>
-            <div class="cmp-param-values-row">
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-val-tag-red">A</span>
-                <span class="cmp-val-number cmp-red">14.6</span>
-              </div>
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-b">B</span>
-                <span class="cmp-val-number cmp-green">12.3</span>
-              </div>
-            </div>
-            <div class="cmp-param-delta cmp-delta-down-green">
-              <span>↓ -2.3 NTU</span>
-            </div>
-          </div>
-
-          <!-- 5. Conductividad -->
-          <div class="cmp-param-card">
-            <div class="cmp-param-header">
-              <div class="cmp-param-icon-badge cmp-icon-cond">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              </div>
-              <span class="cmp-param-name">Conductividad (µS/cm)</span>
-            </div>
-            <div class="cmp-param-values-row">
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-a">A</span>
-                <span class="cmp-val-number">410</span>
-              </div>
-              <div class="cmp-val-col">
-                <span class="cmp-val-tag cmp-tag-b">B</span>
-                <span class="cmp-val-number">420</span>
-              </div>
-            </div>
-            <div class="cmp-param-delta cmp-delta-up-red">
-              <span>Δ 10 µS/cm ↑</span>
-            </div>
-          </div>
-
-        </section>
-
-        <!-- =====================================================================
-             SECCIÓN MEDIA: EVOLUCIÓN DE PARÁMETROS + RESUMEN DE LA COMPARACIÓN
-             ===================================================================== -->
-        <div class="cmp-middle-grid">
-          
-          <!-- Gráfico de Evolución -->
-          <div class="cmp-chart-card">
-            <div class="cmp-chart-header">
-              <h2 class="cmp-chart-title">Evolución de parámetros - Comparación de períodos</h2>
-              
-              <!-- Leyenda personalizada idéntica a la captura -->
-              <div class="cmp-custom-legend">
-                <!-- Temperatura A -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line" style="background-color: #1E64D4;"></span>
-                  <span>Temperatura (°C)</span>
-                </div>
-                <!-- Temperatura B -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line" style="background-color: #0284C7;"></span>
-                  <span>Temperatura B</span>
-                </div>
-                <!-- pH A -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line" style="background-color: #12B76A;"></span>
-                  <span>pH A</span>
-                </div>
-                <!-- Oxígeno Disuelto A -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line" style="background-color: #06B6D4;"></span>
-                  <span>Oxígeno Disuelto (mg/L) A</span>
-                </div>
-                <!-- Turbidez A -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line" style="background-color: #F97316;"></span>
-                  <span>Turbidez (NTU) A</span>
-                </div>
-                <!-- Conductividad A -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line" style="background-color: #9333EA;"></span>
-                  <span>Conductividad (µS/cm) A</span>
-                </div>
-                <!-- Temperatura B dashed -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line cmp-dashed" style="border-color: #0284C7;"></span>
-                  <span>Temperatura B</span>
-                </div>
-                <!-- pH B dashed -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line cmp-dashed" style="border-color: #12B76A;"></span>
-                  <span>pH B</span>
-                </div>
-                <!-- Oxígeno Disuelto B dashed -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line cmp-dashed" style="border-color: #06B6D4;"></span>
-                  <span>Oxígeno Disuelto B</span>
-                </div>
-                <!-- Turbidez B dashed -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line cmp-dashed" style="border-color: #F97316;"></span>
-                  <span>Turbidez B</span>
-                </div>
-                <!-- Conductividad B dashed -->
-                <div class="cmp-leg-item">
-                  <span class="cmp-leg-line cmp-dashed" style="border-color: #9333EA;"></span>
-                  <span>Conductividad B</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Canvas del Gráfico -->
-            <div class="cmp-chart-wrapper">
-              <canvas id="comparisonChart"></canvas>
-            </div>
-
-            <!-- Banners inferiores indicando Período A y Período B -->
-            <div class="cmp-chart-period-banners">
-              <div class="cmp-period-banner-a">
-                Período A (01/05 - 15/05)
-              </div>
-              <div class="cmp-period-banner-b">
-                Período B (16/05 - 31/05)
-              </div>
-            </div>
-          </div>
-
-          <!-- Resumen de la comparación -->
-          <div class="cmp-summary-card">
-            <h2 class="cmp-summary-title">Resumen de la comparación</h2>
-
-            <!-- Mejora -->
-            <div class="cmp-sum-item cmp-mejora">
-              <div class="cmp-sum-icon-box cmp-sum-icon-green">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-              </div>
-              <div class="cmp-sum-text-box">
-                <div class="cmp-sum-label-row">
-                  <span class="cmp-sum-label">Mejora</span>
-                  <span class="cmp-sum-pill-count cmp-pill-green">3</span>
-                </div>
-                <span class="cmp-sum-params">Oxígeno Disuelto, pH</span>
-              </div>
-            </div>
-
-            <!-- Empeora -->
-            <div class="cmp-sum-item cmp-empeora">
-              <div class="cmp-sum-icon-box cmp-sum-icon-red">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-              </div>
-              <div class="cmp-sum-text-box">
-                <div class="cmp-sum-label-row">
-                  <span class="cmp-sum-label">Empeora</span>
-                  <span class="cmp-sum-pill-count cmp-pill-red">2</span>
-                </div>
-                <span class="cmp-sum-params">Temperatura, Conductividad</span>
-              </div>
-            </div>
-
-            <!-- Mejora significativa -->
-            <div class="cmp-sum-item cmp-mejora-sig">
-              <div class="cmp-sum-icon-box cmp-sum-icon-green">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-              </div>
-              <div class="cmp-sum-text-box">
-                <div class="cmp-sum-label-row">
-                  <span class="cmp-sum-label">Mejora significativa</span>
-                  <span class="cmp-sum-pill-count cmp-pill-green">1</span>
-                </div>
-                <span class="cmp-sum-params">Turbidez (-15.8%)</span>
-              </div>
-            </div>
-
-            <!-- Mensaje informativo general -->
-            <div class="cmp-sum-info-box">
-              <div class="cmp-sum-info-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              </div>
-              <div class="cmp-sum-info-text">
-                En general, el período B muestra mejores condiciones de calidad del agua.
-              </div>
-            </div>
-
-            <!-- Link Ver recomendaciones IA -->
-            <a href="{% url 'core:ai' %}" class="cmp-link-ia">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-              <span>Ver recomendaciones IA</span>
-            </a>
-          </div>
-
-        </div>
-
-        <!-- =====================================================================
-             SECCIÓN INFERIOR: ESTADÍSTICAS COMPARATIVAS + ACCIONES RÁPIDAS
-             ===================================================================== -->
-        <div class="cmp-bottom-grid">
-
-          <!-- Tabla: Estadísticas comparativas -->
-          <div class="cmp-table-container">
-            <h2 class="cmp-table-title">Estadísticas comparativas</h2>
-
-            <div class="cmp-table-card">
-              <table class="cmp-stats-table">
-                <thead>
-                  <tr>
-                    <th rowspan="2" class="cmp-th-param">Parámetro</th>
-                    <th colspan="3" class="cmp-th-period-a">Período A (01/05 - 15/05)</th>
-                    <th colspan="3" class="cmp-th-period-b">Período B (16/05 - 31/05)</th>
-                    <th rowspan="2" class="cmp-th-meta">Unidad</th>
-                    <th rowspan="2" class="cmp-th-meta">Cambio absoluto</th>
-                    <th rowspan="2" class="cmp-th-meta">Cambio %</th>
-                    <th rowspan="2" class="cmp-th-meta">Tendencia</th>
-                  </tr>
-                  <tr>
-                    <th>Promedio</th>
-                    <th>Mínimo</th>
-                    <th>Máximo</th>
-                    <th>Promedio</th>
-                    <th>Mínimo</th>
-                    <th>Máximo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Fila 1: Temperatura -->
-                  <tr>
-                    <td class="cmp-td-param">
-                      <span class="cmp-param-cell-icon" style="color: #1E64D4;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-                      </span>
-                      <span>Temperatura (°C)</span>
-                    </td>
-                    <td>26.7</td>
-                    <td>24.1</td>
-                    <td>29.2</td>
-                    <td>27.4</td>
-                    <td>24.3</td>
-                    <td>30.1</td>
-                    <td>°C</td>
-                    <td>+0.7</td>
-                    <td>+2.6%</td>
-                    <td class="cmp-td-trend-up-red">↑</td>
-                  </tr>
-
-                  <!-- Fila 2: pH -->
-                  <tr>
-                    <td class="cmp-td-param">
-                      <span class="cmp-param-cell-icon" style="color: #12B76A;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                      </span>
-                      <span>pH</span>
-                    </td>
-                    <td>7.0</td>
-                    <td>6.4</td>
-                    <td>7.6</td>
-                    <td>7.3</td>
-                    <td>6.6</td>
-                    <td>8.1</td>
-                    <td>-</td>
-                    <td>+0.3</td>
-                    <td>+4.3%</td>
-                    <td class="cmp-td-trend-up-green">↑</td>
-                  </tr>
-
-                  <!-- Fila 3: Oxígeno Disuelto -->
-                  <tr>
-                    <td class="cmp-td-param">
-                      <span class="cmp-param-cell-icon" style="color: #0284C7; font-weight: 700; font-size: 11px;">
-                        O₂
-                      </span>
-                      <span>Oxígeno Disuelto (mg/L)</span>
-                    </td>
-                    <td>6.1</td>
-                    <td>4.0</td>
-                    <td>8.0</td>
-                    <td>6.8</td>
-                    <td>4.6</td>
-                    <td>8.6</td>
-                    <td>mg/L</td>
-                    <td>+0.7</td>
-                    <td>+11.5%</td>
-                    <td class="cmp-td-trend-up-green">↑</td>
-                  </tr>
-
-                  <!-- Fila 4: Turbidez -->
-                  <tr>
-                    <td class="cmp-td-param">
-                      <span class="cmp-param-cell-icon" style="color: #F97316;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-                      </span>
-                      <span>Turbidez (NTU)</span>
-                    </td>
-                    <td>14.6</td>
-                    <td>6.2</td>
-                    <td>28.7</td>
-                    <td>12.3</td>
-                    <td>5.1</td>
-                    <td>24.0</td>
-                    <td>NTU</td>
-                    <td>-2.3</td>
-                    <td>-15.8%</td>
-                    <td class="cmp-td-trend-down-green">↓</td>
-                  </tr>
-
-                  <!-- Fila 5: Conductividad -->
-                  <tr>
-                    <td class="cmp-td-param">
-                      <span class="cmp-param-cell-icon" style="color: #9333EA;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                      </span>
-                      <span>Conductividad (µS/cm)</span>
-                    </td>
-                    <td>410</td>
-                    <td>220</td>
-                    <td>620</td>
-                    <td>420</td>
-                    <td>230</td>
-                    <td>680</td>
-                    <td>µS/cm</td>
-                    <td>+10</td>
-                    <td>+2.4%</td>
-                    <td class="cmp-td-trend-up-red">↑</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Acciones rápidas -->
-          <div class="cmp-actions-card">
-            <h2 class="cmp-actions-title">Acciones rápidas</h2>
-
-            <div class="cmp-actions-list">
-              <!-- Exportar PDF -->
-              <button class="cmp-action-btn cmp-action-pdf">
-                <span class="cmp-action-icon-pdf">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                </span>
-                <span>Exportar comparación (PDF)</span>
-              </button>
-
-              <!-- Exportar Excel -->
-              <button class="cmp-action-btn cmp-action-excel">
-                <span class="cmp-action-icon-excel">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="12" width="8" height="6"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="8" y1="15" x2="16" y2="15"/></svg>
-                </span>
-                <span>Exportar datos (Excel)</span>
-              </button>
-
-              <!-- Guardar comparación -->
-              <button class="cmp-action-btn cmp-action-save">
-                <span class="cmp-action-icon-save">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                </span>
-                <span>Guardar comparación</span>
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- =====================================================================
-             PIE: NOTA INFORMATIVA
-             ===================================================================== -->
-        <footer class="cmp-footer-note">
-          <svg class="cmp-footer-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <span>Los datos se actualizan cada 30 minutos. La comparación se basa en los promedios de cada período.</span>
-        </footer>
-
+  <div class="sg-card">
+    <form class="sg-filtros" method="get">
+      <div class="sg-filtro" style="flex:1 1 200px;">
+        <label for="piscina">Piscina</label>
+        <select id="piscina" name="piscina" onchange="this.form.submit()">
+          {% for p in piscinas %}
+            <option value="{{ p.pk }}" {% if seleccionada and seleccionada.pk == p.pk %}selected{% endif %}>{{ p.nombre_piscina }}</option>
+          {% empty %}
+            <option value="">Sin piscinas registradas</option>
+          {% endfor %}
+        </select>
       </div>
+      <div class="sg-filtro">
+        <label for="p1_inicio">Periodo 1 · desde</label>
+        <input type="date" id="p1_inicio" name="p1_inicio" value="{{ periodos.p1_inicio }}">
+      </div>
+      <div class="sg-filtro">
+        <label for="p1_fin">Periodo 1 · hasta</label>
+        <input type="date" id="p1_fin" name="p1_fin" value="{{ periodos.p1_fin }}">
+      </div>
+      <div class="sg-filtro">
+        <label for="p2_inicio">Periodo 2 · desde</label>
+        <input type="date" id="p2_inicio" name="p2_inicio" value="{{ periodos.p2_inicio }}">
+      </div>
+      <div class="sg-filtro">
+        <label for="p2_fin">Periodo 2 · hasta</label>
+        <input type="date" id="p2_fin" name="p2_fin" value="{{ periodos.p2_fin }}">
+      </div>
+      <div class="sg-filtro" style="flex:0 0 auto;min-width:0;">
+        <label>&nbsp;</label>
+        <button type="submit" class="sg-btn sg-btn--primario">Comparar</button>
+      </div>
+    </form>
 
-<!-- Modales y elementos flotantes del modulo -->
-<!-- =========================================================================
-       SCRIPTS: CONFIGURACIÓN DEL GRÁFICO CON CHART.JS
-       ========================================================================= -->
+    {% if resultado %}
+      <div class="sg-card-body">
+        {% if resultado.periodo_1.lecturas or resultado.periodo_2.lecturas %}
+
+          <!-- Variaciones globales -->
+          <div class="sg-fila-kpi" style="margin-bottom:22px;">
+            {% with v=resultado.variaciones.cumplimiento %}
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Cumplimiento</span>
+              <span class="sg-metrica-valor">{{ resultado.periodo_2.cumplimiento|default:"—" }}%</span>
+              <span class="sg-metrica-delta sg-delta--{{ v.direccion }}">
+                {% if v.absoluto is not None %}
+                  {% if v.direccion == 'sube' %}▲{% elif v.direccion == 'baja' %}▼{% endif %}
+                  {{ v.absoluto }} pts vs periodo 1
+                {% else %}sin comparación{% endif %}
+              </span>
+            </div>
+            {% endwith %}
+
+            {% with v=resultado.variaciones.lecturas %}
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Lecturas</span>
+              <span class="sg-metrica-valor">{{ resultado.periodo_2.lecturas }}</span>
+              <span class="sg-metrica-delta sg-delta--{{ v.direccion }}">
+                {% if v.absoluto is not None %}{{ v.absoluto }} vs periodo 1{% endif %}
+              </span>
+            </div>
+            {% endwith %}
+
+            {% with v=resultado.variaciones.fuera_rango %}
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Fuera de rango</span>
+              <span class="sg-metrica-valor">{{ resultado.periodo_2.fuera_rango }}</span>
+              <span class="sg-metrica-delta sg-delta--{% if v.direccion == 'sube' %}baja{% elif v.direccion == 'baja' %}sube{% else %}{{ v.direccion }}{% endif %}">
+                {% if v.absoluto is not None %}{{ v.absoluto }} vs periodo 1{% endif %}
+              </span>
+            </div>
+            {% endwith %}
+
+            {% with v=resultado.variaciones.alertas %}
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Alertas</span>
+              <span class="sg-metrica-valor">{{ resultado.periodo_2.alertas }}</span>
+              <span class="sg-metrica-delta sg-delta--{% if v.direccion == 'sube' %}baja{% elif v.direccion == 'baja' %}sube{% else %}{{ v.direccion }}{% endif %}">
+                {% if v.absoluto is not None %}{{ v.absoluto }} vs periodo 1{% endif %}
+              </span>
+            </div>
+            {% endwith %}
+          </div>
+
+          <div class="sg-grafica" style="height:300px;">
+            <canvas id="graficaComparacion"></canvas>
+          </div>
+
+          <!-- Tabla comparativa -->
+          <h3 style="margin:26px 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Detalle por parámetro</h3>
+          <div class="sg-tabla-wrap">
+            <table class="sg-tabla">
+              <thead>
+                <tr>
+                  <th>Parámetro</th>
+                  <th class="num">Periodo 1<br><small style="font-weight:500;text-transform:none;">{{ periodos.p1_inicio }} → {{ periodos.p1_fin }}</small></th>
+                  <th class="num">Periodo 2<br><small style="font-weight:500;text-transform:none;">{{ periodos.p2_inicio }} → {{ periodos.p2_fin }}</small></th>
+                  <th class="num">Variación</th>
+                  <th class="num">Cumplimiento 1</th>
+                  <th class="num">Cumplimiento 2</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for fila in resultado.por_parametro %}
+                  <tr>
+                    <td><strong>{{ fila.parametro }}</strong> <small style="color:#9ca3af;">{{ fila.unidad }}</small></td>
+                    <td class="num">{{ fila.periodo_1|default:"—" }}</td>
+                    <td class="num">{{ fila.periodo_2|default:"—" }}</td>
+                    <td class="num">
+                      <span class="sg-metrica-delta sg-delta--{{ fila.variacion.direccion }}">
+                        {% if fila.variacion.porcentaje is not None %}
+                          {% if fila.variacion.direccion == 'sube' %}▲{% elif fila.variacion.direccion == 'baja' %}▼{% endif %}
+                          {{ fila.variacion.porcentaje }}%
+                        {% else %}—{% endif %}
+                      </span>
+                    </td>
+                    <td class="num">{{ fila.cumplimiento_1|default:"—" }}%</td>
+                    <td class="num">{{ fila.cumplimiento_2|default:"—" }}%</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Lectura en palabras -->
+          <div class="sg-alerta sg-alerta--info" style="margin-top:22px;">
+            <strong>Diferencias principales</strong><br>
+            {{ diferencias|linebreaksbr }}
+          </div>
+
+          {% if puede_guardar %}
+            <form method="post" action="{% url 'reportes:comparacion_guardar' %}" style="margin-top:16px;">
+              {% csrf_token %}
+              <input type="hidden" name="piscina" value="{{ seleccionada.pk }}">
+              <input type="hidden" name="p1_inicio" value="{{ periodos.p1_inicio }}">
+              <input type="hidden" name="p1_fin" value="{{ periodos.p1_fin }}">
+              <input type="hidden" name="p2_inicio" value="{{ periodos.p2_inicio }}">
+              <input type="hidden" name="p2_fin" value="{{ periodos.p2_fin }}">
+              <button type="submit" class="sg-btn sg-btn--primario">Guardar esta comparación</button>
+            </form>
+          {% endif %}
+
+        {% else %}
+          <div class="sg-vacio">
+            <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <p class="sg-vacio-titulo">Ninguno de los dos periodos tiene lecturas</p>
+            <p class="sg-vacio-desc">Elige rangos de fechas en los que la piscina haya estado midiendo.</p>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Comparaciones guardadas -->
+  <div class="sg-card">
+    <div class="sg-card-head"><h2>Comparaciones guardadas</h2></div>
+    <div class="sg-tabla-wrap">
+      <table class="sg-tabla">
+        <thead><tr><th>Piscina</th><th>Periodo 1</th><th>Periodo 2</th><th>Diferencias</th><th>Creada</th></tr></thead>
+        <tbody>
+          {% for c in guardadas %}
+            <tr>
+              <td>{{ c.geomembrana.nombre_piscina }}</td>
+              <td>{{ c.periodo_1_inicio|date:"d/m/Y" }} – {{ c.periodo_1_fin|date:"d/m/Y" }}</td>
+              <td>{{ c.periodo_2_inicio|date:"d/m/Y" }} – {{ c.periodo_2_fin|date:"d/m/Y" }}</td>
+              <td style="max-width:340px;"><small>{{ c.diferencias_principales|truncatechars:150 }}</small></td>
+              <td>{{ c.fecha_creacion|date:"d/m/Y H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">
+              <div class="sg-vacio">
+                <p class="sg-vacio-titulo">Ninguna comparación guardada</p>
+                <p class="sg-vacio-desc">Compara dos periodos arriba y guárdalos.</p>
+              </div>
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script id="datosComparacion" type="application/json">{{ comparacion_json|safe }}</script>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const ctx = document.getElementById('comparisonChart').getContext('2d');
+  /** Grafica de barras que enfrenta el promedio de cada parametro en ambos periodos. */
+  document.addEventListener('DOMContentLoaded', () => {
+    const contenedor = document.getElementById('datosComparacion');
+    const lienzo = document.getElementById('graficaComparacion');
+    if (!contenedor || !lienzo || typeof Chart === 'undefined') return;
 
-      // Fechas de Período A (8 puntos) y Período B (9 puntos)
-      const labels = [
-        '01/05', '03/05', '05/05', '07/05', '09/05', '11/05', '13/05', '15/05',
-        '16/05', '18/05', '20/05', '22/05', '24/05', '26/05', '28/05', '30/05', '31/05'
-      ];
+    let datos;
+    try {
+      datos = JSON.parse(contenedor.textContent);
+    } catch (error) {
+      console.warn('[SIGMAP] Comparación ilegible:', error.message);
+      return;
+    }
 
-      // Plugin personalizado para dibujar la línea vertical divisoria entre Periodo A y Periodo B
-      const verticalDividerPlugin = {
-        id: 'verticalDivider',
-        afterDraw: (chart) => {
-          const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
-          // El punto de corte es entre el índice 7 (15/05) y el índice 8 (16/05)
-          const xPos1 = x.getPixelForValue(7);
-          const xPos2 = x.getPixelForValue(8);
-          const midX = (xPos1 + xPos2) / 2;
+    const filas = (datos.por_parametro || []).filter(
+      (fila) => fila.periodo_1 !== null || fila.periodo_2 !== null
+    );
+    if (!filas.length) return;
 
-          ctx.save();
-          ctx.beginPath();
-          ctx.setLineDash([5, 5]);
-          ctx.lineWidth = 1.5;
-          ctx.strokeStyle = '#94A3B8';
-          ctx.moveTo(midX, top);
-          ctx.lineTo(midX, bottom);
-          ctx.stroke();
-          ctx.restore();
-        }
-      };
-
-      // Datos calibrados exactamente para replicar la visualización del screenshot
-      const data = {
-        labels: labels,
+    new Chart(lienzo, {
+      type: 'bar',
+      data: {
+        labels: filas.map((fila) => `${fila.parametro} (${fila.unidad || ''})`),
         datasets: [
-          // 1. Conductividad (eje derecho y1: 0 - 1000, valores ~410-420, visualmente alrededor de 27 en eje izquierdo)
           {
-            label: 'Conductividad (µS/cm) A',
-            data: [415, 420, 395, 425, 410, 405, 390, 410, null, null, null, null, null, null, null, null, null],
-            borderColor: '#9333EA',
-            backgroundColor: '#9333EA',
-            yAxisID: 'y1',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
+            label: 'Periodo 1',
+            data: filas.map((fila) => fila.periodo_1),
+            backgroundColor: '#93c5fd',
+            borderRadius: 4,
           },
           {
-            label: 'Conductividad B',
-            data: [null, null, null, null, null, null, null, null, 405, 415, 430, 410, 400, 425, 415, 420, 400],
-            borderColor: '#9333EA',
-            backgroundColor: '#9333EA',
-            borderDash: [4, 4],
-            yAxisID: 'y1',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
+            label: 'Periodo 2',
+            data: filas.map((fila) => fila.periodo_2),
+            backgroundColor: '#2563eb',
+            borderRadius: 4,
           },
-          // 2. Temperatura (eje y: 0 - 40, valores ~26.7 en A y ~27.4 en B)
-          {
-            label: 'Temperatura (°C)',
-            data: [27, 28, 26.5, 28.5, 27, 26.5, 27, 27.5, null, null, null, null, null, null, null, null, null],
-            borderColor: '#1E64D4',
-            backgroundColor: '#1E64D4',
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          {
-            label: 'Temperatura B',
-            data: [null, null, null, null, null, null, null, null, 26, 27, 29, 27.5, 26.5, 28, 26.5, 27.5, 26],
-            borderColor: '#1E64D4',
-            backgroundColor: '#1E64D4',
-            borderDash: [4, 4],
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          // 3. Turbidez (valores ~14.6 en A y ~12.3 en B)
-          {
-            label: 'Turbidez (NTU) A',
-            data: [14.0, 14.8, 13.5, 13.0, 13.8, 12.8, 13.4, 13.2, null, null, null, null, null, null, null, null, null],
-            borderColor: '#F97316',
-            backgroundColor: '#F97316',
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          {
-            label: 'Turbidez B',
-            data: [null, null, null, null, null, null, null, null, 14.5, 15.2, 16.0, 13.0, 13.8, 12.5, 13.5, 12.8, 12.0],
-            borderColor: '#F97316',
-            backgroundColor: '#F97316',
-            borderDash: [4, 4],
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          // 4. pH (valores ~7.0 en A y ~7.3 en B, línea celeste/azul clara alrededor de 21)
-          {
-            label: 'pH A',
-            data: [21.0, 21.2, 20.5, 21.0, 22.0, 20.0, 20.2, 20.8, null, null, null, null, null, null, null, null, null],
-            borderColor: '#0284C7',
-            backgroundColor: '#0284C7',
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          {
-            label: 'pH B',
-            data: [null, null, null, null, null, null, null, null, 21.5, 22.0, 22.5, 21.8, 22.0, 20.5, 21.0, 20.2, 20.0],
-            borderColor: '#0284C7',
-            backgroundColor: '#0284C7',
-            borderDash: [4, 4],
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          // 5. Oxígeno Disuelto (valores ~6.1 en A y ~6.8 en B)
-          {
-            label: 'Oxígeno Disuelto (mg/L) A',
-            data: [6.0, 6.2, 5.8, 6.5, 6.1, 5.9, 6.0, 6.3, null, null, null, null, null, null, null, null, null],
-            borderColor: '#06B6D4',
-            backgroundColor: '#06B6D4',
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          },
-          {
-            label: 'Oxígeno Disuelto B',
-            data: [null, null, null, null, null, null, null, null, 6.5, 7.0, 6.8, 7.2, 6.7, 7.0, 6.5, 6.8, 6.6],
-            borderColor: '#06B6D4',
-            backgroundColor: '#06B6D4',
-            borderDash: [4, 4],
-            yAxisID: 'y',
-            tension: 0.3,
-            borderWidth: 1.8,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          }
-        ]
-      };
-
-      new Chart(ctx, {
-        type: 'line',
-        data: data,
-        plugins: [verticalDividerPlugin],
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: {
-            padding: {
-              right: 18
-            }
-          },
-          interaction: {
-            mode: 'index',
-            intersect: false
-          },
-          plugins: {
-            legend: {
-              display: false // Usamos nuestra leyenda HTML idéntica
-            },
-            tooltip: {
-              backgroundColor: '#0F172A',
-              titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
-              bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
-              padding: 10,
-              cornerRadius: 8,
-              boxPadding: 4
-            }
-          },
-          scales: {
-            x: {
-              grid: {
-                display: false
-              },
-              ticks: {
-                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
-                color: '#64748B'
-              }
-            },
-            y: {
-              type: 'linear',
-              display: true,
-              position: 'left',
-              min: 0,
-              max: 40,
-              ticks: {
-                stepSize: 10,
-                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
-                color: '#64748B'
-              },
-              grid: {
-                color: '#F1F5F9'
-              }
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              min: 0,
-              max: 1000,
-              ticks: {
-                stepSize: 200,
-                font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
-                color: '#64748B'
-              },
-              grid: {
-                drawOnChartArea: false
-              }
-            }
-          }
-        }
-      });
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+        },
+      },
     });
-  </script>
+  });
+</script>
 {% endblock %}

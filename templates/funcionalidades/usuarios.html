@@ -1,205 +1,220 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% comment %}
+  Gestion de usuarios. Solo el Instructor Lider escribe aqui.
+  Las cuentas se desactivan, nunca se borran: quedan referenciadas en alertas
+  reconocidas, lecturas validadas y reportes generados.
+{% endcomment %}
+
 {% block title %}SIGMAP-AQUA | Usuarios{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/usuarios.css' %}">
-{% endblock %}
-
 {% block page_title %}
-  <h1>Gestión de Usuarios</h1>
-  <p>Administra los roles, accesos y permisos del personal en el sistema.</p>
+  <h1>Usuarios</h1>
+  <p>Administra las cuentas y los roles de acceso al sistema.</p>
 {% endblock %}
 
 {% block content %}
-      <div class="usr-container">
-        <!-- =====================================================================
-             HEADER: TÍTULO, SUBTÍTULO Y ACCIONES
-             ===================================================================== -->
+<div class="sg-modulo">
 
-        <!-- =====================================================================
-             PESTAÑAS DE NAVEGACIÓN (TABS)
-             ===================================================================== -->
-        <nav class="usr-tabs-nav">
-          <a class="usr-tab-item">Lista de usuarios</a>
-          <a class="usr-tab-item active">Nuevo usuario</a>
-        </nav>
-
-        <!-- =====================================================================
-             TARJETA PRINCIPAL: REGISTRO DE NUEVO USUARIO
-             ===================================================================== -->
-        <section class="usr-form-card">
-          <div class="usr-card-header">
-            <h2>Registro de nuevo usuario</h2>
-            <p>Completa la información para crear una nueva cuenta de usuario.</p>
-          </div>
-
-          <form id="newUserForm" onsubmit="event.preventDefault();">
-            <div class="usr-form-grid">
-
-              <!-- Fila 1: Nombre, Correo, Nombre de usuario -->
-              <div class="usr-field-group">
-                <label class="usr-label">Nombre completo <span class="usr-req">*</span></label>
-                <div class="usr-input-wrap">
-                  <input type="text" class="usr-input" placeholder="Ej. Juan Pérez García" required>
-                </div>
-              </div>
-
-              <div class="usr-field-group">
-                <label class="usr-label">Correo electrónico <span class="usr-req">*</span></label>
-                <div class="usr-input-wrap">
-                  <input type="email" class="usr-input" placeholder="Ej. juan.perez@empresa.com" required>
-                </div>
-              </div>
-
-              <div class="usr-field-group">
-                <label class="usr-label">Nombre de usuario <span class="usr-req">*</span></label>
-                <div class="usr-input-wrap">
-                  <input type="text" class="usr-input" placeholder="Ej. jperez" required>
-                </div>
-              </div>
-
-              <!-- Fila 2: Contraseña, Confirmar contraseña, Rol -->
-              <div class="usr-field-group">
-                <label class="usr-label">Contraseña <span class="usr-req">*</span></label>
-                <div class="usr-input-wrap">
-                  <input type="password" id="pwdInput1" class="usr-input usr-input-password" placeholder="Mínimo 8 caracteres" required>
-                  <button type="button" class="usr-eye-btn" onclick="togglePassword('pwdInput1')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="usr-field-group">
-                <label class="usr-label">Confirmar contraseña <span class="usr-req">*</span></label>
-                <div class="usr-input-wrap">
-                  <input type="password" id="pwdInput2" class="usr-input usr-input-password" placeholder="Repite la contraseña" required>
-                  <button type="button" class="usr-eye-btn" onclick="togglePassword('pwdInput2')">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="usr-field-group">
-                <label class="usr-label">Rol <span class="usr-req">*</span></label>
-                <div class="usr-select-wrap">
-                  <select class="usr-select" required>
-                    <option value="" disabled selected>Selecciona un rol</option>
-                    <option value="administrador">Administrador</option>
-                    <option value="instructor">Instructor Líder</option>
-                    <option value="tecnico">Técnico de Monitoreo</option>
-                    <option value="operador">Operador</option>
-                  </select>
-                  <div class="usr-select-arrow">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Fila 3: Teléfono, Cargo, Área/Departamento -->
-              <div class="usr-field-group">
-                <label class="usr-label">Teléfono (opcional)</label>
-                <div class="usr-input-wrap">
-                  <input type="text" class="usr-input" placeholder="Ej. +57 300 123 4567">
-                </div>
-              </div>
-
-              <div class="usr-field-group">
-                <label class="usr-label">Cargo (opcional)</label>
-                <div class="usr-input-wrap">
-                  <input type="text" class="usr-input" placeholder="Ej. Técnico de monitoreo">
-                </div>
-              </div>
-
-              <div class="usr-field-group">
-                <label class="usr-label">Área / Departamento (opcional)</label>
-                <div class="usr-input-wrap">
-                  <input type="text" class="usr-input" placeholder="Ej. Operaciones">
-                </div>
-              </div>
-
-              <!-- Fila 4: Piscinas asignadas + Estado de la cuenta -->
-              <div class="usr-field-group">
-                <label class="usr-label">Piscinas asignadas (opcional)</label>
-                <div class="usr-select-wrap">
-                  <select class="usr-select">
-                    <option value="" selected>Selecciona una o más piscinas</option>
-                    <option value="todas">Todas las piscinas</option>
-                    <option value="p1">Piscina 1</option>
-                    <option value="p2">Piscina 2</option>
-                    <option value="p3">Piscina 3</option>
-                  </select>
-                  <div class="usr-select-arrow">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                  </div>
-                </div>
-              </div>
-
-              <div class="usr-field-group">
-                <label class="usr-label">Estado de la cuenta</label>
-                <div class="usr-toggle-wrap">
-                  <label class="usr-switch">
-                    <input type="checkbox" id="userStateToggle" checked>
-                    <span class="usr-slider"></span>
-                  </label>
-                  <span class="usr-toggle-label" id="userStateText">Activa</span>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Cuadro Informativo -->
-            <div class="usr-info-box">
-              <div class="usr-info-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              </div>
-              <div class="usr-info-texts">
-                El usuario recibirá un correo electrónico con las instrucciones para acceder al sistema.<br>
-                Asegúrate de ingresar un correo válido.
-              </div>
-            </div>
-
-            <!-- Botones de Acción -->
-            <div class="usr-actions-row">
-              <button type="button" class="usr-btn-cancel">Cancelar</button>
-              <button type="submit" class="usr-btn-submit">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                <span>Registrar usuario</span>
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <!-- Nota al pie de campos obligatorios -->
-        <div class="usr-footer-note">
-          <span class="usr-req">*</span> Campos obligatorios
+  <div class="sg-fila-kpi">
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Usuarios</span>
+        <span class="sg-kpi-valor">{{ resumen.total }}</span>
+        <span class="sg-kpi-sub">cuentas registradas</span>
+      </div>
+    </div>
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono sg-kpi-icono--ok">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Activos</span>
+        <span class="sg-kpi-valor sg-kpi-valor--ok">{{ resumen.activos }}</span>
+        <span class="sg-kpi-sub">pueden iniciar sesión</span>
+      </div>
+    </div>
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Inactivos</span>
+        <span class="sg-kpi-valor">{{ resumen.inactivos }}</span>
+        <span class="sg-kpi-sub">acceso suspendido</span>
+      </div>
+    </div>
+    {% for rol in roles %}
+      <div class="sg-kpi">
+        <div class="sg-kpi-icono">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
+        <div class="sg-kpi-info">
+          <span class="sg-kpi-label">{{ rol.nombre_rol }}</span>
+          <span class="sg-kpi-valor">{{ rol.cuantos }}</span>
+          <span class="sg-kpi-sub">con este rol</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 
+  <div class="sg-split">
+
+    <!-- Lista -->
+    <div class="sg-card">
+      <div class="sg-card-head">
+        <h2>Cuentas</h2>
+        {% if puede_editar %}
+          <button class="sg-btn sg-btn--primario sg-btn--sm" type="button" data-abrir-modal="modalCrearUsuario">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo usuario
+          </button>
+        {% endif %}
       </div>
 
-<!-- Modales y elementos flotantes del modulo -->
-<!-- Scripts -->
+      <form class="sg-filtros" method="get">
+        <div class="sg-filtro" style="flex:2 1 180px;">
+          <label for="q">Buscar</label>
+          <input type="text" id="q" name="q" value="{{ termino }}" placeholder="Nombre, correo o documento">
+        </div>
+        <div class="sg-filtro">
+          <label for="rol">Rol</label>
+          <select id="rol" name="rol" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for rol in roles %}
+              <option value="{{ rol.pk }}" {% if filtro_rol == rol.pk|stringformat:"s" %}selected{% endif %}>{{ rol.nombre_rol }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="sg-filtro">
+          <label for="estado">Estado</label>
+          <select id="estado" name="estado" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for valor, etiqueta in estados_disponibles %}
+              <option value="{{ valor }}" {% if filtro_estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+
+      <div class="sg-lista">
+        {% for u in usuarios %}
+          <a class="sg-lista-item {% if seleccionado and seleccionado.pk == u.pk %}sg-lista-item--activo{% endif %}"
+             href="?seleccion={{ u.pk }}{% if termino %}&q={{ termino }}{% endif %}{% if filtro_rol %}&rol={{ filtro_rol }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}">
+            <span class="sg-punto sg-punto--{% if u.estado == 'activo' %}ok{% else %}sin_datos{% endif %}"></span>
+            <div class="sg-lista-cuerpo">
+              <span class="sg-lista-titulo">{{ u.nombre_completo }}</span>
+              <span class="sg-lista-meta">{{ u.email }}</span>
+            </div>
+            <span class="sg-chip sg-chip--info">{{ u.rol.nombre_rol }}</span>
+          </a>
+        {% empty %}
+          <div class="sg-vacio">
+            <p class="sg-vacio-titulo">Ningún usuario con esos filtros</p>
+            <p class="sg-vacio-desc">Prueba con otro término o quita los filtros.</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% include "componentes/paginacion.html" with pagina=pagina %}
+    </div>
+
+    <!-- Detalle -->
+    <div class="sg-card">
+      {% if seleccionado %}
+        <div class="sg-card-head">
+          <h2>
+            {{ seleccionado.nombre_completo }}
+            <span class="sg-chip sg-chip--{% if seleccionado.estado == 'activo' %}ok{% else %}off{% endif %}">
+              {{ seleccionado.get_estado_display }}
+            </span>
+          </h2>
+          {% if puede_editar %}
+            <div class="sg-acciones">
+              <button class="sg-btn sg-btn--suave sg-btn--sm" type="button" data-abrir-modal="modalEditarUsuario">Editar</button>
+              {% if seleccionado.pk != request.user.pk %}
+                <form method="post" action="{% url 'usuarios:desactivar' seleccionado.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="sg-btn {% if seleccionado.estado == 'activo' %}sg-btn--peligro{% else %}sg-btn--ok{% endif %} sg-btn--sm">
+                    {% if seleccionado.estado == 'activo' %}Desactivar{% else %}Reactivar{% endif %}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="sg-card-body">
+          {% if seleccionado.pk == request.user.pk %}
+            <div class="sg-alerta sg-alerta--info">Esta es tu propia cuenta. No puedes desactivarla.</div>
+          {% endif %}
+
+          <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+            <div style="width:88px;height:88px;border-radius:50%;overflow:hidden;background:#f3f4f6;display:grid;place-items:center;flex-shrink:0;">
+              {% if seleccionado.foto_perfil %}
+                <img src="{{ seleccionado.foto_perfil.url }}" alt="Foto de {{ seleccionado.nombre_completo }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="#9ca3af"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              {% endif %}
+            </div>
+
+            <table class="sg-ficha" style="flex:1;min-width:240px;">
+              <tbody>
+                <tr><td class="et">Correo</td><td class="va">{{ seleccionado.email }}</td></tr>
+                <tr><td class="et">Rol</td><td class="va">{{ seleccionado.rol.nombre_rol }}</td></tr>
+                <tr><td class="et">Documento</td><td class="va">{{ seleccionado.documento_identidad|default:"—" }}</td></tr>
+                <tr><td class="et">Celular</td><td class="va">{{ seleccionado.numero_celular|default:"—" }}</td></tr>
+                <tr><td class="et">WhatsApp</td><td class="va">{{ seleccionado.numero_whatsapp|default:"—" }}</td></tr>
+                <tr><td class="et">Último acceso</td><td class="va">{{ seleccionado.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</td></tr>
+                <tr><td class="et">Creado</td><td class="va">{{ seleccionado.fecha_creacion|date:"d/m/Y" }}</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin:24px 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Actividad registrada</h3>
+          <div class="sg-fila-kpi">
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Alertas reconocidas</span>
+              <span class="sg-metrica-valor">{{ seleccionado.alertas_reconocidas.count }}</span>
+            </div>
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Reportes generados</span>
+              <span class="sg-metrica-valor">{{ seleccionado.reportes_generados.count }}</span>
+            </div>
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Notificaciones sin leer</span>
+              <span class="sg-metrica-valor">{{ seleccionado.notificaciones.count }}</span>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="sg-vacio">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <p class="sg-vacio-titulo">Ninguna cuenta seleccionada</p>
+          <p class="sg-vacio-desc">Elige un usuario de la lista para ver su ficha.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if puede_editar %}
+  {% url 'usuarios:crear' as url_crear_usuario %}
+  {% if abrir_modal == 'crear' %}{% include "componentes/modal_form.html" with id="modalCrearUsuario" titulo="Nuevo usuario" accion=url_crear_usuario formulario=form boton="Crear usuario" abierto=True multipart=True %}
+  {% else %}{% include "componentes/modal_form.html" with id="modalCrearUsuario" titulo="Nuevo usuario" accion=url_crear_usuario formulario=form boton="Crear usuario" abierto=False multipart=True %}{% endif %}
+
+  {% if seleccionado and form_editar %}
+    {% url 'usuarios:editar' seleccionado.pk as url_editar_usuario %}
+    {% if abrir_modal == 'editar' %}{% include "componentes/modal_form.html" with id="modalEditarUsuario" titulo="Editar usuario" accion=url_editar_usuario formulario=form_editar boton="Guardar cambios" abierto=True multipart=True %}
+    {% else %}{% include "componentes/modal_form.html" with id="modalEditarUsuario" titulo="Editar usuario" accion=url_editar_usuario formulario=form_editar boton="Guardar cambios" abierto=False multipart=True %}{% endif %}
+  {% endif %}
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    function togglePassword(inputId) {
-      const input = document.getElementById(inputId);
-      if (input.type === 'password') {
-        input.type = 'text';
-      } else {
-        input.type = 'password';
-      }
-    }
-
-    // Toggle switch text
-    const toggle = document.getElementById('userStateToggle');
-    const toggleText = document.getElementById('userStateText');
-    if (toggle && toggleText) {
-      toggle.addEventListener('change', () => {
-        toggleText.textContent = toggle.checked ? 'Activa' : 'Inactiva';
-      });
-    }
-  </script>
+  {% include "componentes/modales_js.html" %}
 {% endblock %}

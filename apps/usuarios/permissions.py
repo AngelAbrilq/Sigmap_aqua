@@ -26,13 +26,28 @@ DASHBOARD_POR_DEFECTO = 'core:dashboard'
 MODULOS_POR_ROL = {
     ROL_INSTRUCTOR: None,
     ROL_OPERARIO: {
-        'operario', 'monitoreo', 'sensores', 'alertas', 'historial',
-        'geomembranas', 'configuraciones', 'dashboard',
+        'operario', 'dashboard',
+        'monitoreo', 'sensores', 'alertas', 'historial',
+        'geomembranas', 'configuraciones', 'graficas_reportes', 'ai',
     },
     ROL_APRENDIZ: {
-        'aprendiz', 'graficas_reportes', 'comparacion_periodos', 'historial',
-        'monitoreo', 'alertas', 'configuraciones', 'dashboard',
+        'aprendiz', 'dashboard',
+        'graficas_reportes', 'comparacion_periodos', 'historial',
+        'monitoreo', 'alertas', 'configuraciones',
+        'geomembranas', 'sensores', 'ai',
     },
+}
+
+# rol -> modulos que puede MODIFICAR (crear / editar / eliminar).
+# Ver un modulo no implica poder alterarlo: el Aprendiz consulta todo el
+# sistema pero no opera sobre el. None = escritura total (Instructor Lider).
+MODULOS_ESCRITURA_POR_ROL = {
+    ROL_INSTRUCTOR: None,
+    ROL_OPERARIO: {
+        'geomembranas', 'sensores', 'monitoreo', 'alertas',
+        'graficas_reportes', 'ai',
+    },
+    ROL_APRENDIZ: set(),
 }
 
 # Roles que NUNCA deben ver el admin nativo de Django
@@ -76,6 +91,28 @@ def puede_ver_modulo(usuario, url_name):
     if rol not in MODULOS_POR_ROL:
         return False
     permitidos = MODULOS_POR_ROL[rol]
+    return permitidos is None or url_name in permitidos
+
+
+def puede_editar_modulo(usuario, url_name):
+    """
+    Indica si el usuario puede crear, editar o eliminar dentro de un modulo.
+
+    Se evalua despues de puede_ver_modulo: el acceso de escritura es siempre
+    un subconjunto del de lectura.
+
+    :param usuario: instancia de usuarios.Usuario
+    :param url_name: nombre corto del modulo (ej. 'geomembranas')
+    :return: bool
+    """
+    if not puede_ver_modulo(usuario, url_name):
+        return False
+
+    rol = obtener_nombre_rol(usuario)
+    if rol not in MODULOS_ESCRITURA_POR_ROL:
+        return False
+
+    permitidos = MODULOS_ESCRITURA_POR_ROL[rol]
     return permitidos is None or url_name in permitidos
 
 

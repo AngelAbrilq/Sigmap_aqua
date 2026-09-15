@@ -1,488 +1,303 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}SIGMAP-AQUA | Módulo de Sensores{% endblock %}
+{% comment %}
+  Modulo Sensores - conectado a la base de datos.
+  Datos desde apps.monitoreo.views_web.sensores. Sin arrays hardcodeados.
+{% endcomment %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/sensores.css' %}">
-{% endblock %}
+{% block title %}SIGMAP-AQUA | Sensores{% endblock %}
 
 {% block page_title %}
   <h1>Sensores</h1>
-  <p>Gestiona y visualiza el estado de todos los sensores instalados en el sistema.</p>
+  <p>Administra los sensores instalados y revisa su estado de operación.</p>
 {% endblock %}
 
 {% block content %}
-      <!-- Top Header -->
+<div class="sg-modulo">
 
-      <!-- Dashboard Content para Sensores -->
-      <div class="dashboard-content">
+  <!-- KPIs -->
+  <div class="sg-fila-kpi">
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h4l3-9 6 18 3-9h4"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Sensores</span>
+        <span class="sg-kpi-valor">{{ resumen.total }}</span>
+        <span class="sg-kpi-sub">registrados en el sistema</span>
+      </div>
+    </div>
 
-        <!-- 1. Tarjetas KPI Resumen -->
-        <section class="kpi-grid">
-          <div class="kpi-card total">
-            <div class="kpi-icon-wrapper">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono sg-kpi-icono--ok">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Activos</span>
+        <span class="sg-kpi-valor sg-kpi-valor--ok">{{ resumen.activos }}</span>
+        <span class="sg-kpi-sub">reportando lecturas</span>
+      </div>
+    </div>
+
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono sg-kpi-icono--crit">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Averiados</span>
+        <span class="sg-kpi-valor {% if resumen.averiados %}sg-kpi-valor--crit{% endif %}">{{ resumen.averiados }}</span>
+        <span class="sg-kpi-sub">requieren revisión</span>
+      </div>
+    </div>
+
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono sg-kpi-icono--warn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Calibración vencida</span>
+        <span class="sg-kpi-valor {% if resumen.calibracion_vencida %}sg-kpi-valor--warn{% endif %}">{{ resumen.calibracion_vencida }}</span>
+        <span class="sg-kpi-sub">fuera de fecha</span>
+      </div>
+    </div>
+
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono sg-kpi-icono--warn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="11" x2="23" y2="13"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Batería baja</span>
+        <span class="sg-kpi-valor {% if resumen.bateria_baja %}sg-kpi-valor--warn{% endif %}">{{ resumen.bateria_baja }}</span>
+        <span class="sg-kpi-sub">por debajo del 20 %</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sg-split">
+
+    <!-- ---------- LISTA ---------- -->
+    <div class="sg-card">
+      <div class="sg-card-head">
+        <h2>Sensores</h2>
+        {% if puede_editar %}
+          <button class="sg-btn sg-btn--primario sg-btn--sm" type="button" data-abrir-modal="modalCrearSensor">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar
+          </button>
+        {% endif %}
+      </div>
+
+      <form class="sg-filtros" method="get">
+        <div class="sg-filtro" style="flex:2 1 200px;">
+          <label for="q">Buscar</label>
+          <input type="text" id="q" name="q" value="{{ termino }}" placeholder="Código, nombre, modelo…">
+        </div>
+        <div class="sg-filtro">
+          <label for="estado">Estado</label>
+          <select id="estado" name="estado" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for valor, etiqueta in estados_disponibles %}
+              <option value="{{ valor }}" {% if filtro_estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="sg-filtro">
+          <label for="piscina">Piscina</label>
+          <select id="piscina" name="piscina" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for p in piscinas %}
+              <option value="{{ p.pk }}" {% if filtro_piscina == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.nombre_piscina }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+
+      <div class="sg-lista">
+        {% for s in sensores %}
+          <a class="sg-lista-item {% if seleccionado and seleccionado.pk == s.pk %}sg-lista-item--activo{% endif %}"
+             href="?seleccion={{ s.pk }}{% if termino %}&q={{ termino }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_piscina %}&piscina={{ filtro_piscina }}{% endif %}">
+            <span class="sg-punto sg-punto--{% if s.estado == 'activo' %}ok{% elif s.estado == 'averiado' %}crit{% else %}warn{% endif %}"></span>
+            <div class="sg-lista-cuerpo">
+              <span class="sg-lista-titulo">{{ s.codigo_hardware }} · {{ s.nombre_sensor }}</span>
+              <span class="sg-lista-meta">
+                {{ s.tipo_parametro.nombre_parametro }} · {{ s.geomembrana.nombre_piscina }}
+              </span>
             </div>
-            <div class="kpi-details">
-              <span class="kpi-title">Total sensores</span>
-              <span class="kpi-value">12</span>
-              <span class="kpi-subtitle">Instalados</span>
-            </div>
+            {% if s.bateria_nivel_actual is not None %}
+              <span class="sg-chip {% if s.bateria_nivel_actual < 20 %}sg-chip--crit{% elif s.bateria_nivel_actual < 50 %}sg-chip--warn{% else %}sg-chip--ok{% endif %}">
+                {{ s.bateria_nivel_actual }}%
+              </span>
+            {% endif %}
+          </a>
+        {% empty %}
+          <div class="sg-vacio">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M2 12h4l3-9 6 18 3-9h4"/></svg>
+            <p class="sg-vacio-titulo">
+              {% if termino or filtro_estado or filtro_piscina %}Ningún resultado{% else %}Aún no hay sensores{% endif %}
+            </p>
+            <p class="sg-vacio-desc">
+              {% if termino or filtro_estado or filtro_piscina %}
+                Prueba con otro término o quita los filtros.
+              {% elif puede_editar %}
+                Registra el primero con “Agregar”. Sin sensores, la API no puede recibir lecturas.
+              {% else %}
+                Un Operario o el Instructor Líder debe registrarlos.
+              {% endif %}
+            </p>
           </div>
+        {% endfor %}
+      </div>
 
-          <div class="kpi-card activos">
-            <div class="kpi-icon-wrapper">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      {% include "componentes/paginacion.html" with pagina=pagina %}
+    </div>
+
+    <!-- ---------- DETALLE ---------- -->
+    <div class="sg-card">
+      {% if seleccionado %}
+        <div class="sg-card-head">
+          <h2>
+            {{ seleccionado.codigo_hardware }}
+            <span class="sg-chip sg-chip--{% if seleccionado.estado == 'activo' %}ok{% elif seleccionado.estado == 'averiado' %}crit{% else %}warn{% endif %}">
+              {{ seleccionado.get_estado_display }}
+            </span>
+          </h2>
+          {% if puede_editar %}
+            <div class="sg-acciones">
+              <button class="sg-btn sg-btn--suave sg-btn--sm" type="button" data-abrir-modal="modalEditarSensor">Editar</button>
+              <button class="sg-btn sg-btn--peligro sg-btn--sm" type="button" data-abrir-modal="modalBajaSensor">Dar de baja</button>
             </div>
-            <div class="kpi-details">
-              <span class="kpi-title">Sensores activos</span>
-              <span class="kpi-value">11</span>
-              <span class="kpi-subtitle">En línea</span>
-            </div>
-          </div>
+          {% endif %}
+        </div>
 
-          <div class="kpi-card alerta">
-            <div class="kpi-icon-wrapper">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </div>
-            <div class="kpi-details">
-              <span class="kpi-title">Sensores con alerta</span>
-              <span class="kpi-value">1</span>
-              <span class="kpi-subtitle">Con alerta</span>
-            </div>
-          </div>
-
-          <div class="kpi-card inactivos">
-            <div class="kpi-icon-wrapper">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-            </div>
-            <div class="kpi-details">
-              <span class="kpi-title">Sensores inactivos</span>
-              <span class="kpi-value">0</span>
-              <span class="kpi-subtitle">Fuera de línea</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- 2. Sección Intermedia: Tabla + Columna Derecha -->
-        <section class="middle-grid">
-          <!-- Tabla de Sensores -->
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">Lista de sensores</h2>
-            </div>
-
-            <div class="table-header-controls">
-              <div class="search-box">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" placeholder="Buscar sensor...">
-              </div>
-
-              <select class="select-filter" id="filterTipo">
-                <option value="">Todos los tipos</option>
-                <option value="Temperatura">Temperatura</option>
-                <option value="pH">pH</option>
-                <option value="Oxígeno Disuelto">Oxígeno Disuelto</option>
-                <option value="Turbidez">Turbidez</option>
-                <option value="Conductividad">Conductividad</option>
-              </select>
-
-              <select class="select-filter" id="filterPiscina">
-                <option value="">Todas las piscinas</option>
-                <option value="Piscina 1">Piscina 1</option>
-                <option value="Piscina 2">Piscina 2</option>
-                <option value="Piscina 3">Piscina 3</option>
-              </select>
-
-              <select class="select-filter" id="filterEstado">
-                <option value="">Estado: Todos</option>
-                <option value="En línea">En línea</option>
-                <option value="Alerta">Alerta</option>
-              </select>
-
-              <button class="btn-primary" id="btnAgregarSensor">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span>Agregar sensor</span>
-              </button>
-            </div>
-
-            <div class="table-responsive">
-              <table class="sensor-table" id="sensorsTable">
-                <thead>
-                  <tr>
-                    <th>ID SENSOR</th>
-                    <th>NOMBRE</th>
-                    <th>TIPO</th>
-                    <th>PISCINA</th>
-                    <th>ESTADO</th>
-                    <th>ÚLTIMA LECTURA</th>
-                    <th>ACCIÓN</th>
-                  </tr>
-                </thead>
+        <div class="sg-card-body">
+          <div style="display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+            <div>
+              <h3 style="margin:0 0 10px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Ficha técnica</h3>
+              <table class="sg-ficha">
                 <tbody>
-                  <tr data-id="SEN-001" data-nombre="Temperatura P1" data-tipo="Temperatura" data-piscina="Piscina 1" data-estado="En línea" data-lectura="27.5 °C" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-temp">🌡️</div><span>SEN-001</span></div></td>
-                    <td>Temperatura P1</td>
-                    <td>Temperatura</td>
-                    <td>Piscina 1</td>
-                    <td><span class="badge badge-en-linea">En línea</span></td>
-                    <td><div class="reading-val">27.5 °C</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
+                  <tr><td class="et">Nombre</td><td class="va">{{ seleccionado.nombre_sensor }}</td></tr>
+                  <tr><td class="et">Parámetro</td><td class="va">{{ seleccionado.tipo_parametro.nombre_parametro }} ({{ seleccionado.tipo_parametro.unidad_medida }})</td></tr>
+                  <tr><td class="et">Piscina</td><td class="va">{{ seleccionado.geomembrana.nombre_piscina }}</td></tr>
+                  <tr><td class="et">Ubicación</td><td class="va">{{ seleccionado.ubicacion_exacta|default:"—" }}</td></tr>
+                  <tr><td class="et">Marca / modelo</td><td class="va">{{ seleccionado.marca_sensor|default:"—" }} {{ seleccionado.modelo_sensor }}</td></tr>
+                  <tr><td class="et">Rango de medición</td><td class="va">
+                    {% if seleccionado.rango_medicion_min is not None %}{{ seleccionado.rango_medicion_min }} – {{ seleccionado.rango_medicion_max }}{% else %}—{% endif %}
+                  </td></tr>
+                  <tr><td class="et">Intervalo</td><td class="va">{{ seleccionado.intervalo_lectura_segundos }} s</td></tr>
+                </tbody>
+              </table>
+            </div>
 
-                  <tr data-id="SEN-002" data-nombre="pH P1" data-tipo="pH" data-piscina="Piscina 1" data-estado="En línea" data-lectura="7.2 pH" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-ph">🧪</div><span>SEN-002</span></div></td>
-                    <td>pH P1</td>
-                    <td>pH</td>
-                    <td>Piscina 1</td>
-                    <td><span class="badge badge-en-linea">En línea</span></td>
-                    <td><div class="reading-val">7.2 pH</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
-
-                  <tr data-id="SEN-003" data-nombre="Oxigeno Disuelto P1" data-tipo="Oxígeno Disuelto" data-piscina="Piscina 1" data-estado="En línea" data-lectura="6.8 mg/L" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-o2">O₂</div><span>SEN-003</span></div></td>
-                    <td>Oxigeno Disuelto P1</td>
-                    <td>Oxígeno Disuelto</td>
-                    <td>Piscina 1</td>
-                    <td><span class="badge badge-en-linea">En línea</span></td>
-                    <td><div class="reading-val">6.8 mg/L</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
-
-                  <tr data-id="SEN-004" data-nombre="Turbidez P1" data-tipo="Turbidez" data-piscina="Piscina 1" data-estado="En línea" data-lectura="12.3 NTU" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-turbidez">💧</div><span>SEN-004</span></div></td>
-                    <td>Turbidez P1</td>
-                    <td>Turbidez</td>
-                    <td>Piscina 1</td>
-                    <td><span class="badge badge-en-linea">En línea</span></td>
-                    <td><div class="reading-val">12.3 NTU</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
-
-                  <tr data-id="SEN-005" data-nombre="Conductividad P1" data-tipo="Conductividad" data-piscina="Piscina 1" data-estado="En línea" data-lectura="420 µS/cm" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-conductividad">⚡</div><span>SEN-005</span></div></td>
-                    <td>Conductividad P1</td>
-                    <td>Conductividad</td>
-                    <td>Piscina 1</td>
-                    <td><span class="badge badge-en-linea">En línea</span></td>
-                    <td><div class="reading-val">420 µS/cm</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
-
-                  <tr data-id="SEN-006" data-nombre="Temperatura P2" data-tipo="Temperatura" data-piscina="Piscina 2" data-estado="En línea" data-lectura="28.1 °C" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-temp">🌡️</div><span>SEN-006</span></div></td>
-                    <td>Temperatura P2</td>
-                    <td>Temperatura</td>
-                    <td>Piscina 2</td>
-                    <td><span class="badge badge-en-linea">En línea</span></td>
-                    <td><div class="reading-val">28.1 °C</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
-
-                  <tr class="row-alert row-selected" data-id="SEN-007" data-nombre="Turbidez P2" data-tipo="Turbidez" data-piscina="Piscina 2" data-estado="Alerta" data-lectura="18.7 NTU" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-turbidez">💥</div><span>SEN-007</span></div></td>
-                    <td>Turbidez P2</td>
-                    <td>Turbidez</td>
-                    <td>Piscina 2</td>
-                    <td><span class="badge badge-alerta">Alerta</span></td>
-                    <td><div class="reading-val" style="color: #D92D20;">18.7 NTU</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
-
-                  <tr data-id="SEN-008" data-nombre="pH P3" data-tipo="pH" data-piscina="Piscina 3" data-estado="En línea" data-lectura="7.1 pH" data-fecha="24/05/2024 10:30">
-                    <td><div class="sensor-id-cell"><div class="sensor-type-icon icon-ph">🧪</div><span>SEN-008</span></div></td>
-                    <td>pH P3</td>
-                    <td>pH</td>
-                    <td>Piscina 3</td>
-                    <td><span class="badge badge-en-linea">En línea</span></td>
-                    <td><div class="reading-val">7.1 pH</div><span class="reading-time">24/05/2024 10:30</span></td>
-                    <td><div class="action-buttons"><button class="btn-action-icon btn-view">👁️</button><button class="btn-action-icon btn-settings">⚙️</button></div></td>
-                  </tr>
+            <div>
+              <h3 style="margin:0 0 10px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Estado y red</h3>
+              <table class="sg-ficha">
+                <tbody>
+                  <tr><td class="et">Batería</td><td class="va">
+                    {% if seleccionado.bateria_nivel_actual is not None %}
+                      <span class="sg-barra-row">
+                        <span>{{ seleccionado.bateria_nivel_actual }}%</span>
+                        <span class="sg-barra">
+                          <span class="sg-barra-fill {% if seleccionado.bateria_nivel_actual < 20 %}sg-barra-fill--crit{% elif seleccionado.bateria_nivel_actual < 50 %}sg-barra-fill--warn{% else %}sg-barra-fill--ok{% endif %}"
+                                style="width: {{ seleccionado.bateria_nivel_actual }}%;"></span>
+                        </span>
+                      </span>
+                    {% else %}—{% endif %}
+                  </td></tr>
+                  <tr><td class="et">Última calibración</td><td class="va">{{ seleccionado.ultima_calibracion|date:"d/m/Y"|default:"—" }}</td></tr>
+                  <tr><td class="et">Próxima calibración</td><td class="va">
+                    {{ seleccionado.proxima_calibracion|date:"d/m/Y"|default:"—" }}
+                    {% if seleccionado.calibracion_vencida %}<span class="sg-chip sg-chip--crit">Vencida</span>{% endif %}
+                  </td></tr>
+                  <tr><td class="et">MAC</td><td class="va">{{ seleccionado.mac_address|default:"—" }}</td></tr>
+                  <tr><td class="et">IP</td><td class="va">{{ seleccionado.ip_address|default:"—" }}</td></tr>
+                  <tr><td class="et">Firmware</td><td class="va">{{ seleccionado.firmware_version|default:"—" }}</td></tr>
+                  <tr><td class="et">Lecturas registradas</td><td class="va">{{ seleccionado.lecturas.count }}</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Columna Derecha -->
-          <div class="right-column">
-            <!-- Ubicación de sensores -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Ubicación de sensores</h3>
-                <select class="select-filter" style="padding: 4px 24px 4px 10px; font-size: 0.78rem;">
-                  <option>Piscina 1</option>
-                  <option>Piscina 2</option>
-                  <option>Piscina 3</option>
-                </select>
-              </div>
-              <div class="pond-map-container">
-                <div class="pond-water-ripple"></div>
-                <div class="pond-pin pin-temp" title="Temperatura P1 (27.5 °C)">🌡️</div>
-                <div class="pond-pin pin-ph" title="pH P1 (7.2 pH)">🧪</div>
-                <div class="pond-pin pin-o2" title="Oxígeno Disuelto P1 (6.8 mg/L)">O₂</div>
-                <div class="pond-pin pin-turbidez" title="Turbidez P1 (12.3 NTU)">💧</div>
-                <div class="pond-pin pin-conductividad" title="Conductividad P1 (420 µS/cm)">⚡</div>
-              </div>
-              <div class="pond-map-footer">
-                <span class="map-count-text">5 sensores instalados</span>
-                <a href="#" class="btn-link-map">Ver en mapa</a>
-              </div>
+          <h3 style="margin:22px 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Últimas lecturas</h3>
+          {% if ultimas_lecturas %}
+            <div class="sg-tabla-wrap">
+              <table class="sg-tabla">
+                <thead><tr><th>Momento</th><th class="num">Valor</th><th>Estado</th></tr></thead>
+                <tbody>
+                  {% for lectura in ultimas_lecturas %}
+                    <tr>
+                      <td>{{ lectura.timestamp_lectura|date:"d/m/Y H:i" }}</td>
+                      <td class="num">{{ lectura.valor_medida }} {{ lectura.tipo_parametro.unidad_medida }}</td>
+                      <td><span class="sg-chip sg-chip--{{ lectura.estado_lectura }}">{{ lectura.get_estado_lectura_display }}</span></td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
-
-            <!-- Estado por tipo de sensor -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Estado por tipo de sensor</h3>
-              </div>
-              <div class="donut-chart-layout">
-                <div class="chart-donut-wrapper">
-                  <canvas id="donutChart"></canvas>
-                </div>
-                <div class="sensor-legend-list">
-                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #1E64D4;"></span><span class="legend-name">Temperatura</span></div><span class="legend-value">3 (100%)</span></div>
-                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #12B76A;"></span><span class="legend-name">pH</span></div><span class="legend-value">3 (100%)</span></div>
-                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #06B6D4;"></span><span class="legend-name">Oxígeno Disuelto</span></div><span class="legend-value">3 (100%)</span></div>
-                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #F97316;"></span><span class="legend-name">Turbidez</span></div><span class="legend-value">2 (50%)</span></div>
-                  <div class="legend-item"><div class="legend-left"><span class="legend-color-dot" style="background-color: #9333EA;"></span><span class="legend-name">Conductividad</span></div><span class="legend-value">1 (100%)</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 3. Fila Inferior -->
-        <section class="bottom-grid" style="margin-top: 24px;">
-          <!-- Información del sensor seleccionado -->
-          <div class="card selected-sensor-card">
-            <div class="card-header">
-              <h3 class="card-title">Información del sensor seleccionado</h3>
-            </div>
-            <div class="sensor-title-header">
-              <div class="sensor-main-icon" id="detailIcon">💥</div>
-              <div><h4 class="sensor-main-title" id="detailTitle">Turbidez P2 (SEN-007)</h4></div>
-            </div>
-            <div class="info-details-grid">
-              <div class="info-item"><span class="info-label">Tipo</span><span class="info-value" id="detailTipo">Turbidez</span></div>
-              <div class="info-item"><span class="info-label">Piscina</span><span class="info-value" id="detailPiscina">Piscina 2</span></div>
-              <div class="info-item"><span class="info-label">Estado</span><span class="info-value" id="detailEstado"><span class="badge badge-alerta">Alerta</span></span></div>
-              <div class="info-item"><span class="info-label">Última lectura</span><span class="info-value" id="detailLectura" style="font-size: 1rem; color: #D92D20;">18.7 NTU</span></div>
-              <div class="info-item"><span class="info-label">Última actualización</span><span class="info-value" id="detailFecha">24/05/2024 10:30</span></div>
-              <div class="info-item"><span class="info-label">Frecuencia de muestreo</span><span class="info-value" id="detailFrecuencia">Cada 1 minuto</span></div>
-            </div>
-          </div>
-
-          <!-- Histórico de últimas lecturas -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Histórico de últimas lecturas</h3>
-              <select class="select-filter" style="padding: 4px 24px 4px 10px; font-size: 0.78rem;">
-                <option>Última hora</option>
-                <option>Últimas 24 horas</option>
-                <option>Últimos 7 días</option>
-              </select>
-            </div>
-            <div class="chart-line-wrapper">
-              <canvas id="lineChart"></canvas>
-            </div>
-          </div>
-        </section>
-
-      </div>
-
-<!-- Modales y elementos flotantes del modulo -->
-<!-- MODAL: AGREGAR NUEVO SENSOR -->
-  <div class="modal-backdrop" id="sensorModal">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title">Agregar Nuevo Sensor</h3>
-        <button class="btn-close-modal" id="btnCloseModal">&times;</button>
-      </div>
-
-      <form id="addSensorForm">
-        <div class="form-group">
-          <label class="form-label">ID del Sensor</label>
-          <input type="text" class="form-input" placeholder="Ej. SEN-009" required>
+          {% else %}
+            <p class="sg-vacio-desc" style="text-align:left;">
+              Este sensor todavía no ha reportado lecturas. Verifica que el nodo ESP32
+              tenga su token y esté enviando a <code>/api/v1/lecturas/</code>.
+            </p>
+          {% endif %}
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Nombre del Sensor</label>
-          <input type="text" class="form-input" placeholder="Ej. Temperatura P3" required>
+      {% else %}
+        <div class="sg-vacio">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <p class="sg-vacio-titulo">Ningún sensor seleccionado</p>
+          <p class="sg-vacio-desc">Registra un sensor o elige uno de la lista para ver su ficha.</p>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Tipo de Sensor</label>
-          <select class="form-select" required>
-            <option value="Temperatura">Temperatura</option>
-            <option value="pH">pH</option>
-            <option value="Oxígeno Disuelto">Oxígeno Disuelto</option>
-            <option value="Turbidez">Turbidez</option>
-            <option value="Conductividad">Conductividad</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Piscina Asignada</label>
-          <select class="form-select" required>
-            <option value="Piscina 1">Piscina 1</option>
-            <option value="Piscina 2">Piscina 2</option>
-            <option value="Piscina 3">Piscina 3</option>
-          </select>
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" id="btnCancelModal">Cancelar</button>
-          <button type="submit" class="btn-primary">Guardar Sensor</button>
-        </div>
-      </form>
+      {% endif %}
     </div>
   </div>
+</div>
 
-  <!-- JAVASCRIPT EXCLUSIVO DE SENSORES -->
+{% if puede_editar %}
+  {% url 'monitoreo:sensor_crear' as url_crear_sensor %}
+  {% if abrir_modal == 'crear' %}{% include "componentes/modal_form.html" with id="modalCrearSensor" titulo="Registrar sensor" accion=url_crear_sensor formulario=form boton="Guardar sensor" abierto=True %}
+  {% else %}{% include "componentes/modal_form.html" with id="modalCrearSensor" titulo="Registrar sensor" accion=url_crear_sensor formulario=form boton="Guardar sensor" abierto=False %}{% endif %}
+
+  {% if seleccionado and form_editar %}
+    {% url 'monitoreo:sensor_editar' seleccionado.pk as url_editar_sensor %}
+    {% if abrir_modal == 'editar' %}{% include "componentes/modal_form.html" with id="modalEditarSensor" titulo="Editar sensor" accion=url_editar_sensor formulario=form_editar boton="Guardar cambios" abierto=True %}
+    {% else %}{% include "componentes/modal_form.html" with id="modalEditarSensor" titulo="Editar sensor" accion=url_editar_sensor formulario=form_editar boton="Guardar cambios" abierto=False %}{% endif %}
+
+    <!-- Baja de sensor: confirmacion explicita, nunca window.confirm -->
+    <div class="sg-modal" id="modalBajaSensor" hidden>
+      <div class="sg-modal-fondo" data-cerrar-modal></div>
+      <div class="sg-modal-caja sg-modal-caja--sm" role="dialog" aria-modal="true">
+        <div class="sg-modal-head">
+          <h2>Dar de baja el sensor</h2>
+          <button class="sg-modal-cerrar" type="button" data-cerrar-modal aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="sg-modal-body">
+          <p>¿Dar de baja <strong>{{ seleccionado.codigo_hardware }}</strong>?</p>
+          {% if seleccionado.lecturas.count %}
+            <div class="sg-alerta sg-alerta--warn">
+              Tiene <strong>{{ seleccionado.lecturas.count }}</strong> lectura(s) registradas.
+              No se borrará: se marcará como <strong>inactivo</strong> para conservar el histórico.
+            </div>
+          {% else %}
+            <div class="sg-alerta">
+              No tiene lecturas asociadas. La eliminación es permanente.
+            </div>
+          {% endif %}
+        </div>
+        <form method="post" action="{% url 'monitoreo:sensor_eliminar' seleccionado.pk %}">
+          {% csrf_token %}
+          <div class="sg-modal-pie">
+            <button type="button" class="sg-btn sg-btn--suave" data-cerrar-modal>Cancelar</button>
+            <button type="submit" class="sg-btn sg-btn--peligro">
+              {% if seleccionado.lecturas.count %}Desactivar{% else %}Eliminar{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      
-      // 1. Gráfica de Dona
-      const ctxDonut = document.getElementById('donutChart').getContext('2d');
-      new Chart(ctxDonut, {
-        type: 'doughnut',
-        data: {
-          labels: ['Temperatura', 'pH', 'Oxígeno Disuelto', 'Turbidez', 'Conductividad'],
-          datasets: [{
-            data: [3, 3, 3, 2, 1],
-            backgroundColor: ['#1E64D4', '#12B76A', '#06B6D4', '#F97316', '#9333EA'],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '70%',
-          plugins: { legend: { display: false } }
-        }
-      });
-
-      // 2. Gráfica de Histórico
-      const ctxLine = document.getElementById('lineChart').getContext('2d');
-      let lineChart = new Chart(ctxLine, {
-        type: 'line',
-        data: {
-          labels: ['09:30', '09:45', '10:00', '10:15', '10:30'],
-          datasets: [{
-            label: 'Lectura (NTU)',
-            data: [12, 10, 19, 16, 18.7],
-            borderColor: '#F97316',
-            backgroundColor: 'rgba(249, 115, 22, 0.08)',
-            borderWidth: 2.5,
-            fill: true,
-            tension: 0.35
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } }
-        }
-      });
-
-      // 3. Filtros de Tabla
-      const searchInput = document.getElementById('searchInput');
-      const filterTipo = document.getElementById('filterTipo');
-      const filterPiscina = document.getElementById('filterPiscina');
-      const filterEstado = document.getElementById('filterEstado');
-      const tableRows = document.querySelectorAll('#sensorsTable tbody tr');
-
-      function filterTable() {
-        const query = searchInput.value.toLowerCase();
-        const tipoVal = filterTipo.value;
-        const piscinaVal = filterPiscina.value;
-        const estadoVal = filterEstado.value;
-
-        tableRows.forEach(row => {
-          const text = row.innerText.toLowerCase();
-          const matchesQuery = text.includes(query);
-          const matchesTipo = !tipoVal || row.dataset.tipo === tipoVal;
-          const matchesPiscina = !piscinaVal || row.dataset.piscina === piscinaVal;
-          const matchesEstado = !estadoVal || row.dataset.estado === estadoVal;
-
-          row.style.display = (matchesQuery && matchesTipo && matchesPiscina && matchesEstado) ? '' : 'none';
-        });
-      }
-
-      if (searchInput) searchInput.addEventListener('input', filterTable);
-      if (filterTipo) filterTipo.addEventListener('change', filterTable);
-      if (filterPiscina) filterPiscina.addEventListener('change', filterTable);
-      if (filterEstado) filterEstado.addEventListener('change', filterTable);
-
-      // 4. Seleccionar Fila -> Actualizar Detalle e Histórico
-      tableRows.forEach(row => {
-        row.addEventListener('click', () => {
-          tableRows.forEach(r => r.classList.remove('row-selected'));
-          row.classList.add('row-selected');
-
-          const id = row.dataset.id;
-          const nombre = row.dataset.nombre;
-          const tipo = row.dataset.tipo;
-          const piscina = row.dataset.piscina;
-          const estado = row.dataset.estado;
-          const lectura = row.dataset.lectura;
-          const fecha = row.dataset.fecha;
-
-          document.getElementById('detailTitle').innerText = `${nombre} (${id})`;
-          document.getElementById('detailTipo').innerText = tipo;
-          document.getElementById('detailPiscina').innerText = piscina;
-          document.getElementById('detailFecha').innerText = fecha;
-
-          const detailEstadoEl = document.getElementById('detailEstado');
-          const detailLecturaEl = document.getElementById('detailLectura');
-          const detailIconEl = document.getElementById('detailIcon');
-
-          if (estado === 'Alerta') {
-            detailEstadoEl.innerHTML = '<span class="badge badge-alerta">Alerta</span>';
-            detailLecturaEl.style.color = '#D92D20';
-            detailIconEl.innerText = '💥';
-          } else {
-            detailEstadoEl.innerHTML = '<span class="badge badge-en-linea">En línea</span>';
-            detailLecturaEl.style.color = '#1E293B';
-            detailIconEl.innerText = tipo === 'Temperatura' ? '🌡️' : (tipo === 'pH' ? '🧪' : (tipo === 'Oxígeno Disuelto' ? 'O₂' : '⚡'));
-          }
-          detailLecturaEl.innerText = lectura;
-
-          let newData = [12, 10, 19, 16, parseFloat(lectura) || 18.7];
-          let color = '#F97316';
-          if (tipo === 'Temperatura') { newData = [26.0, 26.5, 27.0, 27.2, 27.5]; color = '#1E64D4'; }
-          else if (tipo === 'pH') { newData = [7.0, 7.1, 7.1, 7.2, 7.2]; color = '#12B76A'; }
-          else if (tipo === 'Oxígeno Disuelto') { newData = [6.2, 6.4, 6.5, 6.7, 6.8]; color = '#06B6D4'; }
-
-          lineChart.data.datasets[0].data = newData;
-          lineChart.data.datasets[0].borderColor = color;
-          lineChart.update();
-        });
-      });
-
-      // 5. Modal
-      const modal = document.getElementById('sensorModal');
-      const btnOpenModal = document.getElementById('btnAgregarSensor');
-      const btnCloseModal = document.getElementById('btnCloseModal');
-      const btnCancelModal = document.getElementById('btnCancelModal');
-      const addForm = document.getElementById('addSensorForm');
-
-      if (btnOpenModal) btnOpenModal.addEventListener('click', () => modal.classList.add('active'));
-      if (btnCloseModal) btnCloseModal.addEventListener('click', () => modal.classList.remove('active'));
-      if (btnCancelModal) btnCancelModal.addEventListener('click', () => modal.classList.remove('active'));
-      if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
-
-      if (addForm) {
-        addForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          alert('Sensor registrado exitosamente.');
-          modal.classList.remove('active');
-        });
-      }
-    });
-  </script>
+  {% include "componentes/modales_js.html" %}
 {% endblock %}

@@ -1,17 +1,27 @@
+"""
+Vistas del app core: bienvenida y paneles por rol.
+
+Cada modulo funcional (geomembranas, sensores, monitoreo, alertas, reportes,
+usuarios, configuraciones) vive en su propio app con su propia logica de
+negocio. Core solo enruta al panel que corresponde al rol autenticado.
+"""
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count, Q
 from django.shortcuts import redirect, render
+from django.utils import timezone
 
+from apps.alertas.models import Alerta
+from apps.monitoreo.models import Lectura, Sensor
+from apps.piscinas.models import Geomembrana
 from apps.usuarios.permissions import (
     ROL_APRENDIZ,
     ROL_INSTRUCTOR,
     ROL_OPERARIO,
     obtener_nombre_rol,
-    puede_ver_modulo,
     resolver_dashboard,
 )
 
-# rol -> template de su dashboard principal
 TEMPLATE_POR_ROL = {
     ROL_INSTRUCTOR: 'roles/InstructorLider.html',
     ROL_APRENDIZ:   'roles/Aprendiz.html',
@@ -19,21 +29,18 @@ TEMPLATE_POR_ROL = {
 }
 
 
-def rol_requerido(url_name, roles=None):
+def rol_requerido(roles):
     """
-    Decorador que valida el rol antes de renderizar un modulo de core.
+    Restringe una vista a un conjunto explicito de roles.
 
-    :param url_name: nombre corto de la url, usado contra MODULOS_POR_ROL
-    :param roles: iterable opcional de roles permitidos de forma explicita
+    :param roles: iterable con los nombres de rol permitidos
     :return: decorador de vista
     """
     def decorador(vista):
         @login_required
         def envoltura(request, *args, **kwargs):
-            rol = obtener_nombre_rol(request.user)
-            permitido = rol in roles if roles else puede_ver_modulo(request.user, url_name)
-            if not permitido:
-                messages.warning(request, 'No tienes permisos para acceder a ese modulo.')
+            if obtener_nombre_rol(request.user) not in roles:
+                messages.warning(request, 'No tienes permisos para acceder a ese panel.')
                 return redirect(resolver_dashboard(request.user))
             return vista(request, *args, **kwargs)
         envoltura.__name__ = vista.__name__
@@ -42,8 +49,55 @@ def rol_requerido(url_name, roles=None):
     return decorador
 
 
+def _resumen_operativo():
+    """
+    Indicadores transversales que comparten los tres paneles.
+
+    Una sola consulta agregada por bloque en vez de contar en Python: los
+    paneles se abren en cada login y no deben recorrer todas las lecturas.
+
+    :return: dict con los contadores del sistema
+    """
+    ahora = timezone.now()
+    hace_24h = ahora - timezone.timedelta(hours=24)
+
+    piscinas = Geomembrana.objects.aggregate(
+        total=Count('id'),
+        operativas=Count('id', filter=Q(estado='activo', apta_para_produccion=True)),
+    )
+    sensores = Sensor.objects.aggregate(
+        total=Count('id'),
+        activos=Count('id', filter=Q(estado='activo')),
+        averiados=Count('id', filter=Q(estado='averiado')),
+    )
+    alertas = Alerta.objects.aggregate(
+        activas=Count('id', filter=Q(estado='activa')),
+        criticas=Count('id', filter=Q(estado='activa', severidad='critica')),
+    )
+    lecturas_24h = Lectura.objects.filter(timestamp_lectura__gte=hace_24h).aggregate(
+        total=Count('id'),
+        fuera_rango=Count('id', filter=Q(dentro_rango=False)),
+    )
+
+    return {
+        'piscinas': piscinas,
+        'sensores': sensores,
+        'alertas': alertas,
+        'lecturas_24h': lecturas_24h,
+        'ultimas_alertas': (
+            Alerta.objects
+            .filter(estado='activa')
+            .select_related('geomembrana', 'tipo_parametro')[:5]
+        ),
+        'ultimas_lecturas': (
+            Lectura.objects
+            .select_related('sensor', 'tipo_parametro', 'geomembrana')[:8]
+        ),
+    }
+
+
 def index(request):
-    """Pagina de bienvenida publica. Si ya hay sesion, va al dashboard del rol."""
+    """Pagina de bienvenida publica. Con sesion abierta, va al panel del rol."""
     if request.user.is_authenticated:
         return redirect(resolver_dashboard(request.user))
     return render(request, 'core/index.html')
@@ -51,77 +105,30 @@ def index(request):
 
 @login_required
 def dashboard(request):
-    """Router de dashboards: renderiza el template que corresponde al rol."""
+    """Router de paneles: renderiza el template que corresponde al rol."""
     template = TEMPLATE_POR_ROL.get(obtener_nombre_rol(request.user))
     if template is None:
         messages.error(request, 'Tu rol no tiene un panel asignado.')
         return redirect('usuarios:logout')
-    return render(request, template)
+    return render(request, template, {'actual': 'dashboard', **_resumen_operativo()})
 
 
-@rol_requerido('instructor_lider', roles={ROL_INSTRUCTOR})
+@rol_requerido({ROL_INSTRUCTOR})
 def instructor_lider(request):
     """Panel de supervision general. Exclusivo del Instructor Lider."""
-    return render(request, 'roles/InstructorLider.html')
+    return render(request, 'roles/InstructorLider.html',
+                  {'actual': 'dashboard', **_resumen_operativo()})
 
 
-@rol_requerido('aprendiz', roles={ROL_APRENDIZ})
+@rol_requerido({ROL_APRENDIZ})
 def aprendiz(request):
-    """Panel del Aprendiz: matriz de actividades y graficas comparativas."""
-    return render(request, 'roles/Aprendiz.html')
+    """Panel del Aprendiz: consulta y analisis, sin operaciones de escritura."""
+    return render(request, 'roles/Aprendiz.html',
+                  {'actual': 'dashboard', **_resumen_operativo()})
 
 
-@rol_requerido('operario', roles={ROL_OPERARIO})
+@rol_requerido({ROL_OPERARIO})
 def operario(request):
-    """Panel del Operario: monitoreo en tiempo real y operaciones."""
-    return render(request, 'roles/Operario.html')
-
-
-@rol_requerido('sensores')
-def sensores(request):
-    return render(request, 'funcionalidades/sensores.html')
-
-
-@rol_requerido('monitoreo')
-def monitoreo(request):
-    return render(request, 'funcionalidades/monitoreo.html')
-
-
-@rol_requerido('historial')
-def historial(request):
-    return render(request, 'funcionalidades/Historial.html')
-
-
-@rol_requerido('graficas_reportes')
-def graficas_reportes(request):
-    return render(request, 'funcionalidades/graficasyreportes.html')
-
-
-@rol_requerido('comparacion_periodos')
-def comparacion_periodos(request):
-    return render(request, 'funcionalidades/ComoaracionesdePreiodos.html')
-
-
-@rol_requerido('alertas')
-def alertas(request):
-    return render(request, 'funcionalidades/Alertas.html')
-
-
-@rol_requerido('ai')
-def ai(request):
-    return render(request, 'funcionalidades/AI.html')
-
-
-@rol_requerido('usuarios')
-def usuarios(request):
-    return render(request, 'funcionalidades/usuarios.html')
-
-
-@rol_requerido('geomembranas')
-def geomembranas(request):
-    return render(request, 'funcionalidades/geomenbranas.html')
-
-
-@rol_requerido('configuraciones')
-def configuraciones(request):
-    return render(request, 'funcionalidades/configuraciones.html')
+    """Panel del Operario: estado en tiempo real y atencion de alertas."""
+    return render(request, 'roles/Operario.html',
+                  {'actual': 'dashboard', **_resumen_operativo()})

@@ -1,205 +1,26 @@
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}SIGMAP-AQUA | Panel de Instructor Lider{% endblock %}
+{% block title %}SIGMAP-AQUA | Panel del Instructor Líder{% endblock %}
 
 {% block page_title %}
-  <h1>Bienvenido de nuevo!</h1>
-  <p>Monitorea en tiempo real la calidad del agua y el estado de tus piscinas piscicolas.</p>
+  <h1>Panel de supervisión</h1>
+  <p>Estado general del sistema y accesos a la administración.</p>
 {% endblock %}
 
 {% block content %}
+  {% include "roles/_panel_base.html" %}
 
-        <!-- Tarjetas de Métricas (5 Columnas) -->
-        <section class="metrics-grid">
-          <!-- Temperatura -->
-          <div class="metric-card">
-            <div class="metric-top">
-              <div class="metric-icon-box blue">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3a2 2 0 0 0-4 0v11.76a5 5 0 1 0 4 0z"/></svg>
-              </div>
-              <div class="metric-details">
-                <span class="metric-title">Temperatura</span>
-                <div class="metric-value-row">
-                  <span class="metric-value">27.5</span>
-                  <span class="metric-unit">°C</span>
-                  <span class="badge badge-optimo">Óptimo</span>
-                </div>
-              </div>
-            </div>
-            <span class="metric-range">Rango: 24 - 30 °C</span>
-          </div>
-
-          <!-- pH -->
-          <div class="metric-card">
-            <div class="metric-top">
-              <div class="metric-icon-box cyan">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-              </div>
-              <div class="metric-details">
-                <span class="metric-title">pH</span>
-                <div class="metric-value-row">
-                  <span class="metric-value">7.2</span>
-                  <span class="badge badge-optimo">Óptimo</span>
-                </div>
-              </div>
-            </div>
-            <span class="metric-range">Rango: 6.5 - 8.5</span>
-          </div>
-
-          <!-- Oxígeno Disuelto -->
-          <div class="metric-card">
-            <div class="metric-top">
-              <div class="metric-icon-box blue">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-              </div>
-              <div class="metric-details">
-                <span class="metric-title">Oxígeno Disuelto</span>
-                <div class="metric-value-row">
-                  <span class="metric-value">6.8</span>
-                  <span class="metric-unit">mg/L</span>
-                  <span class="badge badge-optimo">Óptimo</span>
-                </div>
-              </div>
-            </div>
-            <span class="metric-range">Rango: &gt; 5 mg/L</span>
-          </div>
-
-          <!-- Turbidez -->
-          <div class="metric-card">
-            <div class="metric-top">
-              <div class="metric-icon-box orange">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.93 19.07 1.41-1.41"/><path d="m17.66 6.34 1.41-1.41"/></svg>
-              </div>
-              <div class="metric-details">
-                <span class="metric-title">Turbidez</span>
-                <div class="metric-value-row">
-                  <span class="metric-value">12.3</span>
-                  <span class="metric-unit">NTU</span>
-                  <span class="badge badge-riesgo">Riesgo</span>
-                </div>
-              </div>
-            </div>
-            <span class="metric-range">Rango: &lt; 10 NTU</span>
-          </div>
-
-          <!-- Conductividad -->
-          <div class="metric-card">
-            <div class="metric-top">
-              <div class="metric-icon-box purple">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              </div>
-              <div class="metric-details">
-                <span class="metric-title">Conductividad</span>
-                <div class="metric-value-row">
-                  <span class="metric-value">420</span>
-                  <span class="metric-unit">µS/cm</span>
-                  <span class="badge badge-optimo">Óptimo</span>
-                </div>
-              </div>
-            </div>
-            <span class="metric-range">Rango: 200 - 800 µS/cm</span>
-          </div>
-        </section>
-
-        <!-- Sección Central: Monitoreo y Alertas -->
-        <section class="middle-grid" style="margin-top: 24px;">
-          <!-- Grafico Monitoreo -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title-box">
-                <h3 class="card-title">Monitoreo en tiempo real - Piscina 1</h3>
-              </div>
-              <span class="status-online">
-                <span class="dot-green"></span> En línea
-              </span>
-            </div>
-
-            <div class="chart-legend">
-              <div class="legend-item"><span class="legend-dot temp"></span> Temperatura (°C)</div>
-              <div class="legend-item"><span class="legend-dot ph"></span> pH</div>
-              <div class="legend-item"><span class="legend-dot od"></span> Oxígeno Disuelto (mg/L)</div>
-              <div class="legend-item"><span class="legend-dot turb"></span> Turbidez (NTU)</div>
-            </div>
-
-            <div class="chart-container">
-              <canvas id="realtimeChart"></canvas>
-            </div>
-
-            <div class="chart-controls">
-              <button class="time-btn">1H</button>
-              <button class="time-btn">6H</button>
-              <button class="time-btn">12H</button>
-              <button class="time-btn active">24H</button>
-              <button class="time-btn">7D</button>
-              <button class="time-btn">30D</button>
-            </div>
-          </div>
-
-          <!-- Alertas Activas -->
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Alertas activas</h3>
-              <a href="{% url 'core:alertas' %}" class="link-action">Ver todas</a>
-            </div>
-
-            <div class="alerts-list">
-              <div class="alert-item">
-                <div class="alert-icon-box orange">⚠️</div>
-                <div class="alert-content">
-                  <span class="alert-title">Turbidez elevada</span>
-                  <span class="alert-desc">Piscina 1 - Valor: 12.3 NTU (Límite: 10 NTU)</span>
-                  <span class="alert-time">Hace 15 minutos</span>
-                </div>
-              </div>
-
-              <div class="alert-item">
-                <div class="alert-icon-box red">🚨</div>
-                <div class="alert-content">
-                  <span class="alert-title">Bajo Oxígeno Disuelto</span>
-                  <span class="alert-desc">Piscina 2 - Valor: 3.8 mg/L (Límite: 5.0 mg/L)</span>
-                  <span class="alert-time">Hace 45 minutos</span>
-                </div>
-              </div>
-
-              <div class="alert-item">
-                <div class="alert-icon-box yellow">⚡</div>
-                <div class="alert-content">
-                  <span class="alert-title">Fallo en sensor de pH</span>
-                  <span class="alert-desc">Piscina 3 - Lecturas intermitentes</span>
-                  <span class="alert-time">Hace 2 horas</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  /** Grafica de resumen del panel de Instructor Lider. */
-  document.addEventListener('DOMContentLoaded', function () {
-    const chartCanvas = document.getElementById('realtimeChart');
-    if (!chartCanvas || typeof Chart === 'undefined') return;
-
-    new Chart(chartCanvas.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
-        datasets: [
-          { label: 'Temperatura (C)',        data: [25, 25.2, 24.5, 25, 25, 26.2, 25.5],       borderColor: '#2563EB', tension: 0.3 },
-          { label: 'pH',                     data: [7.8, 7.5, 7.0, 7.5, 7.8, 7.0, 7.8],        borderColor: '#10B981', tension: 0.3 },
-          { label: 'Oxigeno disuelto (mg/L)', data: [4.5, 4.2, 4.5, 5.0, 5.0, 5.2, 5.0],       borderColor: '#06B6D4', tension: 0.3 },
-          { label: 'Turbidez (NTU)',         data: [11.2, 12.0, 12.2, 12.5, 11.5, 13.5, 11.8], borderColor: '#F97316', tension: 0.3 }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
-      }
-    });
-  });
-</script>
+  <div class="sg-card" style="margin-top:18px;">
+    <div class="sg-card-head"><h2>Administración</h2></div>
+    <div class="sg-card-body">
+      <div class="sg-acciones">
+        <a class="sg-btn sg-btn--primario" href="{% url 'piscinas:listar' %}">Geomembranas</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'monitoreo:sensores' %}">Sensores</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'usuarios:listar' %}">Usuarios</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'monitoreo:configuraciones' %}">Umbrales</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'reportes:graficas' %}">Reportes</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'ia:panel' %}">Análisis con IA</a>
+      </div>
+    </div>
+  </div>
 {% endblock %}

@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
+from decouple import Config, RepositoryEnv, UndefinedValueError, config
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,13 +21,72 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!ozncw#=8=r0=qp*l-##3ur)20qdfdh=d%ge$3harh&s1bf#yj'
+# SECURITY WARNING: la clave NUNCA se versiona. Sale del .env (ya ignorado en
+# .gitignore). Si el .env falta, el arranque falla en vez de caer en un default
+# inseguro: es preferible un error explicito a un despliegue con clave conocida.
+class RepositorioEnvTolerante(RepositoryEnv):
+    """
+    Lector de .env que ignora un BOM al inicio del archivo.
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+    PowerShell escribe UTF-8 con BOM por defecto (`>`, `Set-Content -Encoding utf8`).
+    python-decouple no lo normaliza, asi que la PRIMERA clave del archivo queda
+    como '\ufeffSECRET_KEY' y deja de encontrarse, mientras el resto funciona:
+    un fallo silencioso y desconcertante. Todo el equipo trabaja en Windows, asi
+    que el lector absorbe el BOM en vez de exigir que cada quien recuerde el
+    encoding correcto al editar el archivo.
+    """
 
-ALLOWED_HOSTS = []
+    def __init__(self, source):
+        super().__init__(source)
+        self.data = {clave.lstrip('\ufeff'): valor for clave, valor in self.data.items()}
+
+
+_RUTA_ENV = BASE_DIR / '.env'
+if _RUTA_ENV.exists():
+    config = Config(RepositorioEnvTolerante(str(_RUTA_ENV)))
+
+
+def _requerido(clave):
+    """
+    Lee una variable obligatoria del entorno y falla con un mensaje util.
+
+    :param clave: nombre de la variable
+    :return: str con el valor
+    :raises ImproperlyConfigured: si no esta definida ni en .env ni en el entorno
+    """
+    try:
+        return config(clave)
+    except UndefinedValueError as exc:
+        raise ImproperlyConfigured(
+            f'Falta la variable {clave}. Definela en {_RUTA_ENV} '
+            f'(usa .env.example como plantilla) o como variable de entorno.'
+        ) from exc
+
+
+SECRET_KEY = _requerido('SECRET_KEY')
+
+# SECURITY WARNING: DEBUG=False es el default. Solo el .env de la maquina de
+# desarrollo lo activa. Asi un servidor sin .env nunca expone stack traces.
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='').split(',') if h.strip()]
+
+# Los nodos ESP32 no alcanzan 127.0.0.1: llegan por la IP LAN del servidor, que
+# cambia segun la red (router del SENA, hotspot de Windows en 192.168.137.1, o
+# el router de campo). Enumerar adaptadores con la libreria estandar no es
+# fiable en Windows: socket.gethostbyname_ex() devuelve solo el adaptador
+# principal y se salta el del punto de acceso movil.
+#
+# En DESARROLLO se acepta cualquier Host. Es seguro aqui porque el servidor de
+# runserver solo escucha en la LAN local y esta detras del firewall de Windows.
+# En PRODUCCION, DEBUG=False y ALLOWED_HOSTS sale del .env con los hosts reales.
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+elif not ALLOWED_HOSTS:
+    raise RuntimeError(
+        'Con DEBUG=False, ALLOWED_HOSTS debe definirse en el .env '
+        '(lista separada por comas con los hosts del servidor).'
+    )
 
 
 # Application definition
@@ -39,6 +99,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Terceros
+    'rest_framework',
+
     # Apps
     'apps.core',
     'apps.usuarios',
@@ -46,6 +109,7 @@ INSTALLED_APPS = [
     'apps.monitoreo',
     'apps.alertas',
     'apps.reportes',
+    'apps.ia',
 ]
 
 MIDDLEWARE = [
@@ -147,3 +211,64 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL           = '/auth/login/'
 LOGIN_REDIRECT_URL  = '/dashboard/'   # fallback: login_view enruta por rol
 LOGOUT_REDIRECT_URL = '/auth/login/'
+
+# ---------------------------------------------------------------------------
+# API de ingesta IoT (nodos ESP32)
+# ---------------------------------------------------------------------------
+# Los endpoints de hardware declaran authentication_classes = [] y autentican
+# por token de Dispositivo. Los defaults de abajo aplican al resto de la API.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%S%z',
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'detallado': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'consola': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'detallado',
+        },
+        'archivo_monitoreo': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'monitoreo.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 5,
+            'formatter': 'detallado',
+            'encoding': 'utf-8',
+        },
+    },
+    'loggers': {
+        'apps.monitoreo': {
+            'handlers': ['consola', 'archivo_monitoreo'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+(BASE_DIR / 'logs').mkdir(exist_ok=True)
+
+
+# --- Analisis predictivo con Gemini ---------------------------------------
+# La clave se obtiene gratis en https://aistudio.google.com/apikey
+# Sin ella el modulo de IA sigue accesible pero avisa que no esta configurado:
+# ningun otro modulo depende de esto.
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.5-flash-lite')

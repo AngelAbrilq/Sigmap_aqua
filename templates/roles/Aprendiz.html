@@ -1,156 +1,28 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block title %}SIGMAP-AQUA | Panel del Aprendiz{% endblock %}
 
 {% block page_title %}
-  <h1>Panel del Aprendiz</h1>
-  <p>Matriz de actividades y graficas comparativas</p>
+  <h1>Panel del aprendiz</h1>
+  <p>Consulta el comportamiento del cultivo y analiza los datos registrados.</p>
 {% endblock %}
 
 {% block content %}
+  {% include "roles/_panel_base.html" %}
 
-  <!-- ===== METRICAS RESUMEN ===== -->
-  <section class="metrics-grid">
-    <article class="card metric-card">
-      <div class="metric-top">
-        <div class="metric-icon-box blue">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-          </svg>
-        </div>
-        <span class="metric-title">Actividades completadas</span>
+  <div class="sg-card" style="margin-top:18px;">
+    <div class="sg-card-head"><h2>Análisis</h2></div>
+    <div class="sg-card-body">
+      <div class="sg-alerta sg-alerta--info">
+        Tu rol es de consulta: puedes ver todos los módulos y analizar los datos,
+        pero las operaciones de registro las realizan el Operario y el Instructor Líder.
       </div>
-      <div class="metric-value-row">
-        <span class="metric-value" id="kpiCompletadas">--</span>
-        <span class="metric-unit">/ --</span>
-      </div>
-      <p class="metric-range">Periodo formativo actual</p>
-    </article>
-
-    <article class="card metric-card">
-      <div class="metric-top">
-        <div class="metric-icon-box orange">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-        </div>
-        <span class="metric-title">Pendientes</span>
-      </div>
-      <div class="metric-value-row">
-        <span class="metric-value" id="kpiPendientes">--</span>
-      </div>
-      <p class="metric-range">Con fecha de entrega proxima</p>
-    </article>
-
-    <article class="card metric-card">
-      <div class="metric-top">
-        <div class="metric-icon-box cyan">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-          </svg>
-        </div>
-        <span class="metric-title">Registros analizados</span>
-      </div>
-      <div class="metric-value-row">
-        <span class="metric-value" id="kpiRegistros">--</span>
-      </div>
-      <p class="metric-range">Lecturas de sensores revisadas</p>
-    </article>
-
-    <article class="card metric-card">
-      <div class="metric-top">
-        <div class="metric-icon-box purple">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2a10 10 0 1 0 10 10H12V2z"/><circle cx="12" cy="12" r="3"/>
-          </svg>
-        </div>
-        <span class="metric-title">Progreso general</span>
-      </div>
-      <div class="metric-value-row">
-        <span class="metric-value" id="kpiProgreso">--</span>
-        <span class="metric-unit">%</span>
-      </div>
-      <p class="metric-range">Avance del plan de aprendizaje</p>
-    </article>
-  </section>
-
-  <!-- ===== MATRIZ DE ACTIVIDADES ===== -->
-  <section class="middle-grid">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title-box">
-          <h2 class="card-title">Matriz de actividades</h2>
-        </div>
-        <a href="{% url 'core:graficas_reportes' %}" class="link-action">Ver reportes</a>
-      </div>
-
-      <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; font-size:14px;">
-          <thead>
-            <tr style="text-align:left; border-bottom:1px solid #E5E7EB;">
-              <th style="padding:10px 8px;">Actividad</th>
-              <th style="padding:10px 8px;">Geomembrana</th>
-              <th style="padding:10px 8px;">Entrega</th>
-              <th style="padding:10px 8px;">Estado</th>
-            </tr>
-          </thead>
-          <tbody id="tablaActividades">
-            <tr>
-              <td colspan="4" style="padding:16px 8px; color:#6B7280;">
-                Sin actividades registradas todavia.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="sg-acciones">
+        <a class="sg-btn sg-btn--primario" href="{% url 'reportes:graficas' %}">Gráficas y reportes</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'reportes:comparacion' %}">Comparar periodos</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'monitoreo:historial' %}">Historial</a>
+        <a class="sg-btn sg-btn--suave" href="{% url 'ia:panel' %}">Análisis con IA</a>
       </div>
     </div>
-
-    <!-- ===== GRAFICA COMPARATIVA ===== -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title-box">
-          <h2 class="card-title">Comparativa de parametros</h2>
-        </div>
-        <a href="{% url 'core:comparacion_periodos' %}" class="link-action">Comparar periodos</a>
-      </div>
-      <div class="chart-container">
-        <canvas id="graficaComparativaAprendiz" height="220"></canvas>
-      </div>
-    </div>
-  </section>
-
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  /**
-   * Grafica comparativa del panel de Aprendiz.
-   * Sustituir `datosDemo` por el endpoint real cuando exista la API de monitoreo.
-   */
-  document.addEventListener('DOMContentLoaded', function () {
-    const canvas = document.getElementById('graficaComparativaAprendiz');
-    if (!canvas || typeof Chart === 'undefined') return;
-
-    const datosDemo = {
-      labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
-      datasets: [
-        { label: 'Temperatura (C)', data: [26, 26.5, 27, 26.8, 27.2, 26.9, 26.4], borderColor: '#F97316', tension: 0.35 },
-        { label: 'pH',              data: [7.1, 7.0, 7.2, 7.3, 7.1, 7.0, 7.2],     borderColor: '#6366F1', tension: 0.35 },
-        { label: 'Oxigeno (mg/L)',  data: [6.2, 6.0, 6.4, 6.1, 6.5, 6.3, 6.2],     borderColor: '#06B6D4', tension: 0.35 }
-      ]
-    };
-
-    new Chart(canvas, {
-      type: 'line',
-      data: datosDemo,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: false } }
-      }
-    });
-  });
-</script>
+  </div>
 {% endblock %}

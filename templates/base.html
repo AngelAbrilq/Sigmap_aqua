@@ -16,11 +16,18 @@
   <!-- CSS base del layout (sidebar, header, footer, grid) -->
   <link rel="stylesheet" href="{% static 'css/InstructorLider.css' %}">
 
+  <!-- Sistema de componentes compartido por los modulos -->
+  <link rel="stylesheet" href="{% static 'css/modulos.css' %}">
+
   {# Cada pagina hija agrega su CSS especifico con: block extra_css ... endblock #}
   {% block extra_css %}{% endblock %}
 
   <!-- Chart.js disponible globalmente -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Adaptador de fechas: Chart.js no trae parser de tiempo propio y sin esto
+       cualquier grafica con eje temporal falla en silencio. -->
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 <body>
 
@@ -42,14 +49,40 @@
         </div>
 
         <div class="header-right-group">
-          <!-- Notificaciones -->
-          <button class="topbar-icon-btn" title="Notificaciones">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            <span class="topbar-badge">3</span>
-          </button>
+          <!-- Notificaciones reales del usuario autenticado -->
+          <div class="notif-wrap">
+            <button class="topbar-icon-btn" id="notifBtn" title="Notificaciones" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+              {% if notificaciones_no_leidas %}
+                <span class="topbar-badge">{{ notificaciones_no_leidas }}</span>
+              {% endif %}
+            </button>
+
+            <div class="notif-menu" id="notifMenu">
+              <div class="notif-header">
+                <span>Notificaciones</span>
+                {% if notificaciones_no_leidas %}
+                  <form method="post" action="{% url 'alertas:notificaciones_leidas' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="notif-marcar">Marcar todas</button>
+                  </form>
+                {% endif %}
+              </div>
+
+              {% for notificacion in notificaciones_recientes %}
+                <a class="notif-item" href="{% url 'alertas:listar' %}">
+                  <span class="notif-titulo">{{ notificacion.titulo }}</span>
+                  <span class="notif-mensaje">{{ notificacion.mensaje|truncatechars:90 }}</span>
+                  <span class="notif-fecha">{{ notificacion.fecha_creacion|timesince }}</span>
+                </a>
+              {% empty %}
+                <div class="notif-vacio">Sin notificaciones pendientes.</div>
+              {% endfor %}
+            </div>
+          </div>
 
           <!-- Ayuda -->
           <button class="topbar-icon-btn" title="Ayuda y Soporte">
@@ -90,7 +123,7 @@
                 <div class="name">{{ nombre_usuario }}</div>
                 <div class="email">{{ request.user.email }}</div>
               </div>
-              <a href="{% url 'core:configuraciones' %}" class="user-dropdown-item">
+              <a href="{% url 'monitoreo:configuraciones' %}" class="user-dropdown-item">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="3"/>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -160,6 +193,21 @@
           if (!btn.contains(e.target) && !menu.contains(e.target)) {
             menu.classList.remove('show');
             btn.classList.remove('active');
+          }
+        });
+      }
+
+      // Dropdown de notificaciones
+      const notifBtn  = document.getElementById('notifBtn');
+      const notifMenu = document.getElementById('notifMenu');
+      if (notifBtn && notifMenu) {
+        notifBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          notifMenu.classList.toggle('show');
+        });
+        document.addEventListener('click', function (e) {
+          if (!notifBtn.contains(e.target) && !notifMenu.contains(e.target)) {
+            notifMenu.classList.remove('show');
           }
         });
       }

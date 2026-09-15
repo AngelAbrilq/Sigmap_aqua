@@ -1,435 +1,170 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}SIGMAP-AQUA | Configuración{% endblock %}
+{% comment %}
+  Configuraciones: umbrales de los parametros medibles.
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/configuraciones.css' %}">
-{% endblock %}
+  Es la pantalla mas sensible del sistema. Estos rangos alimentan
+  TipoParametro.clasificar(), del que dependen TODAS las alertas.
+{% endcomment %}
+
+{% block title %}SIGMAP-AQUA | Configuraciones{% endblock %}
 
 {% block page_title %}
-  <h1>Configuración</h1>
-  <p>Administra las preferencias del sistema y sus parámetros generales.</p>
+  <h1>Configuraciones</h1>
+  <p>Define los rangos que determinan cuándo una medición es normal, de riesgo o crítica.</p>
 {% endblock %}
 
 {% block content %}
-      <div class="cfg-container">
-        <!-- =====================================================================
-             HEADER: TÍTULO, SUBTÍTULO Y ACCIONES
-             ===================================================================== -->
+<div class="sg-modulo">
 
-        <!-- =====================================================================
-             PESTAÑAS DE NAVEGACIÓN (TABS)
-             ===================================================================== -->
-        <nav class="cfg-tabs">
-          <!-- General (Activa) -->
-          <a class="cfg-tab active">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span>General</span>
-          </a>
+  <div class="sg-alerta sg-alerta--warn">
+    <strong>Estos rangos deciden cuándo se genera una alerta.</strong>
+    Al modificarlos cambia el criterio de todas las lecturas que lleguen desde ese
+    momento. El histórico no se reclasifica: refleja el criterio vigente cuando se midió.
+  </div>
 
-          <!-- Notificaciones -->
-          <a class="cfg-tab">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span>Notificaciones</span>
-          </a>
+  <div class="sg-split">
 
-          <!-- Parámetros -->
-          <a class="cfg-tab">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-            <span>Parámetros</span>
-          </a>
-
-          <!-- Integraciones -->
-          <a class="cfg-tab">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4v1H6a4 4 0 0 0-4 4 4 4 0 0 0 4 4h1v2a4 4 0 0 0 4 4 4 4 0 0 0 4-4v-1h2a4 4 0 0 0 4-4 4 4 0 0 0-4-4h-1V6a4 4 0 0 0-4-4z"/></svg>
-            <span>Integraciones</span>
-          </a>
-
-          <!-- Seguridad -->
-          <a class="cfg-tab">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span>Seguridad</span>
-          </a>
-
-          <!-- Respaldos -->
-          <a class="cfg-tab">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-            <span>Respaldos</span>
-          </a>
-
-          <!-- Acerca de -->
-          <a class="cfg-tab">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>Acerca de</span>
-          </a>
-        </nav>
-
-        <!-- =====================================================================
-             GRID DE 4 TARJETAS (2 x 2)
-             ===================================================================== -->
-        <div class="cfg-grid-2x2">
-
-          <!-- -----------------------------------------------------------------
-               TARJETA 1: Información del sistema
-               ----------------------------------------------------------------- -->
-          <div class="cfg-card">
-            <div>
-              <div class="cfg-card-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <h2>Información del sistema</h2>
-              </div>
-
-              <div class="cfg-card-body">
-                <!-- Nombre del sistema & Versión -->
-                <div class="cfg-form-row">
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Nombre del sistema</label>
-                    <input type="text" class="cfg-input" value="SIGMAP-AQUA">
-                  </div>
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Versión</label>
-                    <input type="text" class="cfg-input" value="1.2.0">
-                  </div>
-                </div>
-
-                <!-- Descripción -->
-                <div class="cfg-field">
-                  <label class="cfg-field-label">Descripción</label>
-                  <textarea class="cfg-textarea">Sistema inteligente de monitoreo para acuicultura.</textarea>
-                </div>
-
-                <!-- Zona horaria & Idioma -->
-                <div class="cfg-form-row">
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Zona horaria</label>
-                    <div class="cfg-select-wrap">
-                      <select class="cfg-select">
-                        <option selected>(UTC-05:00) Bogotá, Lima, Quito</option>
-                        <option>(UTC-06:00) Ciudad de México</option>
-                        <option>(UTC-04:00) Santiago de Chile</option>
-                      </select>
-                      <svg class="cfg-select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                  </div>
-
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Idioma</label>
-                    <div class="cfg-select-wrap">
-                      <select class="cfg-select">
-                        <option selected>Español</option>
-                        <option>English</option>
-                        <option>Português</option>
-                      </select>
-                      <svg class="cfg-select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Botón Guardar Cambios -->
-            <div class="cfg-card-footer">
-              <button class="cfg-btn-save" type="button">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                <span>Guardar cambios</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- -----------------------------------------------------------------
-               TARJETA 2: Preferencias de visualización
-               ----------------------------------------------------------------- -->
-          <div class="cfg-card">
-            <div>
-              <div class="cfg-card-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                <h2>Preferencias de visualización</h2>
-              </div>
-
-              <div class="cfg-card-body">
-                <!-- Tema -->
-                <div class="cfg-field">
-                  <label class="cfg-field-label">Tema</label>
-                  <div class="cfg-theme-row">
-                    <!-- Claro (Activo) -->
-                    <div class="cfg-theme-card active" data-theme="light">
-                      <div class="cfg-theme-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                      </div>
-                      <span class="cfg-theme-label">Claro</span>
-                      <div class="cfg-theme-radio"></div>
-                    </div>
-
-                    <!-- Oscuro -->
-                    <div class="cfg-theme-card" data-theme="dark">
-                      <div class="cfg-theme-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                      </div>
-                      <span class="cfg-theme-label">Oscuro</span>
-                      <div class="cfg-theme-radio"></div>
-                    </div>
-
-                    <!-- Sistema -->
-                    <div class="cfg-theme-card" data-theme="system">
-                      <div class="cfg-theme-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                      </div>
-                      <span class="cfg-theme-label">Sistema</span>
-                      <div class="cfg-theme-radio"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Formato de fecha & Formato de hora -->
-                <div class="cfg-form-row">
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Formato de fecha</label>
-                    <div class="cfg-select-wrap">
-                      <select class="cfg-select">
-                        <option selected>DD/MM/YYYY</option>
-                        <option>MM/DD/YYYY</option>
-                        <option>YYYY-MM-DD</option>
-                      </select>
-                      <svg class="cfg-select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                  </div>
-
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Formato de hora</label>
-                    <div class="cfg-select-wrap">
-                      <select class="cfg-select">
-                        <option selected>12 horas (hh:mm a. m./p. m.)</option>
-                        <option>24 horas (HH:mm)</option>
-                      </select>
-                      <svg class="cfg-select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Unidad de temperatura & Separador decimal -->
-                <div class="cfg-form-row">
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Unidad de temperatura</label>
-                    <div class="cfg-radio-group">
-                      <label class="cfg-radio-label">
-                        <input type="radio" name="unit_temp" value="celsius" checked>
-                        <span>°C (Celsius)</span>
-                      </label>
-                      <label class="cfg-radio-label">
-                        <input type="radio" name="unit_temp" value="fahrenheit">
-                        <span>°F (Fahrenheit)</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div class="cfg-field">
-                    <label class="cfg-field-label">Separador decimal</label>
-                    <div class="cfg-select-wrap">
-                      <select class="cfg-select">
-                        <option selected>Punto (.)</option>
-                        <option>Coma (,)</option>
-                      </select>
-                      <svg class="cfg-select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Botón Guardar Cambios -->
-            <div class="cfg-card-footer">
-              <button class="cfg-btn-save" type="button">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                <span>Guardar cambios</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- -----------------------------------------------------------------
-               TARJETA 3: Ajustes regionales y de sistema
-               ----------------------------------------------------------------- -->
-          <div class="cfg-card">
-            <div>
-              <div class="cfg-card-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <h2>Ajustes regionales y de sistema</h2>
-              </div>
-
-              <div class="cfg-card-body">
-                <div class="cfg-setting-list">
-                  <!-- Row 1: Unidades métricas -->
-                  <div class="cfg-setting-row">
-                    <div class="cfg-setting-info">
-                      <span class="cfg-setting-title">Unidades métricas</span>
-                      <span class="cfg-setting-desc">Usar unidades del sistema métrico (m, L, °C, etc.)</span>
-                    </div>
-                    <div class="cfg-setting-control">
-                      <label class="cfg-switch">
-                        <input type="checkbox" checked>
-                        <span class="cfg-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- Row 2: Sincronización automática -->
-                  <div class="cfg-setting-row">
-                    <div class="cfg-setting-info">
-                      <span class="cfg-setting-title">Sincronización automática de datos</span>
-                      <span class="cfg-setting-desc">Sincronizar datos de sensores automáticamente</span>
-                    </div>
-                    <div class="cfg-setting-control">
-                      <label class="cfg-switch">
-                        <input type="checkbox" checked>
-                        <span class="cfg-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- Row 3: Intervalo de actualización -->
-                  <div class="cfg-setting-row">
-                    <div class="cfg-setting-info">
-                      <span class="cfg-setting-title">Intervalo de actualización en tiempo real</span>
-                      <span class="cfg-setting-desc">Frecuencia de actualización de datos en tiempo real</span>
-                    </div>
-                    <div class="cfg-setting-control">
-                      <div class="cfg-select-wrap">
-                        <select class="cfg-select cfg-select-sm">
-                          <option selected>10 segundos</option>
-                          <option>5 segundos</option>
-                          <option>30 segundos</option>
-                          <option>1 minuto</option>
-                        </select>
-                        <svg class="cfg-select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Row 4: Retención de datos -->
-                  <div class="cfg-setting-row">
-                    <div class="cfg-setting-info">
-                      <span class="cfg-setting-title">Retención de datos históricos</span>
-                      <span class="cfg-setting-desc">Tiempo de almacenamiento de datos históricos</span>
-                    </div>
-                    <div class="cfg-setting-control">
-                      <div class="cfg-select-wrap">
-                        <select class="cfg-select cfg-select-sm">
-                          <option selected>12 meses</option>
-                          <option>6 meses</option>
-                          <option>24 meses</option>
-                          <option>Indefinido</option>
-                        </select>
-                        <svg class="cfg-select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Botón Guardar Cambios -->
-            <div class="cfg-card-footer">
-              <button class="cfg-btn-save" type="button">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                <span>Guardar cambios</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- -----------------------------------------------------------------
-               TARJETA 4: Administración del sistema
-               ----------------------------------------------------------------- -->
-          <div class="cfg-card">
-            <div>
-              <div class="cfg-card-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="currentColor" stroke-width="2"/></svg>
-                <h2>Administración del sistema</h2>
-              </div>
-
-              <div class="cfg-card-body">
-                <div class="cfg-action-list">
-                  <!-- Row 1: Limpiar caché -->
-                  <div class="cfg-action-row">
-                    <div class="cfg-action-info">
-                      <span class="cfg-action-title">Limpiar caché del sistema</span>
-                      <span class="cfg-action-desc">Elimina archivos temporales para mejorar el rendimiento.</span>
-                    </div>
-                    <button class="cfg-btn-action cfg-btn-action--blue" type="button">Limpiar</button>
-                  </div>
-
-                  <!-- Row 2: Reiniciar servicios -->
-                  <div class="cfg-action-row">
-                    <div class="cfg-action-info">
-                      <span class="cfg-action-title">Reiniciar servicios</span>
-                      <span class="cfg-action-desc">Reinicia los servicios de recolección y procesamiento de datos.</span>
-                    </div>
-                    <button class="cfg-btn-action cfg-btn-action--blue" type="button">Reiniciar</button>
-                  </div>
-
-                  <!-- Row 3: Restablecer configuración -->
-                  <div class="cfg-action-row">
-                    <div class="cfg-action-info">
-                      <span class="cfg-action-title">Restablecer configuración</span>
-                      <span class="cfg-action-desc">Restaura la configuración predeterminada del sistema.</span>
-                    </div>
-                    <button class="cfg-btn-action cfg-btn-action--red" type="button">Restablecer</button>
-                  </div>
-
-                  <!-- Row 4: Exportar configuración -->
-                  <div class="cfg-action-row">
-                    <div class="cfg-action-info">
-                      <span class="cfg-action-title">Exportar configuración</span>
-                      <span class="cfg-action-desc">Descarga la configuración actual del sistema.</span>
-                    </div>
-                    <button class="cfg-btn-action cfg-btn-action--blue" type="button">Exportar</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- =====================================================================
-             AVISO INFERIOR (IMPORTANTE)
-             ===================================================================== -->
-        <div class="cfg-notice-banner">
-          <div class="cfg-notice-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          </div>
-          <div class="cfg-notice-texts">
-            <span class="cfg-notice-title">Importante</span>
-            <span class="cfg-notice-desc">Al realizar cambios en la configuración, algunos ajustes pueden requerir reiniciar el sistema para aplicarse correctamente.</span>
-          </div>
-        </div>
-
+    <!-- Lista de parametros -->
+    <div class="sg-card">
+      <div class="sg-card-head">
+        <h2>Parámetros medibles</h2>
+        {% if puede_editar %}
+          <button class="sg-btn sg-btn--primario sg-btn--sm" type="button" data-abrir-modal="modalCrearParametro">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar
+          </button>
+        {% endif %}
       </div>
 
-<!-- Modales y elementos flotantes del modulo -->
-<!-- Interactividad -->
+      <div class="sg-lista">
+        {% for par in parametros %}
+          <a class="sg-lista-item {% if seleccionado and seleccionado.pk == par.pk %}sg-lista-item--activo{% endif %}"
+             href="?seleccion={{ par.pk }}">
+            <span class="sg-punto sg-punto--{% if par.estado == 'activo' %}ok{% else %}sin_datos{% endif %}"></span>
+            <div class="sg-lista-cuerpo">
+              <span class="sg-lista-titulo">{{ par.nombre_parametro }}</span>
+              <span class="sg-lista-meta">
+                {{ par.unidad_medida }} · {{ par.sensores_asociados }} sensor(es)
+              </span>
+            </div>
+            <span class="sg-chip sg-chip--{% if par.importancia == 'alta' %}crit{% elif par.importancia == 'media' %}warn{% else %}info{% endif %}">
+              {{ par.get_importancia_display }}
+            </span>
+          </a>
+        {% empty %}
+          <div class="sg-vacio">
+            <p class="sg-vacio-titulo">Sin parámetros configurados</p>
+            <p class="sg-vacio-desc">
+              Sin parámetros no se puede clasificar ninguna lectura ni generar alertas.
+              Empieza por pH, oxígeno disuelto, temperatura y turbidez.
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Detalle del parametro -->
+    <div class="sg-card">
+      {% if seleccionado %}
+        <div class="sg-card-head">
+          <h2>
+            {{ seleccionado.nombre_parametro }}
+            <span class="sg-chip sg-chip--{% if seleccionado.estado == 'activo' %}ok{% else %}off{% endif %}">
+              {{ seleccionado.get_estado_display }}
+            </span>
+          </h2>
+          {% if puede_editar %}
+            <button class="sg-btn sg-btn--suave sg-btn--sm" type="button" data-abrir-modal="modalEditarParametro">
+              Editar umbrales
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="sg-card-body">
+          {% if seleccionado.descripcion %}
+            <p style="margin:0 0 18px;font-size:13.5px;color:#4b5563;line-height:1.7;">{{ seleccionado.descripcion }}</p>
+          {% endif %}
+
+          <h3 style="margin:0 0 10px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Umbrales de clasificación</h3>
+          <div class="sg-tabla-wrap">
+            <table class="sg-tabla">
+              <thead><tr><th>Rango</th><th class="num">Mínimo</th><th class="num">Máximo</th><th>Consecuencia</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><span class="sg-chip sg-chip--ok">Normal</span></td>
+                  <td class="num">{{ seleccionado.rango_normal_min|default:"—" }}</td>
+                  <td class="num">{{ seleccionado.rango_normal_max|default:"—" }}</td>
+                  <td>No genera alerta</td>
+                </tr>
+                <tr>
+                  <td><span class="sg-chip sg-chip--warn">Riesgo</span></td>
+                  <td class="num">{{ seleccionado.rango_riesgo_min|default:"—" }}</td>
+                  <td class="num">{{ seleccionado.rango_riesgo_max|default:"—" }}</td>
+                  <td>Alerta de severidad media · notifica al Operario</td>
+                </tr>
+                <tr>
+                  <td><span class="sg-chip sg-chip--crit">Crítico</span></td>
+                  <td class="num">{{ seleccionado.rango_critico_min|default:"—" }}</td>
+                  <td class="num">{{ seleccionado.rango_critico_max|default:"—" }}</td>
+                  <td>Alerta crítica · notifica a Operario e Instructor Líder</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="sg-fila-kpi" style="margin-top:20px;">
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Unidad de medida</span>
+              <span class="sg-metrica-valor">{{ seleccionado.unidad_medida|default:"—" }}</span>
+            </div>
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Sensores que lo miden</span>
+              <span class="sg-metrica-valor">{{ seleccionado.sensores_asociados }}</span>
+            </div>
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Importancia</span>
+              <span class="sg-metrica-valor">{{ seleccionado.get_importancia_display }}</span>
+            </div>
+            <div class="sg-metrica">
+              <span class="sg-metrica-label">Alertas generadas</span>
+              <span class="sg-metrica-valor">{{ seleccionado.alertas.count }}</span>
+            </div>
+          </div>
+
+          <div class="sg-alerta sg-alerta--info" style="margin-top:20px;">
+            <strong>Cómo se clasifica una lectura.</strong>
+            Primero se comprueba si cae en el rango normal. Si no, se comprueba el de
+            riesgo. Si tampoco, se marca como crítica. Por eso el rango de riesgo debe
+            <em>contener</em> al normal: de lo contrario habría valores que saltan de
+            normal a crítico sin pasar por riesgo.
+          </div>
+        </div>
+      {% else %}
+        <div class="sg-vacio">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <p class="sg-vacio-titulo">Ningún parámetro seleccionado</p>
+          <p class="sg-vacio-desc">Elige uno de la lista para revisar sus umbrales.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if puede_editar %}
+  {% url 'monitoreo:parametro_crear' as url_crear_param %}
+  {% if abrir_modal == 'crear' %}{% include "componentes/modal_form.html" with id="modalCrearParametro" titulo="Nuevo parámetro" accion=url_crear_param formulario=form boton="Crear parámetro" abierto=True %}
+  {% else %}{% include "componentes/modal_form.html" with id="modalCrearParametro" titulo="Nuevo parámetro" accion=url_crear_param formulario=form boton="Crear parámetro" abierto=False %}{% endif %}
+
+  {% if seleccionado and form_editar %}
+    {% url 'monitoreo:parametro_editar' seleccionado.pk as url_editar_param %}
+    {% if abrir_modal == 'editar' %}{% include "componentes/modal_form.html" with id="modalEditarParametro" titulo="Editar umbrales" accion=url_editar_param formulario=form_editar boton="Guardar umbrales" abierto=True %}
+    {% else %}{% include "componentes/modal_form.html" with id="modalEditarParametro" titulo="Editar umbrales" accion=url_editar_param formulario=form_editar boton="Guardar umbrales" abierto=False %}{% endif %}
+  {% endif %}
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Selector de Temas
-      const themeCards = document.querySelectorAll('.cfg-theme-card');
-      themeCards.forEach(card => {
-        card.addEventListener('click', () => {
-          themeCards.forEach(c => c.classList.remove('active'));
-          card.classList.add('active');
-        });
-      });
-
-      // Navegación de pestañas
-      const tabs = document.querySelectorAll('.cfg-tab');
-      tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-          e.preventDefault();
-          tabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-        });
-      });
-    });
-  </script>
+  {% include "componentes/modales_js.html" %}
 {% endblock %}

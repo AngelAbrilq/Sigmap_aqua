@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% comment %}
+  Modulo Geomembranas - conectado a la base de datos.
+
+  Todos los datos provienen de apps.piscinas.views.listar. No hay arrays
+  hardcodeados: si la tabla `geomembranas` esta vacia, la pantalla lo muestra.
+  La seleccion del detalle se resuelve en el servidor via ?seleccion=<pk>,
+  por lo que sobrevive a recargas y es un enlace compartible.
+{% endcomment %}
+
 {% block title %}SIGMAP-AQUA | Geomembranas{% endblock %}
 
 {% block extra_css %}
@@ -13,562 +22,598 @@
 {% endblock %}
 
 {% block content %}
-      <div class="gm-container">
-        <!-- =====================================================================
-             HEADER
-             ===================================================================== -->
+<div class="gm-container">
 
-        <!-- =====================================================================
-             KPI CARDS (5 columnas)
-             ===================================================================== -->
-        <div class="gm-kpi-row">
-          <!-- KPI 1: Geomembranas totales -->
-          <div class="gm-kpi-card">
-            <div class="gm-kpi-icon gm-kpi-icon--total">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            </div>
-            <div class="gm-kpi-info">
-              <span class="gm-kpi-label">Geomembranas totales</span>
-              <span class="gm-kpi-value">4</span>
-              <span class="gm-kpi-sub">En todas las piscinas</span>
-            </div>
-          </div>
+  <!-- ===================================================================
+       KPIs - calculados sobre el universo filtrado completo, no la pagina
+       =================================================================== -->
+  <div class="gm-kpi-row">
+    <div class="gm-kpi-card">
+      <div class="gm-kpi-icon gm-kpi-icon--total">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="gm-kpi-info">
+        <span class="gm-kpi-label">Geomembranas totales</span>
+        <span class="gm-kpi-value">{{ kpis.total }}</span>
+        <span class="gm-kpi-sub">{{ kpis.operativas }} operativa{{ kpis.operativas|pluralize }}</span>
+      </div>
+    </div>
 
-          <!-- KPI 2: Estado general -->
-          <div class="gm-kpi-card">
-            <div class="gm-kpi-icon gm-kpi-icon--status">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            </div>
-            <div class="gm-kpi-info">
-              <span class="gm-kpi-label">Estado general</span>
-              <span class="gm-kpi-value gm-kpi-value--green">Óptimo</span>
-              <span class="gm-kpi-sub">Sin riesgos detectados</span>
-            </div>
-          </div>
+    <div class="gm-kpi-card">
+      <div class="gm-kpi-icon gm-kpi-icon--status">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="gm-kpi-info">
+        <span class="gm-kpi-label">Estado general</span>
+        <span class="gm-kpi-value {% if kpis.estado_clase == 'ok' %}gm-kpi-value--green{% endif %}">{{ kpis.estado_general }}</span>
+        <span class="gm-kpi-sub">{{ kpis.estado_sub }}</span>
+      </div>
+    </div>
 
-          <!-- KPI 3: Vida útil promedio -->
-          <div class="gm-kpi-card">
-            <div class="gm-kpi-icon gm-kpi-icon--life">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            <div class="gm-kpi-info">
-              <span class="gm-kpi-label">Vida útil promedio</span>
-              <span class="gm-kpi-value">78%</span>
-              <span class="gm-kpi-sub">Estimado restante</span>
-            </div>
-          </div>
+    <div class="gm-kpi-card">
+      <div class="gm-kpi-icon gm-kpi-icon--life">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="gm-kpi-info">
+        <span class="gm-kpi-label">Vida útil promedio</span>
+        <span class="gm-kpi-value">{% if kpis.vida_promedio is not None %}{{ kpis.vida_promedio }}%{% else %}—{% endif %}</span>
+        <span class="gm-kpi-sub">{% if kpis.vida_promedio is not None %}Estimado restante{% else %}Falta vida útil declarada{% endif %}</span>
+      </div>
+    </div>
 
-          <!-- KPI 4: Última inspección -->
-          <div class="gm-kpi-card">
-            <div class="gm-kpi-icon gm-kpi-icon--last">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <div class="gm-kpi-info">
-              <span class="gm-kpi-label">Última inspección</span>
-              <span class="gm-kpi-value">24/05/2024</span>
-              <span class="gm-kpi-sub">Hace 2 días</span>
-            </div>
-          </div>
+    <div class="gm-kpi-card">
+      <div class="gm-kpi-icon gm-kpi-icon--last">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="gm-kpi-info">
+        <span class="gm-kpi-label">Último mantenimiento</span>
+        <span class="gm-kpi-value">{{ kpis.ultimo_mantenimiento|date:"d/m/Y"|default:"—" }}</span>
+        <span class="gm-kpi-sub">{% if kpis.ultimo_mantenimiento %}Hace {{ kpis.ultimo_mantenimiento|timesince }}{% else %}Sin registros{% endif %}</span>
+      </div>
+    </div>
 
-          <!-- KPI 5: Próxima inspección -->
-          <div class="gm-kpi-card">
-            <div class="gm-kpi-icon gm-kpi-icon--next">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
-            </div>
-            <div class="gm-kpi-info">
-              <span class="gm-kpi-label">Próxima inspección</span>
-              <span class="gm-kpi-value">07/06/2024</span>
-              <span class="gm-kpi-sub">En 14 días</span>
-            </div>
-          </div>
+    <div class="gm-kpi-card">
+      <div class="gm-kpi-icon gm-kpi-icon--next">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+      </div>
+      <div class="gm-kpi-info">
+        <span class="gm-kpi-label">Próxima inspección</span>
+        <span class="gm-kpi-value">{{ kpis.proxima_inspeccion|date:"d/m/Y"|default:"—" }}</span>
+        <span class="gm-kpi-sub">
+          {% if kpis.dias_proxima is not None %}
+            {% if kpis.dias_proxima < 0 %}Vencida hace {{ kpis.dias_proxima|cut:"-" }} día(s){% else %}En {{ kpis.dias_proxima }} día(s){% endif %}
+          {% else %}Sin programar{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       LAYOUT: LISTA + DETALLE
+       =================================================================== -->
+  <div class="gm-main-layout">
+
+    <!-- ---------- COLUMNA IZQUIERDA: LISTA ---------- -->
+    <div class="gm-list-panel">
+
+      <div class="gm-list-header">
+        <h2>Lista de geomembranas</h2>
+        {% if puede_editar %}
+          <button class="gm-btn-add" type="button" data-abrir-modal="modalCrear">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Agregar geomembrana</span>
+          </button>
+        {% endif %}
+      </div>
+
+      <!-- Busqueda y filtro: GET al servidor, no filtrado en cliente -->
+      <form class="gm-list-controls" method="get" action="{% url 'piscinas:listar' %}">
+        <div class="gm-search-wrap">
+          <svg class="gm-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" name="q" value="{{ termino }}" class="gm-search-input"
+                 placeholder="Buscar por nombre, código o ubicación...">
         </div>
+        <select name="estado" class="gm-btn-filter" onchange="this.form.submit()">
+          <option value="">Todos los estados</option>
+          {% for valor, etiqueta in estados_disponibles %}
+            <option value="{{ valor }}" {% if filtro_estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+          {% endfor %}
+        </select>
+      </form>
 
-        <!-- =====================================================================
-             LAYOUT DOS COLUMNAS: LISTA + DETALLE
-             ===================================================================== -->
-        <div class="gm-main-layout">
-
-          <!-- ---- COLUMNA IZQUIERDA: LISTA DE GEOMEMBRANAS ---- -->
-          <div class="gm-list-panel">
-
-            <!-- Header lista -->
-            <div class="gm-list-header">
-              <h2>Lista de geomembranas</h2>
-              <button class="gm-btn-add" type="button">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span>Agregar geomembrana</span>
-              </button>
+      <!-- Items reales de la base de datos -->
+      <div class="gm-list-items">
+        {% for geo in geomembranas %}
+          {% with vida=geo.vida_util_restante_pct sem=geo.estado_operativo %}
+          <a class="gm-list-item {% if seleccionada and seleccionada.pk == geo.pk %}gm-list-item--active{% endif %}"
+             href="?seleccion={{ geo.pk }}{% if termino %}&q={{ termino }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if pagina.number > 1 %}&page={{ pagina.number }}{% endif %}">
+            <div class="gm-list-item-info">
+              <div class="gm-list-item-title-row">
+                <span class="gm-list-item-name">{{ geo.nombre_piscina }}</span>
+                <span class="gm-status-dot gm-status-dot--{{ sem }}"></span>
+                <span class="gm-status-label gm-status-label--{{ sem }}">{{ geo.estado_operativo_label }}</span>
+              </div>
+              <span class="gm-list-item-detail">
+                {{ geo.codigo_identificacion }}
+                {% if geo.material %}· {{ geo.material }}{% endif %}
+                {% if geo.espesor_mm %}{{ geo.espesor_mm }} mm{% endif %}
+              </span>
+              <span class="gm-list-item-detail">
+                {% if geo.fecha_instalacion %}Instalada: {{ geo.fecha_instalacion|date:"d/m/Y" }}{% else %}Sin fecha de instalación{% endif %}
+              </span>
             </div>
-
-            <!-- Search + Filter -->
-            <div class="gm-list-controls">
-              <div class="gm-search-wrap">
-                <svg class="gm-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" class="gm-search-input" placeholder="Buscar geomembrana...">
-              </div>
-              <button class="gm-btn-filter" type="button">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                <span>Filtrar</span>
-              </button>
+            <div class="gm-list-item-gauge">
+              {% if vida is not None %}
+                <svg class="gm-gauge-svg" viewBox="0 0 60 60">
+                  <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+                  <circle cx="30" cy="30" r="26" fill="none"
+                          stroke="{% if sem == 'ok' %}#16a34a{% elif sem == 'warn' %}#f59e0b{% else %}#dc2626{% endif %}"
+                          stroke-width="4" stroke-dasharray="163.36"
+                          stroke-dashoffset="{{ geo.vida_dashoffset }}"
+                          stroke-linecap="round" transform="rotate(-90 30 30)"/>
+                  <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">{{ vida }}%</text>
+                  <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
+                </svg>
+              {% else %}
+                <svg class="gm-gauge-svg" viewBox="0 0 60 60">
+                  <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
+                  <text x="30" y="33" text-anchor="middle" fill="#9ca3af" font-size="10" font-weight="600">s/d</text>
+                </svg>
+              {% endif %}
             </div>
-
-            <!-- Lista de items -->
-            <div class="gm-list-items">
-              <!-- Item 1 - Seleccionado -->
-              <div class="gm-list-item gm-list-item--active" data-index="0">
-                <div class="gm-list-item-info">
-                  <div class="gm-list-item-title-row">
-                    <span class="gm-list-item-name">Geomembrana Piscina 1</span>
-                    <span class="gm-status-dot gm-status-dot--ok"></span>
-                    <span class="gm-status-label gm-status-label--ok">Óptimo</span>
-                  </div>
-                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
-                  <span class="gm-list-item-detail">Instalada: 15/03/2023</span>
-                </div>
-                <div class="gm-list-item-gauge">
-                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#16a34a" stroke-width="4" stroke-dasharray="138.88" stroke-dashoffset="20.83" stroke-linecap="round" transform="rotate(-90 30 30)"/>
-                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">85%</text>
-                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
-                  </svg>
-                </div>
-                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-              </div>
-
-              <!-- Item 2 -->
-              <div class="gm-list-item" data-index="1">
-                <div class="gm-list-item-info">
-                  <div class="gm-list-item-title-row">
-                    <span class="gm-list-item-name">Geomembrana Piscina 2</span>
-                    <span class="gm-status-dot gm-status-dot--ok"></span>
-                    <span class="gm-status-label gm-status-label--ok">Óptimo</span>
-                  </div>
-                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
-                  <span class="gm-list-item-detail">Instalada: 20/02/2023</span>
-                </div>
-                <div class="gm-list-item-gauge">
-                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#16a34a" stroke-width="4" stroke-dasharray="117.65" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 30 30)"/>
-                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">72%</text>
-                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
-                  </svg>
-                </div>
-                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-              </div>
-
-              <!-- Item 3 -->
-              <div class="gm-list-item" data-index="2">
-                <div class="gm-list-item-info">
-                  <div class="gm-list-item-title-row">
-                    <span class="gm-list-item-name">Geomembrana Piscina 3</span>
-                    <span class="gm-status-dot gm-status-dot--warn"></span>
-                    <span class="gm-status-label gm-status-label--warn">Atención</span>
-                  </div>
-                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
-                  <span class="gm-list-item-detail">Instalada: 10/01/2023</span>
-                </div>
-                <div class="gm-list-item-gauge">
-                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="78.37" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 30 30)"/>
-                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">48%</text>
-                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
-                  </svg>
-                </div>
-                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-              </div>
-
-              <!-- Item 4 -->
-              <div class="gm-list-item" data-index="3">
-                <div class="gm-list-item-info">
-                  <div class="gm-list-item-title-row">
-                    <span class="gm-list-item-name">Geomembrana Piscina 4</span>
-                    <span class="gm-status-dot gm-status-dot--ok"></span>
-                    <span class="gm-status-label gm-status-label--ok">Óptimo</span>
-                  </div>
-                  <span class="gm-list-item-detail">HDPE 1.5 mm</span>
-                  <span class="gm-list-item-detail">Instalada: 05/04/2023</span>
-                </div>
-                <div class="gm-list-item-gauge">
-                  <svg class="gm-gauge-svg" viewBox="0 0 60 60">
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" stroke-width="4"/>
-                    <circle cx="30" cy="30" r="26" fill="none" stroke="#16a34a" stroke-width="4" stroke-dasharray="143.72" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 30 30)"/>
-                    <text x="30" y="28" text-anchor="middle" fill="#1f2937" font-size="12" font-weight="700">88%</text>
-                    <text x="30" y="38" text-anchor="middle" fill="#9ca3af" font-size="6" font-weight="500">vida útil</text>
-                  </svg>
-                </div>
-                <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-              </div>
-            </div>
-
-            <!-- Paginación -->
-            <div class="gm-pagination">
-              <div class="gm-pagination-btns">
-                <button class="gm-page-btn" disabled>&lt;</button>
-                <button class="gm-page-btn gm-page-btn--active">1</button>
-                <button class="gm-page-btn">&gt;</button>
-              </div>
-              <span class="gm-pagination-info">1-4 de 4</span>
-            </div>
+            <svg class="gm-list-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+          {% endwith %}
+        {% empty %}
+          <div class="gm-empty-state">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+            <p class="gm-empty-title">
+              {% if termino or filtro_estado %}Ningún resultado{% else %}Aún no hay geomembranas{% endif %}
+            </p>
+            <p class="gm-empty-desc">
+              {% if termino or filtro_estado %}
+                Prueba con otro término o quita el filtro de estado.
+              {% elif puede_editar %}
+                Registra la primera con “Agregar geomembrana”. Sin geomembranas no se pueden dar de alta sensores ni recibir lecturas.
+              {% else %}
+                Un Operario o el Instructor Líder debe registrarlas.
+              {% endif %}
+            </p>
           </div>
+        {% endfor %}
+      </div>
 
-          <!-- ---- COLUMNA DERECHA: DETALLE DE GEOMEMBRANA ---- -->
-          <div class="gm-detail-panel">
+      <!-- Paginacion real -->
+      {% if pagina.paginator.num_pages > 1 %}
+      <div class="gm-pagination">
+        <div class="gm-pagination-btns">
+          <a class="gm-page-btn {% if not pagina.has_previous %}gm-page-btn--off{% endif %}"
+             {% if pagina.has_previous %}href="?page={{ pagina.previous_page_number }}{% if termino %}&q={{ termino }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}"{% endif %}>&lt;</a>
+          {% for num in pagina.paginator.page_range %}
+            <a class="gm-page-btn {% if num == pagina.number %}gm-page-btn--active{% endif %}"
+               href="?page={{ num }}{% if termino %}&q={{ termino }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}">{{ num }}</a>
+          {% endfor %}
+          <a class="gm-page-btn {% if not pagina.has_next %}gm-page-btn--off{% endif %}"
+             {% if pagina.has_next %}href="?page={{ pagina.next_page_number }}{% if termino %}&q={{ termino }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}"{% endif %}>&gt;</a>
+        </div>
+        <span class="gm-pagination-info">
+          {{ pagina.start_index }}-{{ pagina.end_index }} de {{ pagina.paginator.count }}
+        </span>
+      </div>
+      {% endif %}
+    </div>
 
-            <!-- Encabezado detalle -->
-            <div class="gm-detail-header">
-              <div class="gm-detail-title-row">
-                <h2>Geomembrana Piscina 1</h2>
-                <span class="gm-status-dot gm-status-dot--ok"></span>
-                <span class="gm-status-label gm-status-label--ok">Óptimo</span>
-              </div>
-              <button class="gm-btn-edit" type="button">
+    <!-- ---------- COLUMNA DERECHA: DETALLE ---------- -->
+    <div class="gm-detail-panel">
+      {% if seleccionada %}
+        {% with geo=seleccionada sem=seleccionada.estado_operativo vida=seleccionada.vida_util_restante_pct %}
+
+        <div class="gm-detail-header">
+          <div class="gm-detail-title-row">
+            <h2>{{ geo.nombre_piscina }}</h2>
+            <span class="gm-status-dot gm-status-dot--{{ sem }}"></span>
+            <span class="gm-status-label gm-status-label--{{ sem }}">{{ geo.estado_operativo_label }}</span>
+          </div>
+          {% if puede_editar %}
+            <div class="gm-detail-actions">
+              <button class="gm-btn-edit" type="button" data-abrir-modal="modalEditar">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 <span>Editar información</span>
               </button>
+              <button class="gm-btn-danger" type="button" data-abrir-modal="modalEliminar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                <span>Eliminar</span>
+              </button>
             </div>
+          {% endif %}
+        </div>
 
-            <!-- Tabs detalle -->
-            <nav class="gm-detail-tabs">
-              <a class="gm-detail-tab active">Resumen</a>
-              <a class="gm-detail-tab">Inspecciones</a>
-              <a class="gm-detail-tab">Mantenimiento</a>
-              <a class="gm-detail-tab">Documentos</a>
-              <a class="gm-detail-tab">Historial</a>
-            </nav>
+        <nav class="gm-detail-tabs">
+          <a class="gm-detail-tab active" data-tab="resumen">Resumen</a>
+          <a class="gm-detail-tab" data-tab="operacion">Operación</a>
+          <a class="gm-detail-tab" data-tab="alertas">Alertas ({{ geo.alertas_activas.count }})</a>
+        </nav>
 
-            <!-- Contenido del detalle: Resumen -->
-            <div class="gm-detail-body">
+        <!-- ===== TAB RESUMEN ===== -->
+        <div class="gm-detail-body" data-panel="resumen">
+          <div class="gm-detail-top-row">
 
-              <!-- Fila superior: Info general + Vista de referencia -->
-              <div class="gm-detail-top-row">
-
-                <!-- Info general -->
-                <div class="gm-info-general">
-                  <h3>Información general</h3>
-                  <table class="gm-info-table">
-                    <tbody>
-                      <tr>
-                        <td class="gm-info-label">Tipo de geomembrana</td>
-                        <td class="gm-info-value">HDPE</td>
-                      </tr>
-                      <tr>
-                        <td class="gm-info-label">Espesor</td>
-                        <td class="gm-info-value">1.5 mm</td>
-                      </tr>
-                      <tr>
-                        <td class="gm-info-label">Área cubierta</td>
-                        <td class="gm-info-value">2,500 m²</td>
-                      </tr>
-                      <tr>
-                        <td class="gm-info-label">Fecha de instalación</td>
-                        <td class="gm-info-value">15/03/2023</td>
-                      </tr>
-                      <tr>
-                        <td class="gm-info-label">Proveedor</td>
-                        <td class="gm-info-value">GeoLáminas S.A.S.</td>
-                      </tr>
-                      <tr>
-                        <td class="gm-info-label">Garantía del fabricante</td>
-                        <td class="gm-info-value">10 años</td>
-                      </tr>
-                      <tr>
-                        <td class="gm-info-label">Vida útil estimada</td>
-                        <td class="gm-info-value">10 años</td>
-                      </tr>
-                      <tr>
-                        <td class="gm-info-label">Vida útil restante</td>
-                        <td class="gm-info-value">
-                          <div class="gm-progress-row">
-                            <span class="gm-progress-pct">85%</span>
-                            <div class="gm-progress-bar">
-                              <div class="gm-progress-fill" style="width: 85%;"></div>
-                            </div>
+            <div class="gm-info-general">
+              <h3>Información general</h3>
+              <table class="gm-info-table">
+                <tbody>
+                  <tr><td class="gm-info-label">Código</td><td class="gm-info-value">{{ geo.codigo_identificacion }}</td></tr>
+                  <tr><td class="gm-info-label">Material</td><td class="gm-info-value">{{ geo.material|default:"—" }}</td></tr>
+                  <tr><td class="gm-info-label">Espesor</td><td class="gm-info-value">{% if geo.espesor_mm %}{{ geo.espesor_mm }} mm{% else %}—{% endif %}</td></tr>
+                  <tr><td class="gm-info-label">Área cubierta</td><td class="gm-info-value">{% if geo.area_m2 %}{{ geo.area_m2|floatformat:2 }} m²{% else %}—{% endif %}</td></tr>
+                  <tr><td class="gm-info-label">Volumen</td><td class="gm-info-value">{% if geo.volumen_agua_m3 %}{{ geo.volumen_agua_m3|floatformat:2 }} m³{% else %}—{% endif %}</td></tr>
+                  <tr><td class="gm-info-label">Ubicación</td><td class="gm-info-value">{{ geo.ubicacion|default:"—" }}</td></tr>
+                  <tr><td class="gm-info-label">Fecha de instalación</td><td class="gm-info-value">{{ geo.fecha_instalacion|date:"d/m/Y"|default:"—" }}</td></tr>
+                  <tr><td class="gm-info-label">Proveedor</td><td class="gm-info-value">{{ geo.proveedor|default:"—" }}</td></tr>
+                  <tr>
+                    <td class="gm-info-label">Garantía</td>
+                    <td class="gm-info-value">
+                      {% if geo.garantia_anios %}
+                        {{ geo.garantia_anios }} año(s)
+                        <span class="gm-chip {% if geo.en_garantia %}gm-chip--ok{% else %}gm-chip--off{% endif %}">
+                          {% if geo.en_garantia %}Vigente{% else %}Vencida{% endif %}
+                        </span>
+                      {% else %}—{% endif %}
+                    </td>
+                  </tr>
+                  <tr><td class="gm-info-label">Vida útil estimada</td><td class="gm-info-value">{% if geo.vida_util_anios %}{{ geo.vida_util_anios }} año(s){% else %}—{% endif %}</td></tr>
+                  <tr>
+                    <td class="gm-info-label">Vida útil restante</td>
+                    <td class="gm-info-value">
+                      {% if vida is not None %}
+                        <div class="gm-progress-row">
+                          <span class="gm-progress-pct">{{ vida }}%</span>
+                          <div class="gm-progress-bar">
+                            <div class="gm-progress-fill gm-progress-fill--{{ sem }}" style="width: {{ vida }}%;"></div>
                           </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                        </div>
+                      {% else %}
+                        <span class="gm-info-muted">Declara la vida útil para estimarla</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                <!-- Vista de referencia -->
-                <div class="gm-ref-image">
-                  <h3>Vista de referencia</h3>
-                  <div class="gm-ref-image-container">
-                    <img src="../../static/img/geomembrana_ref.jpg" alt="Vista de referencia de geomembrana" onerror="if(!this.dataset.retry){this.dataset.retry=1;this.src='/static/img/geomembrana_ref.jpg';}">
-                  </div>
+            <div class="gm-ref-image">
+              <h3>Vista de referencia</h3>
+              <div class="gm-ref-image-container">
+                <img src="{% static 'img/geomembrana_ref.jpg' %}" alt="Vista de referencia de geomembrana">
+              </div>
+            </div>
+          </div>
+
+          <div class="gm-detail-bottom-row">
+
+            <div class="gm-estado-card">
+              <h3>Estado actual</h3>
+              <div class="gm-estado-body">
+                <div class="gm-estado-icon">
+                  {% if sem == 'ok' %}
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="#16a34a" stroke-width="2"/></svg>
+                  {% elif sem == 'warn' %}
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  {% else %}
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  {% endif %}
+                </div>
+                <div class="gm-estado-texts">
+                  <span class="gm-estado-title">{{ geo.get_estado_display }}</span>
+                  <span class="gm-estado-desc">
+                    {% if geo.descripcion %}{{ geo.descripcion }}
+                    {% elif sem == 'ok' %}Sin alertas activas ni inspecciones vencidas.
+                    {% elif sem == 'warn' %}Requiere revisión: revisa alertas y vida útil.
+                    {% else %}Intervención inmediata requerida.{% endif %}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              <!-- Fila inferior: Estado actual + Parámetros + Inspecciones -->
-              <div class="gm-detail-bottom-row">
-
-                <!-- Estado actual -->
-                <div class="gm-estado-card">
-                  <h3>Estado actual</h3>
-                  <div class="gm-estado-body">
-                    <div class="gm-estado-icon">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10" stroke="#16a34a" stroke-width="2"/></svg>
-                    </div>
-                    <div class="gm-estado-texts">
-                      <span class="gm-estado-title">Sin daños detectados</span>
-                      <span class="gm-estado-desc">La geomembrana se encuentra en óptimas condiciones.</span>
-                    </div>
-                  </div>
+            <div class="gm-params-card">
+              <h3>Parámetros operativos</h3>
+              <div class="gm-params-list">
+                <div class="gm-param-row">
+                  <span class="gm-param-name">Etapa de producción</span>
+                  <span class="gm-param-value">{{ geo.etapa_actual.nombre_etapa|default:"Sin asignar" }}</span>
                 </div>
-
-                <!-- Parámetros de integridad -->
-                <div class="gm-params-card">
-                  <h3>Parámetros de integridad</h3>
-                  <div class="gm-params-list">
-                    <div class="gm-param-row">
-                      <span class="gm-param-name">Perforaciones</span>
-                      <span class="gm-param-value gm-param-value--ok">0 detectadas</span>
-                    </div>
-                    <div class="gm-param-row">
-                      <span class="gm-param-name">Desgarros</span>
-                      <span class="gm-param-value gm-param-value--ok">0 detectados</span>
-                    </div>
-                    <div class="gm-param-row">
-                      <span class="gm-param-name">Deformaciones</span>
-                      <span class="gm-param-value gm-param-value--ok">0 detectadas</span>
-                    </div>
-                    <div class="gm-param-row">
-                      <span class="gm-param-name">Adherencia</span>
-                      <span class="gm-param-value gm-param-value--ok">Óptima</span>
-                    </div>
-                  </div>
+                <div class="gm-param-row">
+                  <span class="gm-param-name">Capacidad máxima</span>
+                  <span class="gm-param-value">{% if geo.capacidad_maxima_peces %}{{ geo.capacidad_maxima_peces }} peces{% else %}—{% endif %}</span>
                 </div>
-
-                <!-- Última inspección -->
-                <div class="gm-inspec-card">
-                  <h3>Última inspección</h3>
-                  <div class="gm-inspec-body">
-                    <div class="gm-inspec-icon">
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    </div>
-                    <div class="gm-inspec-data">
-                      <span class="gm-inspec-date">24/05/2024 10:30 a. m.</span>
-                      <span class="gm-inspec-detail">Realizada por: Juan Pérez</span>
-                      <span class="gm-inspec-detail">Resultado: Sin observaciones</span>
-                    </div>
-                  </div>
-                  <button class="gm-btn-outline-sm" type="button">Ver informe completo</button>
+                <div class="gm-param-row">
+                  <span class="gm-param-name">Apta para producción</span>
+                  <span class="gm-param-value {% if geo.apta_para_produccion %}gm-param-value--ok{% else %}gm-param-value--warn{% endif %}">
+                    {% if geo.apta_para_produccion %}Sí{% else %}No{% endif %}
+                  </span>
                 </div>
-
-                <!-- Próxima inspección -->
-                <div class="gm-inspec-card">
-                  <h3>Próxima inspección</h3>
-                  <div class="gm-inspec-body">
-                    <div class="gm-inspec-icon">
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    </div>
-                    <div class="gm-inspec-data">
-                      <span class="gm-inspec-date">07/06/2024</span>
-                      <span class="gm-inspec-detail">Programada</span>
-                      <span class="gm-inspec-detail">En 14 días</span>
-                    </div>
-                  </div>
-                  <button class="gm-btn-outline-sm" type="button">Reprogramar</button>
+                <div class="gm-param-row">
+                  <span class="gm-param-name">Sensores instalados</span>
+                  <span class="gm-param-value">{{ geo.sensores.count }}</span>
+                </div>
+                <div class="gm-param-row">
+                  <span class="gm-param-name">Lecturas registradas</span>
+                  <span class="gm-param-value">{{ geo.lecturas.count }}</span>
                 </div>
               </div>
+            </div>
 
+            <div class="gm-inspec-card">
+              <h3>Último mantenimiento</h3>
+              <div class="gm-inspec-body">
+                <div class="gm-inspec-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div class="gm-inspec-data">
+                  <span class="gm-inspec-date">{{ geo.fecha_ultimo_mantenimiento|date:"d/m/Y"|default:"Sin registro" }}</span>
+                  <span class="gm-inspec-detail">
+                    {% if geo.fecha_ultimo_mantenimiento %}Hace {{ geo.fecha_ultimo_mantenimiento|timesince }}{% else %}Nunca registrado{% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="gm-inspec-card">
+              <h3>Próxima inspección</h3>
+              <div class="gm-inspec-body">
+                <div class="gm-inspec-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{% if geo.inspeccion_vencida %}#dc2626{% else %}#2563eb{% endif %}" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div class="gm-inspec-data">
+                  <span class="gm-inspec-date">{{ geo.proxima_inspeccion|date:"d/m/Y"|default:"Sin programar" }}</span>
+                  <span class="gm-inspec-detail">
+                    {% if geo.dias_para_inspeccion is not None %}
+                      {% if geo.inspeccion_vencida %}Vencida{% else %}En {{ geo.dias_para_inspeccion }} día(s){% endif %}
+                    {% else %}Registra la instalación o el mantenimiento{% endif %}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- =====================================================================
-             BARRA DE RECOMENDACIÓN INFERIOR
-             ===================================================================== -->
-        <div class="gm-recommendation-bar">
-          <div class="gm-rec-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          </div>
-          <div class="gm-rec-texts">
-            <span class="gm-rec-title">Recomendación</span>
-            <span class="gm-rec-desc">Se recomienda continuar con el monitoreo periódico y realizar limpieza de sedimentación en bordes.</span>
-          </div>
-          <button class="gm-btn-rec" type="button">Ver recomendaciones</button>
+        <!-- ===== TAB OPERACIÓN ===== -->
+        <div class="gm-detail-body" data-panel="operacion" hidden>
+          <h3>Sensores asociados</h3>
+          {% if geo.sensores.exists %}
+            <table class="gm-data-table">
+              <thead><tr><th>Código</th><th>Parámetro</th><th>Estado</th><th>Intervalo</th></tr></thead>
+              <tbody>
+                {% for sensor in geo.sensores.all %}
+                  <tr>
+                    <td>{{ sensor.codigo_hardware }}</td>
+                    <td>{{ sensor.tipo_parametro.nombre_parametro }}</td>
+                    <td><span class="gm-chip {% if sensor.estado == 'activo' %}gm-chip--ok{% else %}gm-chip--off{% endif %}">{{ sensor.get_estado_display }}</span></td>
+                    <td>{{ sensor.intervalo_lectura_segundos }} s</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="gm-info-muted">Sin sensores instalados en esta geomembrana.</p>
+          {% endif %}
         </div>
 
+        <!-- ===== TAB ALERTAS ===== -->
+        <div class="gm-detail-body" data-panel="alertas" hidden>
+          <h3>Alertas activas</h3>
+          {% if geo.alertas_activas.exists %}
+            <table class="gm-data-table">
+              <thead><tr><th>Severidad</th><th>Parámetro</th><th>Valor</th><th>Generada</th></tr></thead>
+              <tbody>
+                {% for alerta in geo.alertas_activas.all %}
+                  <tr>
+                    <td><span class="gm-chip gm-chip--{% if alerta.severidad == 'critica' %}crit{% else %}warn{% endif %}">{{ alerta.get_severidad_display }}</span></td>
+                    <td>{{ alerta.tipo_parametro.nombre_parametro }}</td>
+                    <td>{{ alerta.valor_que_disparo }}</td>
+                    <td>{{ alerta.fecha_generacion|date:"d/m/Y H:i" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="gm-info-muted">Sin alertas activas.</p>
+          {% endif %}
+        </div>
+
+        {% endwith %}
+      {% else %}
+        <div class="gm-empty-state gm-empty-state--panel">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <p class="gm-empty-title">Ninguna geomembrana seleccionada</p>
+          <p class="gm-empty-desc">Registra una geomembrana o elige una de la lista para ver su ficha.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     MODAL: CREAR
+     ===================================================================== -->
+{% if puede_editar %}
+<div class="gm-modal" id="modalCrear" {% if abrir_modal != 'crear' %}hidden{% endif %}>
+  <div class="gm-modal-backdrop" data-cerrar-modal></div>
+  <div class="gm-modal-box" role="dialog" aria-modal="true" aria-labelledby="tituloCrear">
+    <div class="gm-modal-header">
+      <h2 id="tituloCrear">Registrar geomembrana</h2>
+      <button class="gm-modal-close" type="button" data-cerrar-modal aria-label="Cerrar">&times;</button>
+    </div>
+
+    <form method="post" action="{% url 'piscinas:crear' %}" novalidate>
+      {% csrf_token %}
+      <div class="gm-modal-body">
+        {% if form.non_field_errors %}
+          <div class="gm-form-alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="gm-form-grid">
+          {% for campo in form %}
+            <div class="gm-form-group {% if campo.name in 'descripcion' %}gm-form-group--full{% endif %}">
+              <label class="gm-form-label" for="{{ campo.id_for_label }}">
+                {{ campo.label }}{% if campo.field.required %} <span class="gm-req">*</span>{% endif %}
+              </label>
+              {{ campo }}
+              {% if campo.help_text %}<span class="gm-form-help">{{ campo.help_text }}</span>{% endif %}
+              {% for error in campo.errors %}<span class="gm-form-error">{{ error }}</span>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
       </div>
+      <div class="gm-modal-footer">
+        <button type="button" class="gm-btn-outline-sm" data-cerrar-modal>Cancelar</button>
+        <button type="submit" class="gm-btn-add">Guardar geomembrana</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =====================================================================
+     MODAL: EDITAR
+     ===================================================================== -->
+{% if seleccionada and form_editar %}
+<div class="gm-modal" id="modalEditar" {% if abrir_modal != 'editar' %}hidden{% endif %}>
+  <div class="gm-modal-backdrop" data-cerrar-modal></div>
+  <div class="gm-modal-box" role="dialog" aria-modal="true" aria-labelledby="tituloEditar">
+    <div class="gm-modal-header">
+      <h2 id="tituloEditar">Editar {{ seleccionada.codigo_identificacion }}</h2>
+      <button class="gm-modal-close" type="button" data-cerrar-modal aria-label="Cerrar">&times;</button>
+    </div>
+
+    <form method="post" action="{% url 'piscinas:editar' seleccionada.pk %}" novalidate>
+      {% csrf_token %}
+      <div class="gm-modal-body">
+        {% if form_editar.non_field_errors %}
+          <div class="gm-form-alert">{{ form_editar.non_field_errors }}</div>
+        {% endif %}
+        <div class="gm-form-grid">
+          {% for campo in form_editar %}
+            <div class="gm-form-group {% if campo.name in 'descripcion' %}gm-form-group--full{% endif %}">
+              <label class="gm-form-label" for="{{ campo.id_for_label }}">
+                {{ campo.label }}{% if campo.field.required %} <span class="gm-req">*</span>{% endif %}
+              </label>
+              {{ campo }}
+              {% if campo.help_text %}<span class="gm-form-help">{{ campo.help_text }}</span>{% endif %}
+              {% for error in campo.errors %}<span class="gm-form-error">{{ error }}</span>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="gm-modal-footer">
+        <button type="button" class="gm-btn-outline-sm" data-cerrar-modal>Cancelar</button>
+        <button type="submit" class="gm-btn-add">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =====================================================================
+     MODAL: ELIMINAR  (confirmacion explicita, nunca window.confirm)
+     ===================================================================== -->
+<div class="gm-modal" id="modalEliminar" hidden>
+  <div class="gm-modal-backdrop" data-cerrar-modal></div>
+  <div class="gm-modal-box gm-modal-box--sm" role="dialog" aria-modal="true" aria-labelledby="tituloEliminar">
+    <div class="gm-modal-header">
+      <h2 id="tituloEliminar">Eliminar geomembrana</h2>
+      <button class="gm-modal-close" type="button" data-cerrar-modal aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="gm-modal-body">
+      <p>¿Eliminar <strong>{{ seleccionada.codigo_identificacion }} — {{ seleccionada.nombre_piscina }}</strong>?</p>
+      {% if seleccionada.tiene_dependencias %}
+        {% with dep=seleccionada.dependencias %}
+        <div class="gm-form-alert gm-form-alert--warn">
+          Esta geomembrana tiene <strong>{{ dep.lecturas }}</strong> lectura(s),
+          <strong>{{ dep.sensores }}</strong> sensor(es), <strong>{{ dep.dispositivos }}</strong>
+          dispositivo(s) y <strong>{{ dep.alertas }}</strong> alerta(s) asociadas.
+          No se borrará: se marcará como <strong>inactiva</strong> para conservar la
+          trazabilidad del cultivo.
+        </div>
+        {% endwith %}
+      {% else %}
+        <div class="gm-form-alert">
+          No tiene registros asociados. La eliminación es permanente y no se puede deshacer.
+        </div>
+      {% endif %}
+    </div>
+    <form method="post" action="{% url 'piscinas:eliminar' seleccionada.pk %}">
+      {% csrf_token %}
+      <div class="gm-modal-footer">
+        <button type="button" class="gm-btn-outline-sm" data-cerrar-modal>Cancelar</button>
+        <button type="submit" class="gm-btn-danger">
+          {% if seleccionada.tiene_dependencias %}Desactivar{% else %}Eliminar definitivamente{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Datos de las geomembranas
-      const geomembranasData = [
-        {
-          name: 'Geomembrana Piscina 1',
-          status: 'Óptimo',
-          statusClass: 'ok',
-          tipo: 'HDPE',
-          espesor: '1.5 mm',
-          area: '2,500 m²',
-          fechaInstalacion: '15/03/2023',
-          proveedor: 'GeoLáminas S.A.S.',
-          garantia: '10 años',
-          vidaUtil: '10 años',
-          vidaRestante: 85,
-          estadoDanos: 'Sin daños detectados',
-          estadoDesc: 'La geomembrana se encuentra en óptimas condiciones.',
-          ultimaInspec: '24/05/2024 10:30 a. m.',
-          ultimaPor: 'Juan Pérez',
-          ultimaResult: 'Sin observaciones',
-          proximaInspec: '07/06/2024',
-          proximaDias: 'En 14 días'
-        },
-        {
-          name: 'Geomembrana Piscina 2',
-          status: 'Óptimo',
-          statusClass: 'ok',
-          tipo: 'HDPE',
-          espesor: '1.5 mm',
-          area: '2,800 m²',
-          fechaInstalacion: '20/02/2023',
-          proveedor: 'GeoLáminas S.A.S.',
-          garantia: '10 años',
-          vidaUtil: '10 años',
-          vidaRestante: 72,
-          estadoDanos: 'Sin daños detectados',
-          estadoDesc: 'Estructura e impermeabilidad conservadas.',
-          ultimaInspec: '22/05/2024 09:15 a. m.',
-          ultimaPor: 'Carlos Ruiz',
-          ultimaResult: 'Sin observaciones',
-          proximaInspec: '05/06/2024',
-          proximaDias: 'En 12 días'
-        },
-        {
-          name: 'Geomembrana Piscina 3',
-          status: 'Atención',
-          statusClass: 'warn',
-          tipo: 'HDPE',
-          espesor: '1.5 mm',
-          area: '3,100 m²',
-          fechaInstalacion: '10/01/2023',
-          proveedor: 'TecnoMembranas Ltda.',
-          garantia: '8 años',
-          vidaUtil: '8 años',
-          vidaRestante: 48,
-          estadoDanos: 'Sedimentación en bordes',
-          estadoDesc: 'Se requiere limpieza y revisión de tensión superficial.',
-          ultimaInspec: '18/05/2024 11:00 a. m.',
-          ultimaPor: 'Ana Mendoza',
-          ultimaResult: 'Observación menor en borde oeste',
-          proximaInspec: '01/06/2024',
-          proximaDias: 'En 8 días'
-        },
-        {
-          name: 'Geomembrana Piscina 4',
-          status: 'Óptimo',
-          statusClass: 'ok',
-          tipo: 'HDPE',
-          espesor: '1.5 mm',
-          area: '2,600 m²',
-          fechaInstalacion: '05/04/2023',
-          proveedor: 'GeoLáminas S.A.S.',
-          garantia: '10 años',
-          vidaUtil: '10 años',
-          vidaRestante: 88,
-          estadoDanos: 'Sin daños detectados',
-          estadoDesc: 'Excelente tensión y estado superficial óptimo.',
-          ultimaInspec: '23/05/2024 03:20 p. m.',
-          ultimaPor: 'Juan Pérez',
-          ultimaResult: 'Sin observaciones',
-          proximaInspec: '06/06/2024',
-          proximaDias: 'En 13 días'
-        }
-      ];
+  /**
+   * Interacciones del modulo de geomembranas.
+   *
+   * Los datos ya vienen renderizados desde el servidor: este script solo
+   * gobierna modales y pestañas. No hay estado de negocio en el cliente.
+   */
+  document.addEventListener('DOMContentLoaded', () => {
 
-      // Selección de items de la lista
-      const listItems = document.querySelectorAll('.gm-list-item');
-      const detailTitle = document.querySelector('.gm-detail-title-row h2');
-      const detailDot = document.querySelector('.gm-detail-title-row .gm-status-dot');
-      const detailBadge = document.querySelector('.gm-detail-title-row .gm-status-label');
-      const infoValues = document.querySelectorAll('.gm-info-value');
-      const progressPct = document.querySelector('.gm-progress-pct');
-      const progressFill = document.querySelector('.gm-progress-fill');
-      const estadoTitle = document.querySelector('.gm-estado-title');
-      const estadoDesc = document.querySelector('.gm-estado-desc');
-      const inspecDates = document.querySelectorAll('.gm-inspec-date');
-      const inspecDetails = document.querySelectorAll('.gm-inspec-detail');
+    /** Abre un modal por id y bloquea el scroll de fondo. */
+    const abrirModal = (id) => {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      const primerCampo = modal.querySelector('input:not([type=hidden]), select, textarea');
+      if (primerCampo) primerCampo.focus();
+    };
 
-      listItems.forEach(item => {
-        item.addEventListener('click', () => {
-          listItems.forEach(i => i.classList.remove('gm-list-item--active'));
-          item.classList.add('gm-list-item--active');
+    /** Cierra un modal y restablece el scroll. */
+    const cerrarModal = (modal) => {
+      if (!modal) return;
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    };
 
-          const index = parseInt(item.dataset.index, 10);
-          const data = geomembranasData[index];
-          if (!data) return;
+    document.querySelectorAll('[data-abrir-modal]').forEach((boton) => {
+      boton.addEventListener('click', () => abrirModal(boton.dataset.abrirModal));
+    });
 
-          if (detailTitle) detailTitle.textContent = data.name;
-          if (detailDot) {
-            detailDot.className = `gm-status-dot gm-status-dot--${data.statusClass}`;
-          }
-          if (detailBadge) {
-            detailBadge.className = `gm-status-label gm-status-label--${data.statusClass}`;
-            detailBadge.textContent = data.status;
-          }
+    document.querySelectorAll('[data-cerrar-modal]').forEach((elemento) => {
+      elemento.addEventListener('click', () => cerrarModal(elemento.closest('.gm-modal')));
+    });
 
-          if (infoValues.length >= 7) {
-            infoValues[0].textContent = data.tipo;
-            infoValues[1].textContent = data.espesor;
-            infoValues[2].textContent = data.area;
-            infoValues[3].textContent = data.fechaInstalacion;
-            infoValues[4].textContent = data.proveedor;
-            infoValues[5].textContent = data.garantia;
-            infoValues[6].textContent = data.vidaUtil;
-          }
-
-          if (progressPct) progressPct.textContent = `${data.vidaRestante}%`;
-          if (progressFill) progressFill.style.width = `${data.vidaRestante}%`;
-
-          if (estadoTitle) estadoTitle.textContent = data.estadoDanos;
-          if (estadoDesc) estadoDesc.textContent = data.estadoDesc;
-
-          if (inspecDates.length >= 2) {
-            inspecDates[0].textContent = data.ultimaInspec;
-            inspecDates[1].textContent = data.proximaInspec;
-          }
-          if (inspecDetails.length >= 4) {
-            inspecDetails[0].textContent = `Realizada por: ${data.ultimaPor}`;
-            inspecDetails[1].textContent = `Resultado: ${data.ultimaResult}`;
-            inspecDetails[2].textContent = 'Programada';
-            inspecDetails[3].textContent = data.proximaDias;
-          }
-        });
-      });
-
-      // Tabs de detalle
-      const tabs = document.querySelectorAll('.gm-detail-tab');
-      tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-          e.preventDefault();
-          tabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-        });
-      });
-
-      // Buscador
-      const searchInput = document.querySelector('.gm-search-input');
-      if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-          const query = e.target.value.toLowerCase().trim();
-          listItems.forEach(item => {
-            const name = item.querySelector('.gm-list-item-name')?.textContent.toLowerCase() || '';
-            const detail = item.querySelector('.gm-list-item-detail')?.textContent.toLowerCase() || '';
-            if (name.includes(query) || detail.includes(query)) {
-              item.style.display = 'flex';
-            } else {
-              item.style.display = 'none';
-            }
-          });
-        });
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') {
+        document.querySelectorAll('.gm-modal:not([hidden])').forEach(cerrarModal);
       }
     });
-  </script>
+
+    // Si el servidor devolvio errores de validacion, el modal ya viene abierto:
+    // se restaura el bloqueo de scroll para que el estado sea coherente.
+    if (document.querySelector('.gm-modal:not([hidden])')) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Pestañas del panel de detalle
+    const pestanas = document.querySelectorAll('.gm-detail-tab');
+    pestanas.forEach((pestana) => {
+      pestana.addEventListener('click', (evento) => {
+        evento.preventDefault();
+        pestanas.forEach((p) => p.classList.remove('active'));
+        pestana.classList.add('active');
+
+        document.querySelectorAll('[data-panel]').forEach((panel) => {
+          panel.hidden = panel.dataset.panel !== pestana.dataset.tab;
+        });
+      });
+    });
+  });
+</script>
 {% endblock %}

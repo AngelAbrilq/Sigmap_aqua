@@ -1,0 +1,30 @@
+{% comment %}
+  Modal generico con un formulario POST.
+
+  Uso:
+    {% include "componentes/modal_form.html" with id="modalCrear" titulo="Nuevo sensor"
+       accion=url_destino formulario=form boton="Guardar" abierto=abrir_modal_crear %}
+
+  Siempre incluye {% csrf_token %}: ningun POST del sistema viaja sin el.
+{% endcomment %}
+
+<div class="sg-modal" id="{{ id }}" {% if not abierto %}hidden{% endif %}>
+  <div class="sg-modal-fondo" data-cerrar-modal></div>
+  <div class="sg-modal-caja" role="dialog" aria-modal="true" aria-labelledby="titulo{{ id }}">
+    <div class="sg-modal-head">
+      <h2 id="titulo{{ id }}">{{ titulo }}</h2>
+      <button class="sg-modal-cerrar" type="button" data-cerrar-modal aria-label="Cerrar">&times;</button>
+    </div>
+
+    <form method="post" action="{{ accion }}" novalidate {% if multipart %}enctype="multipart/form-data"{% endif %}>
+      {% csrf_token %}
+      <div class="sg-modal-body">
+        {% include "componentes/campos_form.html" with formulario=formulario %}
+      </div>
+      <div class="sg-modal-pie">
+        <button type="button" class="sg-btn sg-btn--suave" data-cerrar-modal>Cancelar</button>
+        <button type="submit" class="sg-btn sg-btn--primario">{{ boton|default:"Guardar" }}</button>
+      </div>
+    </form>
+  </div>
+</div>

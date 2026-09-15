@@ -1,0 +1,120 @@
+{% comment %}
+  Cuerpo compartido por los tres paneles de rol.
+
+  Los tres muestran el mismo estado del sistema; lo que cambia es el titulo y
+  los accesos rapidos, que cada panel define en el bloque `accesos`.
+  Datos desde apps.core.views._resumen_operativo.
+{% endcomment %}
+{% load static %}
+
+<div class="sg-modulo">
+
+  <div class="sg-fila-kpi">
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Piscinas</span>
+        <span class="sg-kpi-valor">{{ piscinas.total }}</span>
+        <span class="sg-kpi-sub">{{ piscinas.operativas }} operativa(s)</span>
+      </div>
+    </div>
+
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono {% if sensores.averiados %}sg-kpi-icono--warn{% else %}sg-kpi-icono--ok{% endif %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h4l3-9 6 18 3-9h4"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Sensores activos</span>
+        <span class="sg-kpi-valor">{{ sensores.activos }}<small style="font-size:14px;color:#9ca3af;"> / {{ sensores.total }}</small></span>
+        <span class="sg-kpi-sub">{{ sensores.averiados }} averiado(s)</span>
+      </div>
+    </div>
+
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono {% if alertas.criticas %}sg-kpi-icono--crit{% elif alertas.activas %}sg-kpi-icono--warn{% else %}sg-kpi-icono--ok{% endif %}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Alertas activas</span>
+        <span class="sg-kpi-valor {% if alertas.criticas %}sg-kpi-valor--crit{% elif alertas.activas %}sg-kpi-valor--warn{% endif %}">{{ alertas.activas }}</span>
+        <span class="sg-kpi-sub">{{ alertas.criticas }} crítica(s)</span>
+      </div>
+    </div>
+
+    <div class="sg-kpi">
+      <div class="sg-kpi-icono">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+      </div>
+      <div class="sg-kpi-info">
+        <span class="sg-kpi-label">Lecturas 24 h</span>
+        <span class="sg-kpi-valor">{{ lecturas_24h.total }}</span>
+        <span class="sg-kpi-sub">{{ lecturas_24h.fuera_rango }} fuera de rango</span>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="sg-split">
+
+    <div class="sg-card">
+      <div class="sg-card-head">
+        <h2>Alertas sin atender</h2>
+        <a class="sg-btn sg-btn--suave sg-btn--sm" href="{% url 'alertas:listar' %}">Ver todas</a>
+      </div>
+      <div class="sg-lista">
+        {% for alerta in ultimas_alertas %}
+          <a class="sg-lista-item" href="{% url 'alertas:listar' %}">
+            <span class="sg-punto sg-punto--{% if alerta.severidad == 'critica' %}crit{% else %}warn{% endif %}"></span>
+            <div class="sg-lista-cuerpo">
+              <span class="sg-lista-titulo">{{ alerta.geomembrana.nombre_piscina }}</span>
+              <span class="sg-lista-meta">{{ alerta.mensaje_alerta|truncatechars:80 }}</span>
+            </div>
+            <span class="sg-chip sg-chip--{{ alerta.severidad }}">{{ alerta.get_severidad_display }}</span>
+          </a>
+        {% empty %}
+          <div class="sg-vacio">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <p class="sg-vacio-titulo">Todo en orden</p>
+            <p class="sg-vacio-desc">No hay alertas activas en ninguna piscina.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="sg-card">
+      <div class="sg-card-head">
+        <h2>Últimas mediciones</h2>
+        <a class="sg-btn sg-btn--suave sg-btn--sm" href="{% url 'monitoreo:historial' %}">Ver historial</a>
+      </div>
+      <div class="sg-tabla-wrap">
+        <table class="sg-tabla">
+          <thead><tr><th>Momento</th><th>Piscina</th><th>Parámetro</th><th class="num">Valor</th><th>Estado</th></tr></thead>
+          <tbody>
+            {% for lectura in ultimas_lecturas %}
+              <tr>
+                <td>{{ lectura.timestamp_lectura|date:"d/m H:i" }}</td>
+                <td>{{ lectura.geomembrana.nombre_piscina }}</td>
+                <td>{{ lectura.tipo_parametro.nombre_parametro }}</td>
+                <td class="num">{{ lectura.valor_medida }} {{ lectura.tipo_parametro.unidad_medida }}</td>
+                <td><span class="sg-chip sg-chip--{{ lectura.estado_lectura }}">{{ lectura.get_estado_lectura_display }}</span></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5">
+                <div class="sg-vacio">
+                  <p class="sg-vacio-titulo">Sin lecturas registradas</p>
+                  <p class="sg-vacio-desc">
+                    Los nodos ESP32 todavía no han enviado datos a
+                    <code>/api/v1/lecturas/</code>.
+                  </p>
+                </div>
+              </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

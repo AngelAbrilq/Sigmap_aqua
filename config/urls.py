@@ -14,8 +14,21 @@ urlpatterns = [
     # El admin queda solo para superusuarios tecnicos.
     # BloqueoAdminNativoMiddleware filtra el acceso de los roles operativos.
     path('admin/', admin.site.urls),
+
+    # Bienvenida y paneles por rol
     path('', include('apps.core.urls')),
-    path('auth/', include('apps.usuarios.urls')),
+    path('', include('apps.usuarios.urls')),      # auth/login, auth/logout, usuarios/
+
+    # Modulos funcionales. Cada uno lo sirve su propio app: registrar la misma
+    # URL en core y aqui provoca un bucle de redirecciones.
+    path('geomembranas/', include('apps.piscinas.urls')),
+    path('alertas/', include('apps.alertas.urls')),
+    path('ai/', include('apps.ia.urls')),
+    path('', include('apps.monitoreo.urls_web')),   # sensores, monitoreo, historial, configuraciones
+    path('', include('apps.reportes.urls')),        # graficas-reportes, comparacion-periodos
+
+    # API consumida por los nodos ESP32 en campo
+    path('api/v1/', include('apps.monitoreo.urls')),
 ]
 
 if settings.DEBUG:

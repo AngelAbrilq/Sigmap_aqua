@@ -1,0 +1,65 @@
+{% comment %}
+  Comportamiento compartido de modales y pestañas.
+
+  Los datos ya vienen renderizados desde el servidor: este script solo gobierna
+  la interfaz. No hay estado de negocio en el cliente.
+{% endcomment %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    /**
+     * Abre un modal por id y bloquea el scroll de fondo.
+     * @param {string} id - id del elemento .sg-modal
+     */
+    const abrirModal = (id) => {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      const primero = modal.querySelector('input:not([type=hidden]), select, textarea');
+      if (primero) primero.focus();
+    };
+
+    /**
+     * Cierra un modal y restablece el scroll.
+     * @param {HTMLElement} modal
+     */
+    const cerrarModal = (modal) => {
+      if (!modal) return;
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    };
+
+    document.querySelectorAll('[data-abrir-modal]').forEach((boton) => {
+      boton.addEventListener('click', () => abrirModal(boton.dataset.abrirModal));
+    });
+
+    document.querySelectorAll('[data-cerrar-modal]').forEach((elemento) => {
+      elemento.addEventListener('click', () => cerrarModal(elemento.closest('.sg-modal')));
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') {
+        document.querySelectorAll('.sg-modal:not([hidden])').forEach(cerrarModal);
+      }
+    });
+
+    // Si el servidor devolvio errores de validacion, el modal ya viene abierto.
+    if (document.querySelector('.sg-modal:not([hidden])')) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Pestañas: cada .sg-tab[data-tab] muestra el [data-panel] homonimo.
+    const pestanas = document.querySelectorAll('.sg-tab');
+    pestanas.forEach((pestana) => {
+      pestana.addEventListener('click', (evento) => {
+        evento.preventDefault();
+        pestanas.forEach((p) => p.classList.remove('active'));
+        pestana.classList.add('active');
+        document.querySelectorAll('[data-panel]').forEach((panel) => {
+          panel.hidden = panel.dataset.panel !== pestana.dataset.tab;
+        });
+      });
+    });
+  });
+</script>

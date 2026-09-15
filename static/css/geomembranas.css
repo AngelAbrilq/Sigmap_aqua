@@ -1042,3 +1042,166 @@
     align-self: flex-start;
   }
 }
+
+/* =====================================================================
+   CRUD: modales, formularios, chips, tablas y estados vacios
+   Agregado al conectar el modulo con la base de datos.
+   ===================================================================== */
+
+/* ---- Semaforo critico (faltaba la variante roja) ---- */
+.gm-status-dot--crit { background: #dc2626; }
+.gm-status-label--crit { color: #991b1b; background: #fef2f2; }
+.gm-progress-fill--ok   { background: #16a34a; }
+.gm-progress-fill--warn { background: #f59e0b; }
+.gm-progress-fill--crit { background: #dc2626; }
+
+/* ---- Acciones del encabezado de detalle ---- */
+.gm-detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.gm-btn-danger {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: 1px solid #fecaca; border-radius: 8px;
+  background: #fef2f2; color: #b91c1c;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .15s ease, border-color .15s ease;
+}
+.gm-btn-danger:hover { background: #fee2e2; border-color: #fca5a5; }
+
+/* ---- Chips de estado ---- */
+.gm-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; line-height: 1.6;
+}
+.gm-chip--ok   { background: #f0fdf4; color: #166534; }
+.gm-chip--warn { background: #fffbeb; color: #92400e; }
+.gm-chip--crit { background: #fef2f2; color: #991b1b; }
+.gm-chip--off  { background: #f3f4f6; color: #6b7280; }
+
+.gm-info-muted { color: #9ca3af; font-size: 13px; }
+
+/* ---- Tabla de datos (sensores / alertas) ---- */
+.gm-data-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+.gm-data-table th {
+  text-align: left; padding: 10px 12px; color: #6b7280;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  border-bottom: 1px solid #e5e7eb; white-space: nowrap;
+}
+.gm-data-table td { padding: 11px 12px; border-bottom: 1px solid #f3f4f6; color: #1f2937; }
+.gm-data-table tr:last-child td { border-bottom: none; }
+.gm-data-table tr:hover td { background: #f9fafb; }
+
+/* ---- Estado vacio ---- */
+.gm-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 44px 24px; text-align: center;
+}
+.gm-empty-state--panel { min-height: 320px; }
+.gm-empty-title { margin: 6px 0 0; font-size: 15px; font-weight: 700; color: #374151; }
+.gm-empty-desc  { margin: 0; font-size: 13px; color: #9ca3af; max-width: 340px; line-height: 1.6; }
+
+/* ---- Paginacion deshabilitada ---- */
+.gm-page-btn--off { opacity: .4; pointer-events: none; }
+
+/* ---- El item de lista ahora es un <a> ---- */
+a.gm-list-item { text-decoration: none; color: inherit; }
+
+/* =====================================================================
+   MODALES
+   ===================================================================== */
+.gm-modal {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.gm-modal[hidden] { display: none !important; }
+
+.gm-modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(15, 23, 42, .55);
+  backdrop-filter: blur(2px);
+}
+
+.gm-modal-box {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 860px; max-height: 88vh;
+  display: flex; flex-direction: column;
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, .25);
+  overflow: hidden;
+}
+.gm-modal-box--sm { max-width: 480px; }
+
+.gm-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
+}
+.gm-modal-header h2 { margin: 0; font-size: 17px; font-weight: 700; color: #111827; }
+
+.gm-modal-close {
+  border: none; background: transparent; cursor: pointer;
+  font-size: 26px; line-height: 1; color: #9ca3af; padding: 0 4px;
+  transition: color .15s ease;
+}
+.gm-modal-close:hover { color: #374151; }
+
+.gm-modal-body { padding: 22px 24px; overflow-y: auto; flex: 1; }
+.gm-modal-body p { margin: 0 0 12px; font-size: 14px; color: #374151; line-height: 1.6; }
+
+.gm-modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 24px; border-top: 1px solid #e5e7eb;
+  background: #f9fafb; flex-shrink: 0;
+}
+
+/* =====================================================================
+   FORMULARIOS
+   ===================================================================== */
+.gm-form-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px;
+}
+.gm-form-group { display: flex; flex-direction: column; gap: 6px; }
+.gm-form-group--full { grid-column: 1 / -1; }
+
+.gm-form-label { font-size: 12px; font-weight: 600; color: #374151; }
+.gm-req { color: #dc2626; }
+
+.gm-form-input {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid #d1d5db; border-radius: 8px;
+  font-family: inherit; font-size: 13px; color: #111827; background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.gm-form-input:focus {
+  outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+.gm-form-input::placeholder { color: #9ca3af; }
+textarea.gm-form-input { resize: vertical; min-height: 68px; }
+
+.gm-form-check { width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; }
+
+.gm-form-help  { font-size: 11px; color: #9ca3af; }
+.gm-form-error { font-size: 11px; color: #b91c1c; font-weight: 600; }
+
+.gm-form-input[aria-invalid="true"],
+.gm-form-group:has(.gm-form-error) .gm-form-input { border-color: #fca5a5; }
+
+.gm-form-alert {
+  padding: 12px 14px; border-radius: 8px; margin-bottom: 16px;
+  background: #fef2f2; color: #991b1b; font-size: 13px; line-height: 1.6;
+}
+.gm-form-alert--warn { background: #fffbeb; color: #92400e; }
+.gm-form-alert ul { margin: 0; padding-left: 18px; }
+
+/* Buscador y filtro del listado */
+select.gm-btn-filter { cursor: pointer; font-family: inherit; }
+
+/* =====================================================================
+   RESPONSIVE
+   ===================================================================== */
+@media (max-width: 768px) {
+  .gm-modal { padding: 12px; }
+  .gm-modal-box { max-height: 92vh; }
+  .gm-form-grid { grid-template-columns: 1fr; }
+  .gm-detail-actions { width: 100%; }
+  .gm-detail-actions button { flex: 1; justify-content: center; }
+  .gm-data-table { display: block; overflow-x: auto; white-space: nowrap; }
+}

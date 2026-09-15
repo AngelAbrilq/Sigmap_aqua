@@ -7,3 +7,7 @@ db.sqlite3
 media/
 /media/django-admin startproject libreria
 /staticfiles/
+
+# --- IoT / firmware ESP32 ---
+firmware/**/secrets.h
+logs/

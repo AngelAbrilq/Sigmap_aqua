@@ -1,0 +1,26 @@
+{% comment %}
+  Renderiza los campos de un formulario con etiqueta, ayuda y errores.
+
+  Uso:  {% include "componentes/campos_form.html" with formulario=form %}
+
+  Espera en el contexto:
+    formulario  ModelForm a pintar
+    anchos      (opcional) lista de nombres de campo que ocupan la fila entera
+{% endcomment %}
+
+{% if formulario.non_field_errors %}
+  <div class="sg-alerta">{{ formulario.non_field_errors }}</div>
+{% endif %}
+
+<div class="sg-form-grid">
+  {% for campo in formulario %}
+    <div class="sg-form-group{% if campo.name == 'descripcion' or campo.name == 'ubicacion_exacta' %} sg-form-group--full{% endif %}">
+      <label class="sg-form-label" for="{{ campo.id_for_label }}">
+        {{ campo.label }}{% if campo.field.required %} <span class="sg-req">*</span>{% endif %}
+      </label>
+      {{ campo }}
+      {% if campo.help_text %}<span class="sg-form-help">{{ campo.help_text }}</span>{% endif %}
+      {% for error in campo.errors %}<span class="sg-form-error">{{ error }}</span>{% endfor %}
+    </div>
+  {% endfor %}
+</div>

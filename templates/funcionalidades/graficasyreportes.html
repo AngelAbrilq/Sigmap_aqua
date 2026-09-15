@@ -1,490 +1,263 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}SIGMAP-AQUA | Gráficas y Reportes{% endblock %}
+{% comment %}
+  Graficas de evolucion y reportes persistidos.
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/graficasyreportes.css' %}">
-{% endblock %}
+  Las series viajan en un <script type="application/json">, no interpoladas
+  dentro del codigo JavaScript: asi ningun dato de la base puede romper el
+  script ni inyectar codigo.
+{% endcomment %}
+
+{% block title %}SIGMAP-AQUA | Gráficas y reportes{% endblock %}
 
 {% block page_title %}
   <h1>Gráficas y reportes</h1>
-  <p>Visualiza, analiza y exporta la información de calidad del agua.</p>
+  <p>Evolución de los parámetros y reportes guardados por periodo.</p>
 {% endblock %}
 
 {% block content %}
-      <!-- Top Header -->
+<div class="sg-modulo">
 
-      <!-- Dashboard Content -->
-      <div class="dashboard-content">
+  <div class="sg-card">
+    <form class="sg-filtros" method="get">
+      <div class="sg-filtro">
+        <label for="piscina">Piscina</label>
+        <select id="piscina" name="piscina" onchange="this.form.submit()">
+          {% for p in piscinas %}
+            <option value="{{ p.pk }}" {% if seleccionada and seleccionada.pk == p.pk %}selected{% endif %}>{{ p.nombre_piscina }}</option>
+          {% empty %}
+            <option value="">Sin piscinas registradas</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sg-filtro">
+        <label for="parametro">Parámetro</label>
+        <select id="parametro" name="parametro" onchange="this.form.submit()">
+          <option value="">Todos</option>
+          {% for par in parametros %}
+            <option value="{{ par.pk }}" {% if filtro_parametro == par.pk|stringformat:"s" %}selected{% endif %}>{{ par.nombre_parametro }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sg-filtro">
+        <label for="desde">Desde</label>
+        <input type="date" id="desde" name="desde" value="{{ desde }}">
+      </div>
+      <div class="sg-filtro">
+        <label for="hasta">Hasta</label>
+        <input type="date" id="hasta" name="hasta" value="{{ hasta }}">
+      </div>
+      <div class="sg-filtro" style="flex:0 0 auto;min-width:0;">
+        <label>&nbsp;</label>
+        <button type="submit" class="sg-btn sg-btn--primario">Aplicar</button>
+      </div>
+    </form>
 
-        <!-- ===============================================================
-             TABS DE NAVEGACIÓN
-             =============================================================== -->
-        <div class="gr-tabs">
-          <button class="gr-tab active" id="tab-resumen">Resumen</button>
-          <button class="gr-tab" id="tab-parametros">Parámetros individuales</button>
-          <button class="gr-tab" id="tab-correlaciones">Correlaciones</button>
-          <button class="gr-tab" id="tab-reportes">Reportes</button>
-        </div>
-
-        <!-- ===============================================================
-             FILA FILTROS + PANEL REPORTES
-             =============================================================== -->
-        <div class="gr-filters-row">
-          <!-- Filtros izquierda -->
-          <div class="gr-filters-left">
-            <div class="gr-filter-group">
-              <label class="gr-filter-label">Parámetro</label>
-              <select class="gr-select" id="filtro-parametro">
-                <option>Todos los parámetros</option>
-                <option>Temperatura</option>
-                <option>pH</option>
-                <option>Oxígeno Disuelto</option>
-                <option>Turbidez</option>
-                <option>Conductividad</option>
-              </select>
-            </div>
-
-            <div class="gr-filter-group">
-              <label class="gr-filter-label">Intervalo de tiempo</label>
-              <select class="gr-select" id="filtro-intervalo">
-                <option>Personalizado</option>
-                <option>Últimas 6 horas</option>
-                <option>Últimas 12 horas</option>
-                <option>Últimas 24 horas</option>
-                <option>Últimos 7 días</option>
-              </select>
-            </div>
-
-            <div class="gr-filter-group">
-              <label class="gr-filter-label">Agrupación</label>
-              <select class="gr-select" id="filtro-agrupacion">
-                <option>30 minutos</option>
-                <option>1 hora</option>
-                <option>6 horas</option>
-                <option>1 día</option>
-              </select>
-            </div>
-
-            <button class="gr-apply-btn" id="btn-aplicar-filtros">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-              Aplicar filtros
-            </button>
+    {% if resumen and resumen.lecturas %}
+      <div class="sg-card-body">
+        <div class="sg-fila-kpi" style="margin-bottom:20px;">
+          <div class="sg-metrica">
+            <span class="sg-metrica-label">Lecturas</span>
+            <span class="sg-metrica-valor">{{ resumen.lecturas }}</span>
           </div>
-
-          <!-- Panel Reportes derecha -->
-          <div class="gr-reports-panel">
-            <div class="gr-reports-panel-header">
-              <div>
-                <div class="gr-reports-panel-title">Reportes</div>
-                <div class="gr-reports-panel-subtitle">Genera y descarga reportes personalizados.</div>
-              </div>
-              <button class="gr-schedule-btn" id="btn-programar-reporte">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Programar reporte
-              </button>
-            </div>
-            <div class="gr-export-buttons">
-              <button class="gr-export-btn pdf" id="btn-exportar-pdf">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Exportar PDF
-              </button>
-              <button class="gr-export-btn excel" id="btn-exportar-excel">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-                Exportar Excel
-              </button>
-              <button class="gr-export-btn csv" id="btn-exportar-csv">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Exportar CSV
-              </button>
-            </div>
+          <div class="sg-metrica">
+            <span class="sg-metrica-label">Cumplimiento</span>
+            <span class="sg-metrica-valor">{{ resumen.cumplimiento|default:"—" }}%</span>
+          </div>
+          <div class="sg-metrica">
+            <span class="sg-metrica-label">Fuera de rango</span>
+            <span class="sg-metrica-valor">{{ resumen.fuera_rango }}</span>
+          </div>
+          <div class="sg-metrica">
+            <span class="sg-metrica-label">Alertas</span>
+            <span class="sg-metrica-valor">{{ resumen.alertas }}</span>
           </div>
         </div>
 
-        <!-- ===============================================================
-             TARJETAS DE PARÁMETROS (5 cards)
-             =============================================================== -->
-        <section class="gr-params-grid">
-
-          <!-- Temperatura -->
-          <div class="gr-param-card">
-            <div class="gr-param-top">
-              <div class="gr-param-icon blue">🌡️</div>
-              <div class="gr-param-meta">
-                <span class="gr-param-name">Temperatura</span>
-                <span class="gr-param-sub">Promedio</span>
-              </div>
-            </div>
-            <div>
-              <span class="gr-param-value blue">27.4</span><span class="gr-param-unit">°C</span>
-            </div>
-            <div class="gr-param-range">Min: 24.3 °C &nbsp;&nbsp; Máx: 29.1 °C</div>
-          </div>
-
-          <!-- pH -->
-          <div class="gr-param-card">
-            <div class="gr-param-top">
-              <div class="gr-param-icon green">🧪</div>
-              <div class="gr-param-meta">
-                <span class="gr-param-name">pH</span>
-                <span class="gr-param-sub">Promedio</span>
-              </div>
-            </div>
-            <div>
-              <span class="gr-param-value green">7.2</span>
-            </div>
-            <div class="gr-param-range">Min: 6.5 &nbsp;&nbsp; Máx: 8.2</div>
-          </div>
-
-          <!-- Oxígeno Disuelto -->
-          <div class="gr-param-card">
-            <div class="gr-param-top">
-              <div class="gr-param-icon cyan">O₂</div>
-              <div class="gr-param-meta">
-                <span class="gr-param-name">Oxígeno Disuelto</span>
-                <span class="gr-param-sub">Promedio</span>
-              </div>
-            </div>
-            <div>
-              <span class="gr-param-value cyan">6.8</span><span class="gr-param-unit">mg/L</span>
-            </div>
-            <div class="gr-param-range">Min: 4.2 mg/L &nbsp;&nbsp; Máx: 8.6 mg/L</div>
-          </div>
-
-          <!-- Turbidez -->
-          <div class="gr-param-card">
-            <div class="gr-param-top">
-              <div class="gr-param-icon orange">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
-              </div>
-              <div class="gr-param-meta">
-                <span class="gr-param-name">Turbidez</span>
-                <span class="gr-param-sub">Promedio</span>
-              </div>
-            </div>
-            <div>
-              <span class="gr-param-value orange">12.3</span><span class="gr-param-unit">NTU</span>
-            </div>
-            <div class="gr-param-range">Min: 5.1 NTU &nbsp;&nbsp; Máx: 28.7 NTU</div>
-          </div>
-
-          <!-- Conductividad -->
-          <div class="gr-param-card">
-            <div class="gr-param-top">
-              <div class="gr-param-icon purple">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              </div>
-              <div class="gr-param-meta">
-                <span class="gr-param-name">Conductividad</span>
-                <span class="gr-param-sub">Promedio</span>
-              </div>
-            </div>
-            <div>
-              <span class="gr-param-value purple">420</span><span class="gr-param-unit">µS/cm</span>
-            </div>
-            <div class="gr-param-range">Min: 210 µS/cm &nbsp;&nbsp; Máx: 680 µS/cm</div>
-          </div>
-
-        </section>
-
-        <!-- ===============================================================
-             SECCIÓN CENTRAL: Evolución + Correlación
-             =============================================================== -->
-        <section class="gr-main-grid">
-
-          <!-- Gráfica Evolución -->
-          <div class="gr-chart-card">
-            <div class="gr-chart-header">
-              <span class="gr-chart-title">
-                Evolución de parámetros en el tiempo
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              </span>
-            </div>
-
-            <div class="gr-chart-legend">
-              <span><span class="gr-legend-dot temp"></span> Temperatura (°C)</span>
-              <span><span class="gr-legend-dot ph"></span> pH</span>
-              <span><span class="gr-legend-dot od"></span> Oxígeno Disuelto (mg/L)</span>
-              <span><span class="gr-legend-dot turb"></span> Turbidez (NTU)</span>
-              <span><span class="gr-legend-dot cond"></span> Conductividad (µS/cm)</span>
-            </div>
-
-            <div class="gr-main-chart-wrapper">
-              <canvas id="grEvolucionChart"></canvas>
-            </div>
-
-            <div class="gr-time-btns">
-              <button class="gr-time-btn" id="btn-6h">6H</button>
-              <button class="gr-time-btn" id="btn-12h">12H</button>
-              <button class="gr-time-btn" id="btn-24h">24H</button>
-              <button class="gr-time-btn active" id="btn-7d">7D</button>
-              <button class="gr-time-btn" id="btn-15d">15D</button>
-              <button class="gr-time-btn" id="btn-30d">30D</button>
-              <button class="gr-time-btn custom" id="btn-custom">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Personalizado
-              </button>
-            </div>
-          </div>
-
-          <!-- Gráfica Correlación -->
-          <div class="gr-correlation-card">
-            <div class="gr-correlation-header">
-              <span class="gr-correlation-title">Relación entre parámetros</span>
-              <select class="gr-correlation-select" id="select-correlacion">
-                <option>Oxígeno Disuelto vs Temperatura</option>
-                <option>pH vs Temperatura</option>
-                <option>Turbidez vs pH</option>
-                <option>Conductividad vs Temperatura</option>
-              </select>
-            </div>
-
-            <div class="gr-scatter-wrapper">
-              <canvas id="grScatterChart"></canvas>
-            </div>
-
-            <div class="gr-correlation-label">Correlación: -0.65 (Moderada)</div>
-          </div>
-
-        </section>
-
-        <!-- ===============================================================
-             FILA INFERIOR: Promedios + Resumen del Período
-             =============================================================== -->
-        <section class="gr-bottom-grid">
-
-          <!-- Gráfica Promedios Diarios -->
-          <div class="gr-chart-card">
-            <div class="gr-chart-header">
-              <span class="gr-chart-title">Promedios diarios</span>
-            </div>
-
-            <div class="gr-chart-legend">
-              <span><span class="gr-legend-dot temp"></span> Temperatura (°C)</span>
-              <span><span class="gr-legend-dot ph"></span> pH</span>
-              <span><span class="gr-legend-dot od"></span> Oxígeno Disuelto (mg/L)</span>
-              <span><span class="gr-legend-dot turb"></span> Turbidez (NTU)</span>
-              <span><span class="gr-legend-dot cond"></span> Conductividad (µS/cm)</span>
-            </div>
-
-            <div class="gr-bar-chart-wrapper">
-              <canvas id="grBarChart"></canvas>
-            </div>
-          </div>
-
-          <!-- Tabla Resumen del Período -->
-          <div class="gr-chart-card">
-            <div class="gr-chart-header">
-              <span class="gr-chart-title">Resumen del período</span>
-            </div>
-
-            <table class="gr-summary-table">
-              <thead>
-                <tr>
-                  <th>Parámetro</th>
-                  <th>Promedio</th>
-                  <th>Mínimo</th>
-                  <th>Máximo</th>
-                  <th>Unidad</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div class="gr-param-cell">
-                      <div class="gr-param-icon-sm" style="background-color: var(--blue-icon-bg); color: var(--blue-icon-color);">🌡️</div>
-                      Temperatura
-                    </div>
-                  </td>
-                  <td>27.4</td>
-                  <td>24.3</td>
-                  <td>29.1</td>
-                  <td>°C</td>
-                  <td><span class="gr-badge-optimo">Óptimo</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="gr-param-cell">
-                      <div class="gr-param-icon-sm" style="background-color: #E6F7ED; color: #12B76A;">🧪</div>
-                      pH
-                    </div>
-                  </td>
-                  <td>7.2</td>
-                  <td>6.5</td>
-                  <td>8.2</td>
-                  <td>-</td>
-                  <td><span class="gr-badge-optimo">Óptimo</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="gr-param-cell">
-                      <div class="gr-param-icon-sm" style="background-color: var(--cyan-icon-bg); color: var(--cyan-icon-color); font-weight: 800; font-size: 0.55rem;">O₂</div>
-                      Oxígeno Disuelto
-                    </div>
-                  </td>
-                  <td>6.8</td>
-                  <td>4.2</td>
-                  <td>8.6</td>
-                  <td>mg/L</td>
-                  <td><span class="gr-badge-optimo">Óptimo</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="gr-param-cell">
-                      <div class="gr-param-icon-sm" style="background-color: var(--orange-icon-bg); color: var(--orange-icon-color);">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72"/></svg>
-                      </div>
-                      Turbidez
-                    </div>
-                  </td>
-                  <td>12.3</td>
-                  <td>5.1</td>
-                  <td>28.7</td>
-                  <td>NTU</td>
-                  <td><span class="gr-badge-riesgo">Riesgo</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="gr-param-cell">
-                      <div class="gr-param-icon-sm" style="background-color: var(--purple-icon-bg); color: var(--purple-icon-color);">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                      </div>
-                      Conductividad
-                    </div>
-                  </td>
-                  <td>420</td>
-                  <td>210</td>
-                  <td>680</td>
-                  <td>µS/cm</td>
-                  <td><span class="gr-badge-optimo">Óptimo</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </section>
-
-        <!-- Nota pie -->
-        <div class="gr-footer-note">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <span>Los datos mostrados corresponden al período seleccionado y se actualizan cada 30 minutos.</span>
+        <div class="sg-grafica">
+          <canvas id="graficaEvolucion"></canvas>
         </div>
 
-      </div><!-- /.dashboard-content -->
+        <h3 style="margin:26px 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Resumen por parámetro</h3>
+        <div class="sg-tabla-wrap">
+          <table class="sg-tabla">
+            <thead>
+              <tr><th>Parámetro</th><th class="num">Lecturas</th><th class="num">Promedio</th>
+                  <th class="num">Mínimo</th><th class="num">Máximo</th>
+                  <th class="num">Fuera de rango</th><th>Cumplimiento</th></tr>
+            </thead>
+            <tbody>
+              {% for fila in resumen.parametros %}
+                <tr>
+                  <td><strong>{{ fila.parametro }}</strong> <small style="color:#9ca3af;">{{ fila.unidad }}</small></td>
+                  <td class="num">{{ fila.lecturas }}</td>
+                  <td class="num">{{ fila.promedio }}</td>
+                  <td class="num">{{ fila.minimo }}</td>
+                  <td class="num">{{ fila.maximo }}</td>
+                  <td class="num">{{ fila.fuera_rango }}</td>
+                  <td>
+                    <span class="sg-barra-row">
+                      <span style="min-width:44px;font-weight:700;">{{ fila.cumplimiento }}%</span>
+                      <span class="sg-barra">
+                        <span class="sg-barra-fill {% if fila.cumplimiento >= 95 %}sg-barra-fill--ok{% elif fila.cumplimiento >= 80 %}sg-barra-fill--warn{% else %}sg-barra-fill--crit{% endif %}"
+                              style="width: {{ fila.cumplimiento }}%;"></span>
+                      </span>
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
 
-<!-- Modales y elementos flotantes del modulo -->
-<!-- =========================================================================
-       JAVASCRIPT - GRÁFICAS
-       ========================================================================= -->
+        {% if puede_generar %}
+          <form method="post" action="{% url 'reportes:reporte_crear' %}" style="margin-top:22px;">
+            {% csrf_token %}
+            <input type="hidden" name="piscina" value="{{ seleccionada.pk }}">
+            <input type="hidden" name="desde" value="{{ desde }}">
+            <input type="hidden" name="hasta" value="{{ hasta }}">
+            <div class="sg-filtros" style="border:1px solid #e5e7eb;border-radius:8px;">
+              <div class="sg-filtro" style="flex:2 1 220px;">
+                <label for="titulo">Título del reporte</label>
+                <input type="text" id="titulo" name="titulo" placeholder="Se genera uno por defecto si lo dejas vacío">
+              </div>
+              <div class="sg-filtro">
+                <label for="tipo">Tipo</label>
+                <select id="tipo" name="tipo">
+                  {% for valor, etiqueta in tipos_reporte %}
+                    <option value="{{ valor }}" {% if valor == 'personalizado' %}selected{% endif %}>{{ etiqueta }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="sg-filtro" style="flex:0 0 auto;min-width:0;">
+                <label>&nbsp;</label>
+                <button type="submit" class="sg-btn sg-btn--primario">Guardar como reporte</button>
+              </div>
+            </div>
+            <p class="sg-form-help" style="margin-top:6px;">
+              El reporte congela estos datos calculados. No cambiará aunque lleguen lecturas nuevas.
+            </p>
+          </form>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="sg-vacio">
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        <p class="sg-vacio-titulo">Sin datos en este periodo</p>
+        <p class="sg-vacio-desc">
+          {% if piscinas %}Amplía el rango de fechas o elige otra piscina.
+          {% else %}Registra una geomembrana y sus sensores para empezar a graficar.{% endif %}
+        </p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Reportes guardados -->
+  <div class="sg-card">
+    <div class="sg-card-head"><h2>Reportes guardados</h2></div>
+    <div class="sg-tabla-wrap">
+      <table class="sg-tabla">
+        <thead>
+          <tr><th>Título</th><th>Piscina</th><th>Periodo</th><th>Tipo</th>
+              <th>Generado por</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for reporte in reportes %}
+            <tr>
+              <td><strong>{{ reporte.titulo }}</strong><br>
+                  <small style="color:#9ca3af;">{{ reporte.resumen_ejecutivo|truncatechars:110 }}</small></td>
+              <td>{{ reporte.geomembrana.nombre_piscina }}</td>
+              <td>{{ reporte.fecha_inicio|date:"d/m/Y" }} – {{ reporte.fecha_fin|date:"d/m/Y" }}<br>
+                  <small style="color:#9ca3af;">{{ reporte.dias_cubiertos }} día(s)</small></td>
+              <td><span class="sg-chip sg-chip--info">{{ reporte.get_tipo_reporte_display }}</span></td>
+              <td>{{ reporte.generado_por.nombre_completo|default:"—" }}</td>
+              <td><a class="sg-btn sg-btn--suave sg-btn--sm" href="{% url 'reportes:reporte_csv' reporte.pk %}">CSV</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6">
+              <div class="sg-vacio">
+                <p class="sg-vacio-titulo">Ningún reporte guardado</p>
+                <p class="sg-vacio-desc">Consulta un periodo arriba y guárdalo como reporte.</p>
+              </div>
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{# Las series salen del servidor como JSON aislado, no incrustado en el script #}
+<script id="datosSeries" type="application/json">{{ series_json|safe }}</script>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+  /**
+   * Dibuja la evolucion de cada parametro con Chart.js.
+   *
+   * Los datos se leen de un bloque JSON aparte; el script nunca contiene
+   * valores interpolados desde la base de datos.
+   */
+  document.addEventListener('DOMContentLoaded', () => {
+    const contenedor = document.getElementById('datosSeries');
+    const lienzo = document.getElementById('graficaEvolucion');
+    if (!contenedor || !lienzo || typeof Chart === 'undefined') return;
 
-      // 1. GRÁFICA EVOLUCIÓN MULTILÍNEA
-      const ctxEvol = document.getElementById('grEvolucionChart')?.getContext('2d');
-      if (ctxEvol) {
-        new Chart(ctxEvol, {
-          type: 'line',
-          data: {
-            labels: ['17/05', '18/05', '19/05', '20/05', '21/05', '22/05', '23/05', '24/05'],
-            datasets: [
-              { label: 'Temperatura (°C)', data: [27, 27.5, 26.8, 28, 27.2, 27.8, 28.1, 27.4], borderColor: '#1E64D4', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
-              { label: 'pH', data: [7.2, 7.1, 7.3, 7.0, 7.2, 7.4, 7.1, 7.2], borderColor: '#12B76A', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
-              { label: 'Oxígeno Disuelto (mg/L)', data: [6.8, 7.0, 6.5, 6.9, 7.1, 6.7, 6.6, 6.8], borderColor: '#06B6D4', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
-              { label: 'Turbidez (NTU)', data: [12, 13, 11.5, 14, 12.5, 11.8, 13.2, 12.3], borderColor: '#F97316', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3 },
-              { label: 'Conductividad (µS/cm)', data: [420, 415, 430, 410, 425, 418, 422, 420], borderColor: '#9333EA', backgroundColor: 'transparent', tension: 0.3, borderWidth: 2.5, pointRadius: 3, yAxisID: 'y2' }
-            ]
+    let series;
+    try {
+      series = JSON.parse(contenedor.textContent);
+    } catch (error) {
+      console.warn('[SIGMAP] Series ilegibles:', error.message);
+      return;
+    }
+
+    const nombres = Object.keys(series);
+    if (!nombres.length) return;
+
+    // Paleta fija por posicion: el mismo parametro conserva su color al
+    // cambiar de piscina, que es lo que permite comparar de un vistazo.
+    const COLORES = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#0891b2'];
+
+    const datasets = nombres.map((nombre, indice) => ({
+      label: `${nombre} (${series[nombre].unidad})`,
+      data: series[nombre].puntos.map((punto) => ({ x: punto.t, y: punto.valor })),
+      borderColor: COLORES[indice % COLORES.length],
+      backgroundColor: COLORES[indice % COLORES.length] + '20',
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      tension: 0.3,
+      fill: false,
+    }));
+
+    new Chart(lienzo, {
+      type: 'line',
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
+          tooltip: {
+            callbacks: {
+              title: (items) => new Date(items[0].parsed.x).toLocaleString('es-CO'),
+            },
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { type: 'linear', position: 'left', min: 0, max: 50, ticks: { stepSize: 10, font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { color: '#F1F5F9' } },
-              y2: { type: 'linear', position: 'right', min: 0, max: 1000, ticks: { stepSize: 200, font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { drawOnChartArea: false } },
-              x: { ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { display: false } }
-            }
-          }
-        });
-      }
-
-      // 2. GRÁFICA SCATTER (Correlación)
-      const ctxScatter = document.getElementById('grScatterChart')?.getContext('2d');
-      if (ctxScatter) {
-        const scatterData = [];
-        for (let t = 20; t <= 32; t += 0.4) {
-          const od = 10.5 - 0.35 * (t - 20) + (Math.random() - 0.5) * 1.8;
-          scatterData.push({ x: parseFloat(t.toFixed(1)), y: Math.max(0, parseFloat(od.toFixed(2))) });
-        }
-        new Chart(ctxScatter, {
-          type: 'scatter',
-          data: {
-            datasets: [
-              { label: 'Datos', data: scatterData, backgroundColor: '#1E64D4', pointRadius: 4, pointHoverRadius: 6 },
-              { label: 'Tendencia', data: [{ x: 20, y: 8.5 }, { x: 32, y: 1.0 }], type: 'line', borderColor: '#1E64D4', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0 }
-            ]
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: { tooltipFormat: 'dd/MM/yyyy HH:mm' },
+            grid: { display: false },
+            ticks: { maxRotation: 0, autoSkipPadding: 20 },
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { title: { display: true, text: 'Temperatura (°C)', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' }, color: '#64748B' }, min: 20, max: 32, ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { color: '#F1F5F9' } },
-              y: { title: { display: true, text: 'Oxígeno Disuelto (mg/L)', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' }, color: '#64748B' }, min: 0, max: 10, ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { color: '#F1F5F9' } }
-            }
-          }
-        });
-      }
-
-      // 3. GRÁFICA BARRAS PROMEDIOS DIARIOS
-      const ctxBar = document.getElementById('grBarChart')?.getContext('2d');
-      if (ctxBar) {
-        new Chart(ctxBar, {
-          type: 'bar',
-          data: {
-            labels: ['17/05', '18/05', '19/05', '20/05', '21/05', '22/05', '23/05', '24/05'],
-            datasets: [
-              { label: 'Temperatura (°C)', data: [27, 27.5, 26.8, 28, 27.2, 27.8, 28.1, 27.4], backgroundColor: '#1E64D4' },
-              { label: 'pH', data: [7.2, 7.1, 7.3, 7.0, 7.2, 7.4, 7.1, 7.2], backgroundColor: '#12B76A' },
-              { label: 'Oxígeno Disuelto (mg/L)', data: [6.8, 7.0, 6.5, 6.9, 7.1, 6.7, 6.6, 6.8], backgroundColor: '#06B6D4' },
-              { label: 'Turbidez (NTU)', data: [12, 13, 11.5, 14, 12.5, 11.8, 13.2, 12.3], backgroundColor: '#F97316' },
-              { label: 'Conductividad (µS/cm)', data: [42, 41.5, 43, 41, 42.5, 41.8, 42.2, 42], backgroundColor: '#9333EA', yAxisID: 'y2' }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { type: 'linear', position: 'left', min: 0, max: 50, ticks: { stepSize: 10, font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { color: '#F1F5F9' } },
-              y2: { type: 'linear', position: 'right', min: 0, max: 1000, ticks: { stepSize: 200, font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { drawOnChartArea: false } },
-              x: { ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8' }, grid: { display: false } }
-            }
-          }
-        });
-      }
-
-      // 4. BOTONES DE RANGO DE TIEMPO
-      document.querySelectorAll('.gr-time-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-          document.querySelectorAll('.gr-time-btn').forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-        });
-      });
-
-      // 5. TABS
-      document.querySelectorAll('.gr-tab').forEach(tab => {
-        tab.addEventListener('click', function () {
-          document.querySelectorAll('.gr-tab').forEach(t => t.classList.remove('active'));
-          this.classList.add('active');
-        });
-      });
+          y: { beginAtZero: false, grid: { color: '#f3f4f6' } },
+        },
+      },
     });
-  </script>
+  });
+</script>
 {% endblock %}

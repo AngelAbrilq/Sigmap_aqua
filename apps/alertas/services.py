@@ -1,68 +1,172 @@
-"""Logica de negocio de alertas. Reemplaza el trigger tr_crear_alerta_lectura_fuera_rango."""
+"""
+Logica de negocio de alertas.
+
+Reemplaza al trigger `tr_crear_alerta_lectura_fuera_rango` del esquema SQL:
+la regla vive en la aplicacion, donde se puede versionar y probar, no en la
+base de datos.
+
+Esta capa la invoca la ingesta de la API (apps.monitoreo.views) despues de
+persistir cada lote de lecturas.
+"""
+import logging
 
 from django.db import transaction
-from .models import Alerta, HistorialEstadoAgua
 
+from .models import Alerta, HistorialEstadoAgua, Notificacion
+
+logger = logging.getLogger(__name__)
+
+# Clasificacion de la lectura -> severidad de la alerta que genera.
 SEVERIDAD_POR_ESTADO = {
     'riesgo': 'media',
     'critico': 'critica',
 }
 
+# Severidad -> roles que deben recibir la notificacion.
+# Los nombres coinciden EXACTAMENTE con usuarios.permissions (sin tildes).
+DESTINATARIOS_POR_SEVERIDAD = {
+    'critica': ['Instructor Lider', 'Operario'],
+    'media': ['Operario'],
+}
 
-def evaluar_lectura(lectura):
+
+def evaluar_lote(lecturas):
     """
-    Clasifica una lectura y genera alerta si esta fuera de rango.
-    Se llama desde el endpoint que recibe datos del hardware.
-    Devuelve la Alerta creada o None.
+    Evalua un lote de lecturas ya persistidas y genera las alertas del caso.
+
+    Se llama una sola vez por lote en vez de una por lectura: un ESP32 envia
+    varias mediciones juntas y consultar las alertas activas en cada iteracion
+    seria N+1 contra la tabla mas caliente del sistema.
+
+    :param lecturas: iterable de monitoreo.Lectura ya guardadas
+    :return: list de Alerta creadas
     """
-    tipo = lectura.tipo_parametro
-    estado = tipo.clasificar(lectura.valor_medida)
+    fuera_de_rango = [lec for lec in lecturas if lec.estado_lectura != 'normal']
+    if not fuera_de_rango:
+        return []
 
-    lectura.estado_lectura = estado
-    lectura.dentro_rango = (estado == 'normal')
-    lectura.save(update_fields=['estado_lectura', 'dentro_rango'])
-
-    if estado == 'normal':
-        return None
-
-    if _existe_alerta_activa(lectura):
-        return None
-
-    return Alerta.objects.create(
-        geomembrana=lectura.geomembrana,
-        sensor=lectura.sensor,
-        tipo_parametro=tipo,
-        lectura=lectura,
-        tipo_alerta=estado,
-        severidad=SEVERIDAD_POR_ESTADO[estado],
-        valor_que_disparo=lectura.valor_medida,
-        mensaje_alerta=_construir_mensaje(lectura, estado),
+    # Una sola consulta para saber que combinaciones ya tienen alerta abierta.
+    abiertas = set(
+        Alerta.objects
+        .filter(estado='activa', geomembrana__in={lec.geomembrana_id for lec in fuera_de_rango})
+        .values_list('geomembrana_id', 'tipo_parametro_id')
     )
 
+    nuevas = []
+    for lectura in fuera_de_rango:
+        clave = (lectura.geomembrana_id, lectura.tipo_parametro_id)
+        if clave in abiertas:
+            # Ya hay una alerta abierta por este parametro: no se duplica en
+            # cada lectura consecutiva del mismo problema.
+            continue
 
-def _existe_alerta_activa(lectura):
-    """Evita generar una alerta por cada lectura consecutiva del mismo problema."""
-    return Alerta.objects.filter(
-        geomembrana=lectura.geomembrana,
-        tipo_parametro=lectura.tipo_parametro,
-        estado='activa',
-    ).exists()
+        nuevas.append(Alerta(
+            geomembrana=lectura.geomembrana,
+            sensor=lectura.sensor,
+            tipo_parametro=lectura.tipo_parametro,
+            lectura=lectura,
+            tipo_alerta=lectura.estado_lectura,
+            severidad=SEVERIDAD_POR_ESTADO[lectura.estado_lectura],
+            valor_que_disparo=lectura.valor_medida,
+            mensaje_alerta=construir_mensaje(lectura),
+        ))
+        abiertas.add(clave)
+
+    if not nuevas:
+        return []
+
+    Alerta.objects.bulk_create(nuevas)
+    # bulk_create en MySQL no siempre rellena los PK: se releen para poder
+    # asociarles notificaciones.
+    creadas = list(
+        Alerta.objects
+        .filter(estado='activa', lectura__in=[a.lectura_id for a in nuevas])
+        .select_related('geomembrana', 'tipo_parametro')
+    )
+
+    notificar(creadas)
+
+    for alerta in creadas:
+        logger.warning(
+            'Alerta %s generada: %s', alerta.severidad, alerta.mensaje_alerta
+        )
+
+    # El estado consolidado de cada piscina cambia con las alertas nuevas.
+    for geomembrana in {alerta.geomembrana for alerta in creadas}:
+        evaluar_estado_piscina(geomembrana)
+
+    return creadas
 
 
-def _construir_mensaje(lectura, estado):
+def construir_mensaje(lectura):
+    """
+    Redacta el mensaje que lee el operario, con el valor y el rango esperado.
+
+    :param lectura: monitoreo.Lectura fuera de rango
+    :return: str con el mensaje
+    """
     tipo = lectura.tipo_parametro
-    etiqueta = 'crítico' if estado == 'critico' else 'en riesgo'
+    etiqueta = 'crítico' if lectura.estado_lectura == 'critico' else 'en riesgo'
     return (
-        f'{tipo.nombre_parametro} {etiqueta} en '
-        f'{lectura.geomembrana.nombre_piscina}: '
+        f'{tipo.nombre_parametro} {etiqueta} en {lectura.geomembrana.nombre_piscina}: '
         f'{lectura.valor_medida} {tipo.unidad_medida} '
-        f'(rango normal: {tipo.rango_normal_min} - {tipo.rango_normal_max})'
+        f'(rango normal: {tipo.rango_normal_min} – {tipo.rango_normal_max})'
     )
+
+
+def notificar(alertas):
+    """
+    Crea las notificaciones de un conjunto de alertas en una sola escritura.
+
+    :param alertas: iterable de Alerta recien creadas
+    :return: list de Notificacion creadas
+    """
+    from apps.usuarios.models import Usuario
+
+    roles_necesarios = set()
+    for alerta in alertas:
+        roles_necesarios.update(DESTINATARIOS_POR_SEVERIDAD.get(alerta.severidad, []))
+
+    if not roles_necesarios:
+        return []
+
+    usuarios_por_rol = {}
+    for usuario in Usuario.objects.filter(
+        rol__nombre_rol__in=roles_necesarios, estado='activo'
+    ).select_related('rol'):
+        usuarios_por_rol.setdefault(usuario.rol.nombre_rol, []).append(usuario)
+
+    pendientes = []
+    for alerta in alertas:
+        for rol in DESTINATARIOS_POR_SEVERIDAD.get(alerta.severidad, []):
+            for usuario in usuarios_por_rol.get(rol, []):
+                pendientes.append(Notificacion(
+                    usuario=usuario,
+                    alerta=alerta,
+                    titulo=f'Alerta {alerta.get_severidad_display()}',
+                    mensaje=alerta.mensaje_alerta,
+                ))
+
+    if not pendientes:
+        logger.warning(
+            'No hay usuarios activos para notificar los roles %s', roles_necesarios
+        )
+        return []
+
+    return Notificacion.objects.bulk_create(pendientes)
 
 
 @transaction.atomic
 def evaluar_estado_piscina(geomembrana):
-    """Evalua el estado general de una piscina segun sus alertas activas."""
+    """
+    Registra el estado consolidado del agua de una piscina.
+
+    Alimenta la tabla `historial_estado_agua`, que es la fuente de las
+    graficas de evolucion y de la comparacion entre periodos.
+
+    :param geomembrana: piscinas.Geomembrana a evaluar
+    :return: HistorialEstadoAgua creado
+    """
     activas = Alerta.objects.filter(geomembrana=geomembrana, estado='activa')
 
     if activas.filter(severidad='critica').exists():
@@ -77,28 +181,42 @@ def evaluar_estado_piscina(geomembrana):
         estado_general=estado,
         apta_produccion=apta,
     )
-def notificar_alerta(alerta):
-    """Crea notificaciones para los usuarios cuyo rol debe recibirlas."""
-    from apps.usuarios.models import Usuario
 
-    if alerta.severidad == 'critica':
-        roles = ['Instructor Líder', 'Operario']
-    else:
-        roles = ['Operario']
 
-    destinatarios = Usuario.objects.filter(
-        rol__nombre_rol__in=roles,
-        estado='activo',
-    )
+def resolver_alertas_normalizadas(lecturas):
+    """
+    Cierra automaticamente las alertas cuyo parametro volvio a rango normal.
 
-    return Notificacion.objects.bulk_create([
-        Notificacion(
-            usuario=u,
-            alerta=alerta,
-            titulo=f'Alerta {alerta.get_severidad_display()}',
-            mensaje=alerta.mensaje_alerta,
+    Sin esto, una alerta abierta bloquea para siempre la generacion de nuevas
+    alertas de ese parametro (por la regla anti-duplicados de evaluar_lote) y
+    el semaforo de la piscina nunca vuelve a verde.
+
+    :param lecturas: iterable de Lectura del lote recien ingresado
+    :return: int con la cantidad de alertas cerradas
+    """
+    normales = [lec for lec in lecturas if lec.estado_lectura == 'normal']
+    if not normales:
+        return 0
+
+    from django.utils import timezone
+
+    cerradas = 0
+    for lectura in normales:
+        afectadas = Alerta.objects.filter(
+            geomembrana_id=lectura.geomembrana_id,
+            tipo_parametro_id=lectura.tipo_parametro_id,
+            estado='activa',
         )
-        for u in destinatarios
-    ])
+        actualizadas = afectadas.update(
+            estado='resuelta',
+            fecha_resolucion=timezone.now(),
+            accion_tomada='Cerrada automáticamente: el parámetro volvió a rango normal.',
+        )
+        if actualizadas:
+            cerradas += actualizadas
+            logger.info(
+                'Cerradas %s alerta(s) de %s en %s por normalización',
+                actualizadas, lectura.tipo_parametro_id, lectura.geomembrana_id,
+            )
 
-    
+    return cerradas
