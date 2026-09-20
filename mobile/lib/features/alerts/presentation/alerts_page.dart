@@ -123,7 +123,7 @@ class _AlertsPageState extends ConsumerState<AlertsPage> {
                       )
                     : ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                         children: [
                           ResponsiveGrid(
                             itemCount: items.length,

@@ -27,17 +27,20 @@ class MonitoringRepository {
   }
 
   /// Historial de un parámetro, ordenado del más antiguo al más reciente.
+  ///
+  /// [from] y [to] en `null` traen todo el historial disponible (hasta
+  /// [historyLimit] lecturas), sin filtro de fechas.
   Future<List<Reading>> fetchHistory({
     required int pondId,
     required int parameterId,
-    required DateTime from,
-    required DateTime to,
+    DateTime? from,
+    DateTime? to,
   }) async {
     final body = await _api.get('/lecturas/', query: {
       'geomembrana': pondId,
       'parametro': parameterId,
-      'desde': _apiDate.format(from),
-      'hasta': _apiDate.format(to),
+      if (from != null) 'desde': _apiDate.format(from),
+      if (to != null) 'hasta': _apiDate.format(to),
       'page_size': historyLimit,
     });
     final readings = unwrapList(body)

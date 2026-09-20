@@ -48,7 +48,8 @@ class PredictionsSection extends ConsumerWidget {
           data: (items) => items.isEmpty
               ? const _InfoCard(
                   icon: Icons.auto_awesome_outlined,
-                  text: 'No hay predicciones vigentes para esta geomembrana.',
+                  text: 'No hay predicciones vigentes. Se generan desde el '
+                      'módulo de IA en la versión web.',
                 )
               : Column(
                   children: [

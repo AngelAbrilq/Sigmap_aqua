@@ -18,6 +18,7 @@ class ReadingCard extends StatelessWidget {
     final palette = reading.status.level.palette(context);
     final range = Formatters.range(reading.normalMin, reading.normalMax, reading.unit);
     final valueText = Formatters.number(reading.value);
+    final hasValue = reading.hasValue;
 
     return Semantics(
       button: onTap != null,
@@ -53,28 +54,38 @@ class ReadingCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: valueText,
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (reading.unit.isNotEmpty)
+                  if (hasValue)
+                    Text.rich(
+                      TextSpan(
+                        children: [
                           TextSpan(
-                            text: ' ${reading.unit}',
-                            style: theme.textTheme.titleMedium,
+                            text: valueText,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                      ],
+                          if (reading.unit.isNotEmpty)
+                            TextSpan(
+                              text: ' ${reading.unit}',
+                              style: theme.textTheme.titleMedium,
+                            ),
+                        ],
+                      ),
+                    )
+                  else
+                    // Un sensor mudo no se disfraza con un guion gigante:
+                    // se dice qué pasa, que es lo que el operario necesita.
+                    Text(
+                      'Este sensor aún no reporta',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 4),
                   Text(
                     [
                       if (range != null) 'Óptimo: $range',
-                      Formatters.relative(reading.timestamp),
+                      if (hasValue) Formatters.relative(reading.timestamp),
                     ].join(' · '),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,

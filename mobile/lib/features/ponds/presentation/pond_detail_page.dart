@@ -63,13 +63,13 @@ class PondDetailPage extends ConsumerWidget {
               onRefresh: () => _refresh(ref),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
+                padding: Breakpoints.pagePadding(context),
                 children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(flex: 3, child: readings),
-                      const SizedBox(width: 24),
+                      const SizedBox(width: 20),
                       Expanded(flex: 2, child: predictions),
                     ],
                   ),
@@ -82,7 +82,7 @@ class PondDetailPage extends ConsumerWidget {
             onRefresh: () => _refresh(ref),
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
+              padding: Breakpoints.pagePadding(context),
               children: [
                 readings,
                 if (predictions != null) ...[

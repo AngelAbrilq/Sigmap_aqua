@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/status.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/breakpoints.dart';
 import '../../../core/widgets/responsive_grid.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_chip.dart';
@@ -40,7 +41,7 @@ class PondsPage extends ConsumerWidget {
                 )
               : ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
+                  padding: Breakpoints.pagePadding(context),
                   children: [
                     ResponsiveGrid(
                       itemCount: items.length,

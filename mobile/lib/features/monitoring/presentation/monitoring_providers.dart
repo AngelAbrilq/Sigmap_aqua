@@ -28,11 +28,16 @@ final latestReadingsProvider =
 enum HistoryRange {
   day(1, '24 h'),
   week(7, '7 días'),
-  month(30, '30 días');
+  month(30, '30 días'),
+
+  /// Sin filtro de fechas: rescata lecturas viejas cuando el estanque
+  /// lleva días sin reportar, en vez de mostrar una gráfica vacía.
+  all(null, 'Todo');
 
   const HistoryRange(this.days, this.label);
 
-  final int days;
+  /// `null` = sin límite de fechas.
+  final int? days;
   final String label;
 }
 
@@ -43,10 +48,11 @@ typedef HistoryQuery = ({int pondId, int parameterId, HistoryRange range});
 final historyProvider =
     FutureProvider.autoDispose.family<List<Reading>, HistoryQuery>((ref, query) {
   final now = DateTime.now();
+  final days = query.range.days;
   return ref.watch(monitoringRepositoryProvider).fetchHistory(
         pondId: query.pondId,
         parameterId: query.parameterId,
-        from: now.subtract(Duration(days: query.range.days)),
-        to: now,
+        from: days == null ? null : now.subtract(Duration(days: days)),
+        to: days == null ? null : now,
       );
 });

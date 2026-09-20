@@ -103,7 +103,7 @@ class _HistoryBody extends ConsumerWidget {
       onRefresh: () => ref.refresh(historyProvider(query).future),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
+        padding: Breakpoints.pagePadding(context),
         children: [
           Wrap(
             spacing: 8,
@@ -143,9 +143,12 @@ class _HistoryBody extends ConsumerWidget {
             data: (readings) => readings.isEmpty
                 ? SizedBox(
                     height: chartHeight,
-                    child: const EmptyView(
-                      title: 'Sin lecturas en este periodo',
-                      icon: Icons.timeline_outlined,
+                    child: _SinLecturas(
+                      // El sensor puede llevar días sin reportar: en vez de
+                      // dejar la pantalla vacía, se ofrece ver todo lo que hay.
+                      onVerTodo: range == HistoryRange.all
+                          ? null
+                          : () => onRangeChanged(HistoryRange.all),
                     ),
                   )
                 : _HistoryContent(
@@ -157,6 +160,37 @@ class _HistoryBody extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SinLecturas extends StatelessWidget {
+  const _SinLecturas({this.onVerTodo});
+
+  final VoidCallback? onVerTodo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Expanded(
+          child: EmptyView(
+            title: 'Sin lecturas en este periodo',
+            message: 'Este sensor no reportó nada en el rango seleccionado.',
+            icon: Icons.timeline_outlined,
+          ),
+        ),
+        if (onVerTodo != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: FilledButton.tonalIcon(
+              onPressed: onVerTodo,
+              icon: const Icon(Icons.history),
+              label: const Text('Ver todo el historial'),
+            ),
+          ),
+      ],
     );
   }
 }
