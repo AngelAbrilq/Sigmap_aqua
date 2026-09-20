@@ -19,6 +19,7 @@ from apps.piscinas.models import Geomembrana
 from apps.usuarios.permissions import puede_editar_modulo, puede_ver_modulo, resolver_dashboard
 
 from .models import Alerta, Notificacion
+from .services import AccionInvalida, reconocer_alerta, resolver_alerta
 
 logger = logging.getLogger(__name__)
 
@@ -109,13 +110,12 @@ def reconocer(request, pk):
     el problema sigue abierto.
     """
     alerta = get_object_or_404(Alerta, pk=pk)
-    if alerta.estado != 'activa':
-        messages.info(request, 'Esa alerta ya no está activa.')
-        return redirect('alertas:listar')
-
-    alerta.reconocer(request.user)
-    logger.info('Alerta %s reconocida por %s', alerta.pk, request.user.email)
-    messages.success(request, 'Alerta reconocida.')
+    try:
+        reconocer_alerta(alerta, request.user)
+    except AccionInvalida as error:
+        messages.info(request, str(error))
+    else:
+        messages.success(request, 'Alerta reconocida.')
     return redirect('alertas:listar')
 
 
@@ -129,24 +129,12 @@ def resolver(request, pk):
     no sirve para la trazabilidad del cultivo.
     """
     alerta = get_object_or_404(Alerta, pk=pk)
-    accion = request.POST.get('accion_tomada', '').strip()
-
-    if not accion:
-        messages.error(request, 'Describe la acción tomada antes de cerrar la alerta.')
-        return redirect('alertas:listar')
-
-    if alerta.estado in ('resuelta', 'descartada'):
-        messages.info(request, 'Esa alerta ya estaba cerrada.')
-        return redirect('alertas:listar')
-
-    alerta.resolver(request.user, accion)
-    logger.info('Alerta %s resuelta por %s', alerta.pk, request.user.email)
-    messages.success(request, 'Alerta resuelta.')
-
-    # El semaforo de la piscina depende de sus alertas abiertas.
-    from .services import evaluar_estado_piscina
-    evaluar_estado_piscina(alerta.geomembrana)
-
+    try:
+        resolver_alerta(alerta, request.user, request.POST.get('accion_tomada', ''))
+    except AccionInvalida as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, 'Alerta resuelta.')
     return redirect('alertas:listar')
 
 

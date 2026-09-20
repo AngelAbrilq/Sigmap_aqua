@@ -1,0 +1,202 @@
+/* ==========================================================================
+   SIGMAP-AQUA — Sidebar fijo y compacto
+   Se carga DESPUES de InstructorLider.css: solo sobreescribe el layout de la
+   barra lateral, no toca colores ni tipografia del sistema.
+
+   Comportamiento:
+   - Fija en pantalla (position: fixed): no se mueve al hacer scroll.
+   - Compacta por defecto (solo iconos, 76px).
+   - Se expande a 260px al pasar el mouse o al enfocar con teclado.
+   - El contenido NUNCA se desplaza: el espacio de 76px queda reservado y la
+     barra expandida flota por encima.
+   ========================================================================== */
+
+:root {
+  --sidebar-ancho-compacto: 76px;
+  --sidebar-ancho-expandido: 260px;
+  --sidebar-transicion: 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* El espacio del sidebar se reserva aqui, no con flujo flex. */
+.app-container {
+  box-sizing: border-box;
+  padding-left: var(--sidebar-ancho-compacto);
+  width: 100%;
+}
+
+/* -------------------------------------------------------------------------
+   Barra
+   ------------------------------------------------------------------------- */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+
+  width: var(--sidebar-ancho-compacto);
+  height: 100vh;
+  padding: 18px 10px;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  transition: width var(--sidebar-transicion), box-shadow var(--sidebar-transicion);
+  will-change: width;
+}
+
+.sidebar:hover,
+.sidebar:focus-within {
+  width: var(--sidebar-ancho-expandido);
+  padding-inline: 16px;
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.32);
+}
+
+/* -------------------------------------------------------------------------
+   Cabecera: en compacto solo queda el logo
+   ------------------------------------------------------------------------- */
+.sidebar-header {
+  padding-bottom: 16px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0;
+  transition: width var(--sidebar-transicion), height var(--sidebar-transicion),
+              margin-bottom var(--sidebar-transicion);
+}
+
+.sidebar:hover .sidebar-logo,
+.sidebar:focus-within .sidebar-logo {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+/* El nombre y el subtitulo solo aparecen expandido. max-height evita que
+   dejen un hueco vertical cuando estan ocultos. */
+.sidebar-brand,
+.sidebar-subtitle {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 120ms linear, max-height var(--sidebar-transicion);
+}
+
+.sidebar:hover .sidebar-brand,
+.sidebar:focus-within .sidebar-brand {
+  opacity: 1;
+  max-height: 40px;
+}
+
+.sidebar:hover .sidebar-subtitle,
+.sidebar:focus-within .sidebar-subtitle {
+  opacity: 1;
+  max-height: 60px;
+}
+
+/* -------------------------------------------------------------------------
+   Navegacion
+   ------------------------------------------------------------------------- */
+.sidebar-nav {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Compacto: el icono queda centrado en la columna. */
+.nav-item {
+  justify-content: center;
+  padding: 11px 0;
+  overflow: hidden;
+  transition: background-color 160ms linear, color 160ms linear,
+              padding var(--sidebar-transicion);
+}
+
+.sidebar:hover .nav-item,
+.sidebar:focus-within .nav-item {
+  justify-content: flex-start;
+  padding: 11px 14px;
+}
+
+/* La etiqueta se revela con la barra. */
+.nav-item span {
+  opacity: 0;
+  max-width: 0;
+  white-space: nowrap;
+  transition: opacity 140ms linear, max-width var(--sidebar-transicion);
+}
+
+.sidebar:hover .nav-item span,
+.sidebar:focus-within .nav-item span {
+  opacity: 1;
+  max-width: 190px;
+}
+
+/* Marca del item activo: visible tambien en modo compacto. */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18%;
+  height: 64%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background-color: #FFFFFF;
+}
+
+.nav-item:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: -2px;
+}
+
+/* -------------------------------------------------------------------------
+   El area principal no debe desbordar horizontalmente
+   ------------------------------------------------------------------------- */
+.main-wrapper {
+  min-width: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Pantallas pequenas: la barra se mantiene fija y compacta.
+   ------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-ancho-compacto: 64px;
+  }
+
+  .sidebar:hover,
+  .sidebar:focus-within {
+    width: 230px;
+  }
+}
+
+/* Respeta la preferencia de menos movimiento del sistema operativo. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-logo,
+  .nav-item,
+  .nav-item span,
+  .sidebar-brand,
+  .sidebar-subtitle {
+    transition: none;
+  }
+}

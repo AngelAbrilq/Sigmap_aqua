@@ -26,13 +26,14 @@ from apps.usuarios.permissions import (
     resolver_dashboard,
 )
 
-from .models import AnalisisIA
-from .services import ErrorIA, generar_analisis
+from .models import AnalisisIA, Prediccion
+from .services import ErrorIA, evaluar_predicciones_vencidas, generar_analisis, precision_historica
 
 logger = logging.getLogger(__name__)
 
 MODULO = 'ai'
 VENTANAS_VALIDAS = {3, 7, 15, 30}
+HORIZONTES_VALIDOS = {1, 3, 5, 7}
 
 
 def _requiere_lectura(vista):
@@ -65,6 +66,14 @@ def panel(request):
     if seleccion and seleccion.isdigit():
         ultimo = queryset.filter(pk=seleccion).first() or ultimo
 
+    piscina = None
+    if filtro_piscina.isdigit():
+        piscina = Geomembrana.objects.filter(pk=filtro_piscina).first()
+
+    predicciones = Prediccion.objects.con_relaciones()
+    if piscina is not None:
+        predicciones = predicciones.filter(geomembrana=piscina)
+
     return render(request, 'funcionalidades/AI.html', {
         'actual': MODULO,
         'pagina': pagina,
@@ -74,9 +83,15 @@ def panel(request):
         'filtro_piscina': filtro_piscina,
         'tipos_analisis': AnalisisIA.TIPOS,
         'ventanas': sorted(VENTANAS_VALIDAS),
+        'horizontes': sorted(HORIZONTES_VALIDOS),
         'puede_generar': puede_editar_modulo(request.user, MODULO),
         'puede_validar': obtener_nombre_rol(request.user) == ROL_INSTRUCTOR,
         'ia_configurada': bool(getattr(settings, 'GEMINI_API_KEY', '')),
+        # Seguimiento de predicciones
+        'precision': precision_historica(piscina),
+        'predicciones_pendientes': predicciones.pendientes()[:12],
+        'predicciones_evaluadas': predicciones.evaluadas()[:15],
+        'vencidas_sin_evaluar': predicciones.vencidas().count(),
     })
 
 
@@ -100,25 +115,42 @@ def generar(request):
     except (TypeError, ValueError):
         dias = 7
 
+    try:
+        horizonte = int(request.POST.get('horizonte', 3))
+    except (TypeError, ValueError):
+        horizonte = 3
+
     if tipo not in dict(AnalisisIA.TIPOS):
         tipo = 'diagnostico'
     if dias not in VENTANAS_VALIDAS:
         dias = 7
+    if horizonte not in HORIZONTES_VALIDOS:
+        horizonte = 3
 
     geomembrana = get_object_or_404(Geomembrana, pk=piscina_id)
 
     try:
-        analisis = generar_analisis(geomembrana, tipo=tipo, dias=dias)
+        analisis = generar_analisis(geomembrana, tipo=tipo, dias=dias, horizonte=horizonte)
     except ErrorIA as exc:
         logger.warning('Análisis IA fallido para %s: %s', geomembrana.codigo_identificacion, exc)
         messages.error(request, str(exc))
         return redirect('ia:panel')
 
-    messages.success(
-        request,
-        f'Análisis generado para {geomembrana.nombre_piscina} '
-        f'con {analisis.datos_entrada.get("total_lecturas", 0)} lecturas.'
-    )
+    cuantas = analisis.predicciones.count()
+    if cuantas:
+        messages.success(
+            request,
+            f'Análisis generado para {geomembrana.nombre_piscina} con '
+            f'{analisis.datos_entrada.get("total_lecturas", 0)} lecturas. '
+            f'Se registraron {cuantas} predicción(es); el sistema las contrastará '
+            f'contra los sensores el {analisis.predicciones.first().fecha_objetivo:%d/%m/%Y}.'
+        )
+    else:
+        messages.success(
+            request,
+            f'Análisis generado para {geomembrana.nombre_piscina} '
+            f'con {analisis.datos_entrada.get("total_lecturas", 0)} lecturas.'
+        )
     return redirect(f"{reverse('ia:panel')}?seleccion={analisis.pk}")
 
 
@@ -152,3 +184,41 @@ def cambiar_estado(request, pk):
     logger.info('Análisis %s marcado como %s por %s', pk, nuevo, request.user.email)
     messages.success(request, f'Análisis marcado como {analisis.get_estado_display().lower()}.')
     return redirect(f"{reverse('ia:panel')}?seleccion={analisis.pk}")
+
+
+@login_required
+@require_http_methods(['POST'])
+def evaluar(request):
+    """
+    Contrasta ahora mismo las predicciones vencidas, sin esperar al comando.
+
+    El comando `evaluar_predicciones` hace lo mismo de forma programada; este
+    botón existe para la sustentación y para cerrar el ciclo en una demo sin
+    depender del Programador de tareas.
+    """
+    if not puede_editar_modulo(request.user, MODULO):
+        messages.error(request, 'Tu rol no permite evaluar predicciones.')
+        return redirect('ia:panel')
+
+    piscina_id = request.POST.get('piscina', '')
+    geomembrana = None
+    if piscina_id.isdigit():
+        geomembrana = Geomembrana.objects.filter(pk=piscina_id).first()
+
+    recuento = evaluar_predicciones_vencidas(geomembrana)
+    total = sum(recuento.values())
+
+    if not total:
+        messages.info(request, 'No hay predicciones vencidas por evaluar.')
+    else:
+        messages.success(
+            request,
+            f'{total} predicción(es) contrastadas: {recuento["acertada"]} acertada(s), '
+            f'{recuento["fallida"]} fallida(s), {recuento["sin_datos"]} sin datos '
+            f'(esas no cuentan en la precisión).'
+        )
+
+    destino = reverse('ia:panel')
+    if geomembrana is not None:
+        destino = f'{destino}?piscina={geomembrana.pk}'
+    return redirect(destino)

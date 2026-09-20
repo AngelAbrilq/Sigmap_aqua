@@ -19,6 +19,9 @@
   <!-- Sistema de componentes compartido por los modulos -->
   <link rel="stylesheet" href="{% static 'css/modulos.css' %}">
 
+  <!-- Sidebar fijo y compacto (se expande al pasar el mouse) -->
+  <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+
   {# Cada pagina hija agrega su CSS especifico con: block extra_css ... endblock #}
   {% block extra_css %}{% endblock %}
 

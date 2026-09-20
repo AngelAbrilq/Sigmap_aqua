@@ -10,7 +10,7 @@ clasifica y persiste. Las credenciales de base de datos jamas salen del servidor
 """
 import logging
 
-from django.db import transaction
+from django.db import connection, transaction
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
@@ -23,6 +23,29 @@ from .models import Lectura
 from .serializers import LecturaSalidaSerializer, LoteLecturasSerializer
 
 logger = logging.getLogger(__name__)
+
+
+def guardar_con_pk(lecturas):
+    """
+    Persiste el lote garantizando que cada Lectura quede con su PK.
+
+    El motor de alertas enlaza cada Alerta con su Lectura (FK). En MySQL,
+    bulk_create NO devuelve los ids insertados (no soporta RETURNING), asi que
+    las lecturas quedaban sin PK y bulk_create de Alerta fallaba con
+    "unsaved related object 'lectura'" en cuanto llegaba un valor fuera de
+    rango. En motores con RETURNING (PostgreSQL, MariaDB >= 10.5, SQLite) se
+    conserva la insercion en bloque; en MySQL se guarda una por una dentro de
+    la misma transaccion (el lote trae como maximo 100 lecturas).
+
+    :param lecturas: list de monitoreo.Lectura sin guardar
+    :return: la misma lista, ya con PK
+    """
+    if connection.features.can_return_rows_from_bulk_insert:
+        Lectura.objects.bulk_create(lecturas)
+    else:
+        for lectura in lecturas:
+            lectura.save(force_insert=True)
+    return lecturas
 
 
 def respuesta(success, data=None, message='', codigo=status.HTTP_200_OK):
@@ -139,7 +162,7 @@ class IngestaLecturasView(BaseVistaDispositivo):
                 secuencia=item.get('secuencia'),
             ))
 
-        Lectura.objects.bulk_create(persistidas)
+        guardar_con_pk(persistidas)
 
         # El motor de alertas se ejecuta DENTRO de la misma transaccion que las
         # lecturas: si algo falla al evaluar, no queda un lote persistido sin su

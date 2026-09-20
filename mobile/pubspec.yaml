@@ -1,0 +1,36 @@
+name: sigmap_aqua_mobile
+description: "App móvil de SIGMAP-AQUA / BioAqua System: monitoreo de la calidad del agua en geomembranas piscícolas."
+publish_to: 'none'
+
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  # HTTP: instancia base + interceptores (Bearer y refresh automático)
+  dio: ^5.9.0
+  # Estado global y caché de peticiones
+  flutter_riverpod: ^3.0.0
+  # Navegación declarativa con rutas protegidas
+  go_router: ^17.5.0
+  # Tokens JWT en Android Keystore / iOS Keychain
+  flutter_secure_storage: ^10.0.0
+  # Gráficas del historial
+  fl_chart: ^1.1.0
+  # Formato de fechas y números en español
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true

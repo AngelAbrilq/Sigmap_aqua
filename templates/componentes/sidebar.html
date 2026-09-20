@@ -1,6 +1,16 @@
 {% load static %}
-{# Sidebar unico. Filtra opciones segun rol_usuario (context processor). #}
-{% with actual=request.resolver_match.url_name %}
+{% comment %}
+  Sidebar unico del sistema. Se incluye una sola vez desde base.html.
+  - Las opciones se filtran por rol_usuario (context processor).
+  - "Configuraciones" NO va aqui: vive en el menu de perfil del header.
+  - El estado activo se deduce del namespace + url_name de la peticion.
+
+  OJO: aqui va {% templatetag openblock %} comment {% templatetag closeblock %},
+  no {% templatetag opencomment %} ... {% templatetag closecomment %}. Ese ultimo
+  solo comenta UNA linea: si abarca varias, Django no lo reconoce y lo imprime
+  tal cual en la pagina.
+{% endcomment %}
+{% with ns=request.resolver_match.namespace actual=request.resolver_match.url_name %}
 <aside class="sidebar">
   <div class="sidebar-header">
     <img src="{% static 'img/logo sigmap-aqua.png' %}" alt="SIGMAP-AQUA Logo" class="sidebar-logo"
@@ -11,7 +21,7 @@
 
   <nav class="sidebar-nav">
     <!-- Inicio: cada rol vuelve a su propio panel -->
-    <a href="{% url 'core:dashboard' %}" class="nav-item {% if actual == 'dashboard' or actual == 'instructor_lider' or actual == 'aprendiz' or actual == 'operario' %}active{% endif %}">
+    <a href="{% url 'core:dashboard' %}" class="nav-item {% if ns == 'core' %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -22,7 +32,7 @@
 
     {% if rol_usuario == 'Instructor Lider' or rol_usuario == 'Operario' %}
     <!-- Sensores -->
-    <a href="{% url 'monitoreo:sensores' %}" class="nav-item {% if actual == 'sensores' %}active{% endif %}">
+    <a href="{% url 'monitoreo:sensores' %}" class="nav-item {% if ns == 'monitoreo' and 'sensor' in actual %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
@@ -35,7 +45,7 @@
     {% endif %}
 
     <!-- Monitoreo en tiempo real -->
-    <a href="{% url 'monitoreo:monitoreo' %}" class="nav-item {% if actual == 'monitoreo' %}active{% endif %}">
+    <a href="{% url 'monitoreo:monitoreo' %}" class="nav-item {% if ns == 'monitoreo' and 'monitoreo' in actual %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -43,9 +53,8 @@
       <span>Monitoreo en tiempo real</span>
     </a>
 
-    {% if rol_usuario == 'Instructor Lider' or rol_usuario == 'Aprendiz' %}
     <!-- Historial de datos -->
-    <a href="{% url 'monitoreo:historial' %}" class="nav-item {% if actual == 'historial' %}active{% endif %}">
+    <a href="{% url 'monitoreo:historial' %}" class="nav-item {% if ns == 'monitoreo' and 'historial' in actual %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -54,8 +63,9 @@
       <span>Historial de datos</span>
     </a>
 
+    {% if rol_usuario == 'Instructor Lider' or rol_usuario == 'Aprendiz' %}
     <!-- Graficas y reportes -->
-    <a href="{% url 'reportes:graficas' %}" class="nav-item {% if actual == 'graficas_reportes' %}active{% endif %}">
+    <a href="{% url 'reportes:graficas' %}" class="nav-item {% if ns == 'reportes' and 'graficas' in actual or ns == 'reportes' and 'reporte' in actual %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <line x1="18" y1="20" x2="18" y2="10"/>
@@ -66,7 +76,7 @@
     </a>
 
     <!-- Comparacion de periodos -->
-    <a href="{% url 'reportes:comparacion' %}" class="nav-item {% if actual == 'comparacion_periodos' %}active{% endif %}">
+    <a href="{% url 'reportes:comparacion' %}" class="nav-item {% if ns == 'reportes' and 'comparacion' in actual %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <polyline points="17 1 21 5 17 9"/>
@@ -79,7 +89,7 @@
     {% endif %}
 
     <!-- Alertas -->
-    <a href="{% url 'alertas:listar' %}" class="nav-item {% if actual == 'alertas' %}active{% endif %}">
+    <a href="{% url 'alertas:listar' %}" class="nav-item {% if ns == 'alertas' %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -90,7 +100,7 @@
 
     {% if rol_usuario == 'Instructor Lider' %}
     <!-- IA - Analisis predictivo -->
-    <a href="{% url 'ia:panel' %}" class="nav-item {% if actual == 'ai' %}active{% endif %}">
+    <a href="{% url 'ia:panel' %}" class="nav-item {% if ns == 'ia' %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
@@ -100,7 +110,7 @@
     </a>
 
     <!-- Usuarios -->
-    <a href="{% url 'usuarios:listar' %}" class="nav-item {% if actual == 'usuarios' %}active{% endif %}">
+    <a href="{% url 'usuarios:listar' %}" class="nav-item {% if ns == 'usuarios' and actual != 'login' and actual != 'logout' %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -114,7 +124,7 @@
 
     {% if rol_usuario == 'Instructor Lider' or rol_usuario == 'Operario' %}
     <!-- Geomembranas -->
-    <a href="{% url 'piscinas:listar' %}" class="nav-item {% if actual == 'geomembranas' %}active{% endif %}">
+    <a href="{% url 'piscinas:listar' %}" class="nav-item {% if ns == 'piscinas' %}active{% endif %}">
       <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -122,16 +132,6 @@
       <span>Geomembranas</span>
     </a>
     {% endif %}
-
-    <!-- Configuraciones -->
-    <a href="{% url 'monitoreo:configuraciones' %}" class="nav-item {% if actual == 'configuraciones' %}active{% endif %}">
-      <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
-      <span>Configuraciones</span>
-    </a>
   </nav>
 </aside>
 {% endwith %}

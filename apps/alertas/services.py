@@ -220,3 +220,59 @@ def resolver_alertas_normalizadas(lecturas):
             )
 
     return cerradas
+
+
+# ======================================================================
+# Acciones sobre alertas, compartidas por la web y la API movil
+# ======================================================================
+class AccionInvalida(Exception):
+    """La alerta no esta en un estado que admita esta accion."""
+
+
+def reconocer_alerta(alerta, usuario):
+    """
+    Marca la alerta como vista por alguien.
+
+    Reconocer no es resolver: deja constancia de quien se hizo cargo mientras
+    el problema sigue abierto.
+
+    :param alerta: alertas.Alerta
+    :param usuario: usuarios.Usuario que la atiende
+    :return: la Alerta actualizada
+    :raises AccionInvalida: si la alerta ya no esta activa
+    """
+    if alerta.estado != 'activa':
+        raise AccionInvalida('Esa alerta ya no está activa.')
+
+    alerta.reconocer(usuario)
+    logger.info('Alerta %s reconocida por %s', alerta.pk, usuario.email)
+    return alerta
+
+
+def resolver_alerta(alerta, usuario, accion):
+    """
+    Cierra la alerta registrando la accion correctiva aplicada.
+
+    La accion es obligatoria: una alerta critica cerrada sin explicacion no
+    sirve para la trazabilidad del cultivo.
+
+    Al cerrarla se reevalua el estado consolidado de la piscina, porque su
+    semaforo depende de las alertas abiertas.
+
+    :param alerta: alertas.Alerta
+    :param usuario: usuarios.Usuario que la resuelve
+    :param accion: texto con lo que se hizo en campo
+    :return: la Alerta actualizada
+    :raises AccionInvalida: si falta la accion o la alerta ya estaba cerrada
+    """
+    accion = (accion or '').strip()
+    if not accion:
+        raise AccionInvalida('Describe la acción tomada antes de cerrar la alerta.')
+    if alerta.estado in ('resuelta', 'descartada'):
+        raise AccionInvalida('Esa alerta ya estaba cerrada.')
+
+    alerta.resolver(usuario, accion)
+    logger.info('Alerta %s resuelta por %s', alerta.pk, usuario.email)
+
+    evaluar_estado_piscina(alerta.geomembrana)
+    return alerta

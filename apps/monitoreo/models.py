@@ -183,6 +183,12 @@ class Lectura(models.Model):
             models.Index(fields=['geomembrana', '-timestamp_lectura']),
             models.Index(fields=['sensor', '-timestamp_lectura']),
             models.Index(fields=['estado_lectura']),
+            # El historial de la app filtra por piscina + parametro y ordena
+            # por fecha. Sin este indice compuesto, MySQL resuelve el filtro
+            # con el indice de geomembrana y luego ordena en memoria
+            # (Using filesort), que es lo que se cae cuando la tabla crece.
+            models.Index(fields=['geomembrana', 'tipo_parametro', '-timestamp_lectura'],
+                         name='idx_lect_geo_param_ts'),
         ]
 
     def __str__(self):

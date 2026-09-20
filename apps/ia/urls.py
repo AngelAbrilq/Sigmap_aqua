@@ -8,5 +8,6 @@ app_name = 'ia'
 urlpatterns = [
     path('', views.panel, name='panel'),
     path('generar/', views.generar, name='generar'),
+    path('evaluar/', views.evaluar, name='evaluar'),
     path('<int:pk>/estado/', views.cambiar_estado, name='cambiar_estado'),
 ]

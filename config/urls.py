@@ -27,7 +27,11 @@ urlpatterns = [
     path('', include('apps.monitoreo.urls_web')),   # sensores, monitoreo, historial, configuraciones
     path('', include('apps.reportes.urls')),        # graficas-reportes, comparacion-periodos
 
-    # API consumida por los nodos ESP32 en campo
+    # API REST de la app movil (personas, autenticadas con JWT).
+    # Va ANTES de api/v1/ para que 'movil/' no lo capture la ruta del firmware.
+    path('api/v1/movil/', include('apps.api_movil.urls')),
+
+    # API consumida por los nodos ESP32 en campo (token de dispositivo)
     path('api/v1/', include('apps.monitoreo.urls')),
 ]
 
