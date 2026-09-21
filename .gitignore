@@ -11,3 +11,6 @@ media/
 # --- IoT / firmware ESP32 ---
 firmware/**/secrets.h
 logs/
+
+# Base de datos de desarrollo (SQLite)
+db_dev.sqlite3
