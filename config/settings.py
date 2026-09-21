@@ -316,3 +316,29 @@ LOGGING = {
 # ningun otro modulo depende de esto.
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.5-flash-lite')
+
+# --- Seguridad en produccion (RNF003) -------------------------------------
+# Se activa sola cuando DEBUG=False. La capa HTTPS va detras de un flag aparte
+# (SECURE_SSL) porque los nodos ESP32 hablan HTTP plano en la LAN: forzar HTTPS
+# sin certificado romperia la ingesta de sensores.
+if not DEBUG:
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SESSION_COOKIE_HTTPONLY = True
+
+    # Origenes de confianza para el CSRF cuando se sirve por dominio o proxy.
+    CSRF_TRUSTED_ORIGINS = [
+        o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o.strip()
+    ]
+
+    # Capa HTTPS: SOLO cuando el despliegue ya tiene TLS (SECURE_SSL=True en .env
+    # y un proxy inverso que termina el certificado). No la actives mientras los
+    # ESP32 envien por http:// en la LAN.
+    if config('SECURE_SSL', default=False, cast=bool):
+        SECURE_SSL_REDIRECT = True
+        SESSION_COOKIE_SECURE = True
+        CSRF_COOKIE_SECURE = True
+        SECURE_HSTS_SECONDS = 31536000            # 1 anio
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = True
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
