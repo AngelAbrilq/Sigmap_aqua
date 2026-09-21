@@ -7,6 +7,7 @@ de software queda listo con antelación siguiendo esta guía.
 - **ArduinoJson** 7.x (Benoit Blanchon)
 - **OneWire** y **DallasTemperature** (solo si usarás el DS18B20 de temperatura)
 - Placa: "ESP32 Dev Module" (paquete *esp32 by Espressif*, core **3.x**)
+- **Partition Scheme** con SPIFFS/LittleFS (Tools -> Partition Scheme -> "Default 4MB with spiffs"), necesario para el modo offline.
 
 ## 1. Pinout (ADC1 obligatorio para analógicos)
 | Señal | Pin ESP32 | Nota |
@@ -74,7 +75,11 @@ El servidor responde SIEMPRE `{success, data, message}`. Si algo falla:
 - [ ] GND común entre fuente, sensores y ESP32.
 - [ ] Grabar → Monitor Serial → ver `201` → confirmar en la web.
 
-## Nota sobre modo offline (RF019)
-Este firmware, si el POST falla, reintenta en el próximo ciclo (no guarda en
-disco todavía). El buffer local en LittleFS + reenvío es el trabajo de RF019,
-marcado con un `TODO` en `enviarLote()`.
+## Modo offline (RF019) — IMPLEMENTADO
+- Cada lectura se marca con su timestamp (NTP, zona America/Bogota).
+- Si el POST falla (sin red o servidor caido), el lote se guarda en LittleFS
+  (`/cola.jsonl`, tope 500 lotes) y se reenvia automaticamente al reconectar.
+- El backend **deduplica por (sensor, timestamp)**: reenviar la cola nunca crea
+  lecturas repetidas (ver respuesta `duplicadas` de la ingesta).
+- Limite: si el ESP32 se reinicia durante una caida larga sin haber sincronizado
+  la hora, las lecturas de ese arranque iran sin timestamp (en vivo).

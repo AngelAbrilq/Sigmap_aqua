@@ -1,277 +1,258 @@
 /**
  * @file    bioaqua_ingesta.ino
- * @brief   Nodo de ingesta real ESP32 -> API Django BioAqua System.
+ * @brief   Nodo de ingesta ESP32 -> API Django BioAqua, con MODO OFFLINE (RF019).
  * @target  ESP32-D0WD-V3 (WROOM-32), Arduino core 3.x
  *
  * QUE HACE
- *   1. Se asocia al WiFi 2.4 GHz.
- *   2. (Opcional al arrancar) hace handshake para validar token y ver que
- *      sensores espera el servidor para su piscina.
- *   3. Cada INTERVALO_S: lee cada sensor ACTIVO, lo convierte a su unidad real
- *      con su calibracion, arma un lote JSON y lo envia por HTTP POST a
- *      /api/v1/lecturas/ con la cabecera "Authorization: Device <token>".
+ *   1. Se asocia al WiFi 2.4 GHz y sincroniza la hora por NTP.
+ *   2. Cada INTERVALO_S: lee cada sensor ACTIVO, lo convierte a su unidad real,
+ *      marca cada lectura con su timestamp y arma un lote JSON.
+ *   3. Intenta enviarlo por POST a /api/v1/lecturas/ con "Authorization: Device".
+ *   4. MODO OFFLINE (RF019): si el envio falla (sin red / servidor caido), el
+ *      lote se GUARDA en LittleFS (/cola.jsonl) y se REENVIA cuando vuelve la
+ *      conexion. El backend deduplica por (sensor, timestamp), asi que un
+ *      reenvio nunca crea lecturas repetidas.
  *
- * DISENO PARA "SOLO CONECTAR EL DIA DE LA IMPLEMENTACION"
- *   - Los sensores viven en una TABLA (SENSORES[]). Agregar uno = una linea.
- *   - `codigo_hardware` DEBE COINCIDIR EXACTO con el de la tabla `sensores` de
- *     la BD (columna codigo_hardware). Si no coincide, el servidor rechaza esa
- *     lectura con "No existe un sensor registrado con codigo ...".
- *   - No se envia timestamp: el servidor pone la hora (evita lios de zona
- *     horaria). El ESP32 solo mide.
+ * "SOLO CONECTAR EL DIA DE CAMPO"
+ *   - Sensores en la TABLA SENSORES[]: agregar/activar uno es una linea.
+ *   - `codigo_hardware` DEBE coincidir EXACTO con la tabla `sensores` de la BD.
  *
- * LIBRERIAS (Arduino IDE -> Gestor de librerias):
- *   - ArduinoJson  (v7.x)          por Benoit Blanchon
- *   - OneWire                       por Paul Stoffregen   (solo si usas DS18B20)
- *   - DallasTemperature             por Miles Burton      (solo si usas DS18B20)
+ * LIBRERIAS: ArduinoJson 7.x. (OneWire + DallasTemperature solo si usas DS18B20).
+ * PARTICION: elige en Arduino IDE una particion con SPIFFS/LittleFS
+ *   (Tools -> Partition Scheme -> "Default 4MB with spiffs").
  *
- * REGLA ELECTRICA CRITICA
- *   - Sensores analogicos SOLO en pines de ADC1 (GPIO32-39). ADC2 comparte
- *     hardware con el WiFi y devuelve basura con la radio encendida.
- *   - Ninguna senal analogica puede superar 3.3 V en el pin (mide con
- *     multimetro antes de conectar). GND comun obligatorio.
+ * REGLA ELECTRICA: analogicos SOLO en ADC1 (GPIO32-39); nada > 3.3 V al pin;
+ * GND comun. (ADC2 no funciona con WiFi encendido.)
  */
 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>
+#include <time.h>
 #include "secrets.h"
 
-// Descomenta estas dos lineas cuando cablees el DS18B20 de temperatura:
+// Descomenta si cableas el DS18B20:
 // #include <OneWire.h>
 // #include <DallasTemperature.h>
 
 // ---------------------------------------------------------------------------
-// Configuracion general
-// ---------------------------------------------------------------------------
-
-static const char* FIRMWARE_VERSION = "1.0.0-ingesta";
-
-/** Segundos entre lotes de lecturas. Debe ser >= al intervalo_lectura de la BD. */
-static const uint32_t INTERVALO_S = 300;         // 5 min
-
+static const char* FIRMWARE_VERSION = "1.1.0-offline";
+static const uint32_t INTERVALO_S   = 300;      // 5 min entre lotes
 static const uint32_t TIMEOUT_WIFI_MS = 20000;
 static const uint32_t TIMEOUT_HTTP_MS = 10000;
+static const uint8_t  MUESTRAS_ADC  = 64;
+static const uint8_t  PIN_LED_ESTADO = 2;
+static const char*    COLA_PATH = "/cola.jsonl";
+static const size_t   COLA_MAX_LINEAS = 500;    // tope de lotes encolados
 
-/** Muestras por lectura analogica: se promedian para ahogar el ruido de 60 Hz. */
-static const uint8_t  MUESTRAS_ADC = 64;
-
-static const uint8_t  PIN_LED_ESTADO = 2;        // LED integrado. No conectar nada.
+// NTP (America/Bogota, sin horario de verano)
+static const char* NTP1 = "pool.ntp.org";
+static const char* NTP2 = "time.google.com";
+static const char* TZ_CO = "<-05>5";
 
 // ---------------------------------------------------------------------------
-// Registro de sensores  <-- AQUI se agrega/activa cada sensor el dia de campo
+// Registro de sensores  <-- aqui se agrega/activa cada sensor
 // ---------------------------------------------------------------------------
-
-/** Como se convierte el voltaje leido a la unidad real del parametro. */
-enum TipoSensor {
-  ANALOGICO_LINEAL,   // unidad = M * voltaje + B  (pH, oxigeno con placa)
-  TEMP_DS18B20,       // sonda digital OneWire
-};
+enum TipoSensor { ANALOGICO_LINEAL, TEMP_DS18B20 };
 
 struct SensorCfg {
-  const char* codigo_hardware;  // EXACTO como en la BD (tabla sensores)
+  const char* codigo_hardware;  // EXACTO como en la BD
   TipoSensor  tipo;
-  uint8_t     gpio;             // analogico: pin ADC1 (34/35/32/33/36/39)
-  float       m;                // pendiente (solo ANALOGICO_LINEAL)
-  float       b;                // intercepto (solo ANALOGICO_LINEAL)
-  bool        activo;           // false = cableado aun no hecho, no se envia
+  uint8_t     gpio;             // analogico: pin ADC1
+  float       m;                // unidad = m*voltaje + b
+  float       b;
+  bool        activo;
 };
 
-/**
- * Calibracion de dos puntos por sensor (se obtiene con buffers patron):
- *   pH:  sumerge en pH 7 y pH 4, anota el voltaje, calcula M y B de la recta.
- *   O2:  aire saturado (~7-8 mg/L) y solucion cero.
- * Los valores de abajo son PLACEHOLDERS: reemplazalos con tu calibracion real.
- */
-static const float PH_M = -5.70f,  PH_B = 18.62f;   // pH  = M*V + B
-static const float OX_M =  3.00f,  OX_B =  0.00f;   // mg/L = M*V + B
+static const float PH_M = -5.70f, PH_B = 18.62f;   // reemplaza con tu calibracion
+static const float OX_M =  3.00f, OX_B =  0.00f;
 
 static SensorCfg SENSORES[] = {
-  //  codigo_hardware   tipo               gpio   M      B     activo
-  { "SEN-PH",   ANALOGICO_LINEAL,  34,   PH_M,  PH_B,  true  },
-  { "SEN-OX",   ANALOGICO_LINEAL,  35,   OX_M,  OX_B,  true  },
-  { "SEN-TEMP", TEMP_DS18B20,       4,   0.0f,  0.0f,  false },  // activar al cablear
+  { "SEN-PH",   ANALOGICO_LINEAL, 34, PH_M, PH_B, true  },
+  { "SEN-OX",   ANALOGICO_LINEAL, 35, OX_M, OX_B, true  },
+  { "SEN-TEMP", TEMP_DS18B20,      4, 0.0f, 0.0f, false },
 };
 static const size_t N_SENSORES = sizeof(SENSORES) / sizeof(SENSORES[0]);
-
-// DS18B20 (se inicializa solo si hay alguno TEMP_DS18B20 activo)
-// OneWire oneWire(4);
-// DallasTemperature ds18(&oneWire);
+// OneWire oneWire(4); DallasTemperature ds18(&oneWire);
 
 static uint32_t contadorSecuencia = 0;
+static bool     horaLista = false;
 
 // ---------------------------------------------------------------------------
-// WiFi
+// WiFi + NTP
 // ---------------------------------------------------------------------------
-
 static bool conectarWiFi() {
   if (WiFi.status() == WL_CONNECTED) return true;
-
   Serial.printf("[WIFI] Asociando a \"%s\" ...\n", WIFI_SSID);
   WiFi.mode(WIFI_STA);
   WiFi.setSleep(false);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-
   const uint32_t inicio = millis();
   while (WiFi.status() != WL_CONNECTED) {
     if (millis() - inicio > TIMEOUT_WIFI_MS) {
-      Serial.printf("[WIFI] ERROR: timeout. status=%d (revisa: red 2.4 GHz, clave, alcance)\n",
-                    WiFi.status());
-      WiFi.disconnect(true);
+      Serial.printf("\n[WIFI] Sin conexion (status=%d). Se trabajara offline.\n", WiFi.status());
       return false;
     }
-    delay(250);
-    Serial.print('.');
+    delay(250); Serial.print('.');
   }
-  Serial.printf("\n[WIFI] OK. IP=%s  MAC=%s  RSSI=%d dBm\n",
-                WiFi.localIP().toString().c_str(),
-                WiFi.macAddress().c_str(), WiFi.RSSI());
+  Serial.printf("\n[WIFI] OK. IP=%s RSSI=%d dBm\n",
+                WiFi.localIP().toString().c_str(), WiFi.RSSI());
   return true;
+}
+
+static void sincronizarHora() {
+  configTzTime(TZ_CO, NTP1, NTP2);
+  const uint32_t inicio = millis();
+  time_t ahora = 0;
+  while ((ahora = time(nullptr)) < 1700000000 && millis() - inicio < 8000) {
+    delay(250);
+  }
+  horaLista = (ahora >= 1700000000);
+  Serial.println(horaLista ? "[NTP] Hora sincronizada." :
+                             "[NTP] Sin hora fiable; las lecturas iran sin timestamp.");
+}
+
+/** ISO 8601 local con offset fijo de Colombia, o "" si no hay hora fiable. */
+static String timestampISO() {
+  if (!horaLista) return String("");
+  time_t ahora = time(nullptr);
+  if (ahora < 1700000000) return String("");
+  struct tm tl;
+  localtime_r(&ahora, &tl);
+  char buf[32];
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S-05:00", &tl);
+  return String(buf);
 }
 
 // ---------------------------------------------------------------------------
 // Lectura de sensores
 // ---------------------------------------------------------------------------
-
-/**
- * @brief Lee un pin analogico (ADC1) y devuelve el voltaje en VOLTIOS.
- * Usa analogReadMilliVolts(), que en el core 3.x aplica la calibracion de
- * fabrica del ADC (corrige no linealidad y Vref) -> mucho mas exacto que la
- * regla de tres cruda 0..4095.
- */
 static float leerVoltaje(uint8_t gpio) {
   uint32_t suma_mV = 0;
-  for (uint8_t i = 0; i < MUESTRAS_ADC; i++) {
-    suma_mV += analogReadMilliVolts(gpio);
-    delay(2);
-  }
-  return (suma_mV / (float)MUESTRAS_ADC) / 1000.0f;   // mV -> V
+  for (uint8_t i = 0; i < MUESTRAS_ADC; i++) { suma_mV += analogReadMilliVolts(gpio); delay(2); }
+  return (suma_mV / (float)MUESTRAS_ADC) / 1000.0f;
 }
 
-/**
- * @brief Obtiene el valor en unidad real de un sensor, o NAN si no se pudo leer.
- */
 static float leerSensor(const SensorCfg& s) {
   switch (s.tipo) {
-    case ANALOGICO_LINEAL: {
-      float v = leerVoltaje(s.gpio);
-      return s.m * v + s.b;
-    }
-    case TEMP_DS18B20: {
-      // ds18.requestTemperatures();
-      // float t = ds18.getTempCByIndex(0);
+    case ANALOGICO_LINEAL: return s.m * leerVoltaje(s.gpio) + s.b;
+    case TEMP_DS18B20:
+      // ds18.requestTemperatures(); float t = ds18.getTempCByIndex(0);
       // return (t == DEVICE_DISCONNECTED_C) ? NAN : t;
-      return NAN;   // recuerda descomentar las librerias y el sensor arriba
-    }
+      return NAN;
   }
   return NAN;
 }
 
-// ---------------------------------------------------------------------------
-// Envio del lote a la API
-// ---------------------------------------------------------------------------
-
-/**
- * @brief Lee todos los sensores activos, arma el lote JSON y lo hace POST.
- * @return true si el servidor respondio 2xx.
- */
-static bool enviarLote() {
-  if (!conectarWiFi()) return false;
-
+/** Arma el cuerpo JSON del lote actual. Devuelve "" si no hubo lecturas. */
+static String construirCuerpo() {
   JsonDocument doc;
   doc["firmware"] = FIRMWARE_VERSION;
-  doc["mac"]      = WiFi.macAddress();
-  JsonArray lecturas = doc["lecturas"].to<JsonArray>();
+  doc["mac"] = WiFi.macAddress();
+  JsonArray arr = doc["lecturas"].to<JsonArray>();
+  const String ts = timestampISO();
 
   uint8_t incluidas = 0;
   for (size_t i = 0; i < N_SENSORES; i++) {
     const SensorCfg& s = SENSORES[i];
     if (!s.activo) continue;
-
     float valor = leerSensor(s);
-    if (isnan(valor)) {
-      Serial.printf("[ADC] %s sin lectura valida, se omite este ciclo.\n", s.codigo_hardware);
-      continue;   // un sensor mudo no rompe el lote; el servidor abrira la alerta RF001
-    }
-
-    JsonObject l = lecturas.add<JsonObject>();
+    if (isnan(valor)) { Serial.printf("[ADC] %s sin lectura, se omite.\n", s.codigo_hardware); continue; }
+    JsonObject l = arr.add<JsonObject>();
     l["codigo_hardware"] = s.codigo_hardware;
-    l["valor"]           = roundf(valor * 100.0f) / 100.0f;  // 2 decimales
-    l["secuencia"]       = ++contadorSecuencia;
+    l["valor"] = roundf(valor * 100.0f) / 100.0f;
+    l["secuencia"] = ++contadorSecuencia;
+    if (ts.length()) l["timestamp"] = ts;   // clave para el dedup offline
     incluidas++;
   }
+  if (incluidas == 0) return String("");
+  String out; serializeJson(doc, out); return out;
+}
 
-  if (incluidas == 0) {
-    Serial.println("[ENVIO] Ningun sensor produjo lectura; nada que enviar.");
-    return false;
-  }
-
+// ---------------------------------------------------------------------------
+// Envio + cola offline (RF019)
+// ---------------------------------------------------------------------------
+static bool enviarCuerpo(const String& cuerpo) {
+  if (WiFi.status() != WL_CONNECTED) return false;
   char url[96];
   snprintf(url, sizeof(url), "http://%s:%d/api/v1/lecturas/", SERVER_HOST, SERVER_PORT);
   char auth[80];
   snprintf(auth, sizeof(auth), "Device %s", DEVICE_TOKEN);
 
-  String cuerpo;
-  serializeJson(doc, cuerpo);
-
   HTTPClient http;
   http.setConnectTimeout(TIMEOUT_HTTP_MS);
   http.setTimeout(TIMEOUT_HTTP_MS);
-  if (!http.begin(url)) {
-    Serial.println("[HTTP] No se pudo iniciar la conexion.");
-    return false;
-  }
+  if (!http.begin(url)) return false;
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", auth);
-
-  Serial.printf("[HTTP] POST %s  cuerpo=%s\n", url, cuerpo.c_str());
-  int codigo = http.POST(cuerpo);
-
+  int codigo = http.POST((uint8_t*)cuerpo.c_str(), cuerpo.length());
   bool ok = (codigo >= 200 && codigo < 300);
-  if (codigo > 0) {
-    Serial.printf("[HTTP] %d -> %s\n", codigo, http.getString().c_str());
-  } else {
-    Serial.printf("[HTTP] Error de transporte: %s\n", http.errorToString(codigo).c_str());
-  }
+  Serial.printf("[HTTP] %d %s\n", codigo, ok ? "OK" : http.errorToString(codigo).c_str());
   http.end();
-
-  // --- RF019 (futuro): si !ok, guardar 'cuerpo' en LittleFS y reintentar luego ---
   return ok;
 }
 
-// ---------------------------------------------------------------------------
-// setup / loop
-// ---------------------------------------------------------------------------
+static void guardarEnCola(const String& cuerpo) {
+  File f = LittleFS.open(COLA_PATH, "a");
+  if (!f) { Serial.println("[COLA] No se pudo abrir la cola."); return; }
+  f.print(cuerpo); f.print("\n"); f.close();
+  Serial.println("[COLA] Lote guardado offline; se reenviara al reconectar.");
+}
 
+/** Reenvia lo encolado; conserva solo lo que aun falle. */
+static void vaciarCola() {
+  if (!LittleFS.exists(COLA_PATH) || WiFi.status() != WL_CONNECTED) return;
+  File f = LittleFS.open(COLA_PATH, "r");
+  if (!f) return;
+  String pendientes = "";
+  int enviados = 0, fallidos = 0;
+  while (f.available()) {
+    String linea = f.readStringUntil('\n');
+    linea.trim();
+    if (linea.length() == 0) continue;
+    if (enviarCuerpo(linea)) enviados++;
+    else { pendientes += linea + "\n"; fallidos++; if (fallidos == 1) break; }  // corta si vuelve a caer
+  }
+  // arrastra lo no leido aun si cortamos
+  while (f.available()) { String l = f.readStringUntil('\n'); l.trim(); if (l.length()) pendientes += l + "\n"; }
+  f.close();
+  if (pendientes.length() == 0) LittleFS.remove(COLA_PATH);
+  else { File w = LittleFS.open(COLA_PATH, "w"); if (w) { w.print(pendientes); w.close(); } }
+  if (enviados) Serial.printf("[COLA] Reenviados %d lote(s).\n", enviados);
+}
+
+// ---------------------------------------------------------------------------
 void setup() {
-  Serial.begin(115200);
-  delay(300);
+  Serial.begin(115200); delay(300);
   pinMode(PIN_LED_ESTADO, OUTPUT);
-
-  // ADC: 12 bits (0..4095) y atenuacion para medir hasta ~3.3 V.
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
-
-  // Si activas DS18B20: descomenta el include, el objeto ds18 y esto:
+  if (!LittleFS.begin(true)) Serial.println("[FS] LittleFS no monto; el modo offline no guardara.");
   // ds18.begin();
-
-  Serial.printf("\n=== BioAqua nodo de ingesta v%s ===\n", FIRMWARE_VERSION);
-  conectarWiFi();
-  Serial.printf("Enviando lotes cada %lu s a %s:%d\n",
-                (unsigned long)INTERVALO_S, SERVER_HOST, SERVER_PORT);
+  Serial.printf("\n=== BioAqua nodo v%s (con modo offline) ===\n", FIRMWARE_VERSION);
+  if (conectarWiFi()) sincronizarHora();
 }
 
 void loop() {
-  static uint32_t ultimoEnvio = 0;
+  static uint32_t ultimo = 0;
   const uint32_t ahora = millis();
-
-  // Primer envio inmediato, luego cada INTERVALO_S.
-  if (ultimoEnvio == 0 || (ahora - ultimoEnvio) >= INTERVALO_S * 1000UL) {
+  if (ultimo == 0 || (ahora - ultimo) >= INTERVALO_S * 1000UL) {
     digitalWrite(PIN_LED_ESTADO, HIGH);
-    bool ok = enviarLote();
-    digitalWrite(PIN_LED_ESTADO, LOW);
-    ultimoEnvio = ahora;
-    Serial.println(ok ? "[CICLO] OK\n" : "[CICLO] Falló, se reintenta al próximo intervalo\n");
-  }
 
-  delay(200);   // el ESP32 respira; el temporizador real es INTERVALO_S
+    if (!horaLista && conectarWiFi()) sincronizarHora();  // reintenta NTP si hizo falta
+
+    String cuerpo = construirCuerpo();
+    if (cuerpo.length() == 0) {
+      Serial.println("[CICLO] Sin lecturas este ciclo.");
+    } else if (conectarWiFi() && enviarCuerpo(cuerpo)) {
+      vaciarCola();                 // en linea: manda lo de ahora y vacia lo pendiente
+    } else {
+      guardarEnCola(cuerpo);        // offline: a la cola
+    }
+
+    digitalWrite(PIN_LED_ESTADO, LOW);
+    ultimo = ahora;
+  }
+  delay(200);
 }

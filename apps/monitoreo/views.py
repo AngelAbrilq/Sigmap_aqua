@@ -141,12 +141,32 @@ class IngestaLecturasView(BaseVistaDispositivo):
         validadas = serializer.validated_data['lecturas']
         errores_parciales = getattr(serializer, 'errores_parciales', [])
         ahora = timezone.now()
+        # RF019 (modo offline): al reenviar lecturas encoladas en el ESP32 tras
+        # una caida de red, se evitan duplicados por (sensor, timestamp). Solo
+        # aplica a lecturas con timestamp explicito; una lectura en vivo (sin
+        # timestamp) siempre se inserta.
+        con_ts = [i for i in validadas if i.get('timestamp')]
+        ya_existentes = set()
+        if con_ts:
+            ya_existentes = set(
+                Lectura.objects.filter(
+                    sensor_id__in={i['_sensor'].id for i in con_ts},
+                    timestamp_lectura__in={i['timestamp'] for i in con_ts},
+                ).values_list('sensor_id', 'timestamp_lectura')
+            )
+
         persistidas = []
+        duplicadas = 0
 
         for item in validadas:
             sensor = item['_sensor']
             valor = item['valor']
             tipo = sensor.tipo_parametro
+
+            ts = item.get('timestamp')
+            if ts is not None and (sensor.id, ts) in ya_existentes:
+                duplicadas += 1
+                continue
 
             clasificacion = tipo.clasificar(valor)
 
@@ -190,6 +210,7 @@ class IngestaLecturasView(BaseVistaDispositivo):
             True,
             data={
                 'registradas': len(persistidas),
+                'duplicadas': duplicadas,
                 'criticas': len(criticas),
                 'alertas_generadas': len(alertas_nuevas),
                 'alertas_cerradas': alertas_cerradas,
