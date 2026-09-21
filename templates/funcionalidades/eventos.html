@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+  Registro de eventos del sistema (RF018). Solo Instructor Líder.
+  Auditoría de cambios de configuración, cuentas de usuario y alertas, filtrable.
+{% endcomment %}
+
+{% block title %}SIGMAP-AQUA | Eventos del sistema{% endblock %}
+
+{% block extra_css %}
+<style>
+  .evt-table-wrap { overflow-x: auto; }
+  .evt-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .evt-table th, .evt-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+  .evt-table th { font-weight: 600; color: #374151; background: #f9fafb; position: sticky; top: 0; }
+  .evt-table td.evt-desc { white-space: normal; min-width: 260px; }
+  .evt-table tr:hover td { background: #f8fafc; }
+  .evt-vacio { text-align: center; color: #6b7280; padding: 28px 0; }
+  .evt-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .evt-badge.info { background: #e0f2fe; color: #075985; }
+  .evt-badge.advertencia { background: #fef3c7; color: #92400e; }
+  .evt-badge.critico { background: #fee2e2; color: #991b1b; }
+  .evt-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .evt-page-info { color: #6b7280; font-size: 13px; }
+  .evt-page-links { display: flex; gap: 6px; }
+  .evt-page-links a, .evt-page-links span { padding: 6px 12px; border-radius: 8px; border: 1px solid #e5e7eb; text-decoration: none; color: #374151; font-size: 13px; }
+  .evt-page-links a:hover { background: #f3f4f6; }
+  .evt-page-links .actual { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+</style>
+{% endblock %}
+
+{% block page_title %}
+  <h1>Eventos del sistema</h1>
+  <p>Auditoría de cambios de configuración, cuentas de usuario y alertas.</p>
+{% endblock %}
+
+{% block content %}
+<div class="sg-modulo">
+
+  <div class="sg-fila-kpi" style="margin-bottom:18px;">
+    <div class="sg-metrica">
+      <span class="sg-metrica-valor">{{ resumen.total }}</span>
+      <span class="sg-metrica-label">Eventos en el rango</span>
+    </div>
+    <div class="sg-metrica">
+      <span class="sg-metrica-valor">{{ resumen.advertencias }}</span>
+      <span class="sg-metrica-label">Advertencias</span>
+    </div>
+    <div class="sg-metrica">
+      <span class="sg-metrica-valor">{{ resumen.criticos }}</span>
+      <span class="sg-metrica-label">Críticos</span>
+    </div>
+  </div>
+
+  <div class="sg-card">
+    <form class="sg-filtros" method="get">
+      <div class="sg-filtro">
+        <label for="tipo">Tipo</label>
+        <select id="tipo" name="tipo" onchange="this.form.submit()">
+          <option value="">Todos</option>
+          {% for valor, etiqueta in tipos %}
+            <option value="{{ valor }}" {% if filtros.tipo == valor %}selected{% endif %}>{{ etiqueta }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sg-filtro">
+        <label for="nivel">Nivel</label>
+        <select id="nivel" name="nivel" onchange="this.form.submit()">
+          <option value="">Todos</option>
+          {% for valor, etiqueta in niveles %}
+            <option value="{{ valor }}" {% if filtros.nivel == valor %}selected{% endif %}>{{ etiqueta }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sg-filtro">
+        <label for="piscina">Piscina</label>
+        <select id="piscina" name="piscina" onchange="this.form.submit()">
+          <option value="">Todas</option>
+          {% for p in piscinas %}
+            <option value="{{ p.pk }}" {% if filtros.piscina == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.nombre_piscina }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sg-filtro">
+        <label for="desde">Desde</label>
+        <input type="date" id="desde" name="desde" value="{{ filtros.desde }}">
+      </div>
+      <div class="sg-filtro">
+        <label for="hasta">Hasta</label>
+        <input type="date" id="hasta" name="hasta" value="{{ filtros.hasta }}">
+      </div>
+      <div class="sg-filtro" style="flex:0 0 auto;">
+        <label>&nbsp;</label>
+        <button type="submit" class="sg-btn sg-btn--primario">Filtrar</button>
+      </div>
+    </form>
+
+    <div class="evt-table-wrap" style="margin-top:16px;">
+      <table class="evt-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Nivel</th>
+            <th>Responsable</th>
+            <th>Piscina</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for evento in eventos %}
+            <tr>
+              <td>{{ evento.created_at|date:'d/m/Y H:i' }}</td>
+              <td>{{ evento.get_tipo_evento_display }}</td>
+              <td><span class="evt-badge {{ evento.nivel }}">{{ evento.get_nivel_display }}</span></td>
+              <td>{{ evento.usuario.nombre_completo|default:'Sistema' }}</td>
+              <td>{{ evento.geomembrana.nombre_piscina|default:'—' }}</td>
+              <td class="evt-desc">{{ evento.descripcion }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="evt-vacio">No hay eventos para los filtros aplicados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if pagina.paginator.num_pages > 1 %}
+    {% with qs="tipo="|add:filtros.tipo|add:"&nivel="|add:filtros.nivel|add:"&piscina="|add:filtros.piscina|add:"&desde="|add:filtros.desde|add:"&hasta="|add:filtros.hasta %}
+    <div class="evt-pagination">
+      <div class="evt-page-info">
+        Página {{ pagina.number }} de {{ pagina.paginator.num_pages }} · {{ pagina.paginator.count }} evento(s)
+      </div>
+      <div class="evt-page-links">
+        {% if pagina.has_previous %}
+          <a href="?{{ qs }}&page={{ pagina.previous_page_number }}">Anterior</a>
+        {% else %}
+          <span class="disabled">Anterior</span>
+        {% endif %}
+        <span class="actual">{{ pagina.number }}</span>
+        {% if pagina.has_next %}
+          <a href="?{{ qs }}&page={{ pagina.next_page_number }}">Siguiente</a>
+        {% else %}
+          <span class="disabled">Siguiente</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endwith %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

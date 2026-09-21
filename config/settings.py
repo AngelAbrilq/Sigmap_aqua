@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     'apps.reportes',
     'apps.ia',
     'apps.api_movil',
+    'apps.auditoria',
 ]
 
 MIDDLEWARE = [
@@ -295,6 +296,11 @@ LOGGING = {
     'loggers': {
         'apps.monitoreo': {
             'handlers': ['consola', 'archivo_monitoreo'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps.auditoria': {
+            'handlers': ['consola'],
             'level': 'INFO',
             'propagate': False,
         },

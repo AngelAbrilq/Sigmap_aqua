@@ -493,6 +493,13 @@ def parametro_crear(request):
         parametro = form.save()
         logger.info('TipoParametro creado %s por %s',
                     parametro.nombre_parametro, request.user.email)
+        from apps.auditoria.services import ip_de, registrar_evento
+        registrar_evento(
+            'config_umbral',
+            f'Parametro creado: {parametro.nombre_parametro}',
+            usuario=request.user,
+            datos={'campos': list(form.changed_data)}, ip=ip_de(request),
+        )
         messages.success(request, f'Parámetro {parametro.nombre_parametro} creado.')
         return redirect(f"{reverse('monitoreo:configuraciones')}?seleccion={parametro.pk}")
 
@@ -518,6 +525,13 @@ def parametro_editar(request, pk):
         logger.warning(
             'Umbrales de %s modificados por %s. Afecta a las alertas futuras.',
             parametro.nombre_parametro, request.user.email,
+        )
+        from apps.auditoria.services import ip_de, registrar_evento
+        registrar_evento(
+            'config_umbral',
+            f'Umbrales de {parametro.nombre_parametro} modificados',
+            usuario=request.user, nivel='advertencia',
+            datos={'campos': list(form.changed_data)}, ip=ip_de(request),
         )
         messages.success(
             request,

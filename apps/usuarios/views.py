@@ -5,6 +5,9 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from .permissions import resolver_dashboard
 
+from apps.auditoria.models import EventoSistema
+from apps.auditoria.services import ip_de, registrar_evento
+
 
 def _destino_post_login(request, usuario):
     """
@@ -51,6 +54,11 @@ def login_view(request):
             messages.error(request, 'Tu cuenta no tiene un rol asignado. Contacta al administrador.')
         else:
             login(request, usuario)
+            registrar_evento(
+                EventoSistema.Tipo.SESION_INICIO,
+                f'Inicio de sesion de {usuario.nombre_completo}',
+                usuario=usuario, ip=ip_de(request),
+            )
             return redirect(_destino_post_login(request, usuario))
 
     return render(request, 'usuarios/login.html')
@@ -169,6 +177,13 @@ def crear(request):
     if form.is_valid():
         usuario = form.save()
         logger.info('Usuario creado %s por %s', usuario.email, request.user.email)
+        registrar_evento(
+            EventoSistema.Tipo.USUARIO_ALTA,
+            f'Usuario creado: {usuario.nombre_completo} ({usuario.email})',
+            usuario=request.user,
+            datos={'rol': usuario.rol.nombre_rol if usuario.rol_id else None},
+            ip=ip_de(request),
+        )
         messages.success(request, f'Usuario {usuario.nombre_completo} creado.')
         return redirect(f"{reverse('usuarios:listar')}?seleccion={usuario.pk}")
 
@@ -185,6 +200,11 @@ def editar(request, pk):
     if form.is_valid():
         form.save()
         logger.info('Usuario editado %s por %s', usuario.email, request.user.email)
+        registrar_evento(
+            EventoSistema.Tipo.USUARIO_EDICION,
+            f'Usuario editado: {usuario.email}',
+            usuario=request.user, ip=ip_de(request),
+        )
         messages.success(request, f'{usuario.nombre_completo} actualizado.')
         return redirect(f"{reverse('usuarios:listar')}?seleccion={usuario.pk}")
 
@@ -227,6 +247,12 @@ def desactivar(request, pk):
     usuario.save(update_fields=['estado', 'fecha_edicion'])
 
     logger.info('Usuario %s -> %s por %s', usuario.email, nuevo_estado, request.user.email)
+    registrar_evento(
+        EventoSistema.Tipo.USUARIO_ESTADO,
+        f'{usuario.nombre_completo} quedo {nuevo_estado}',
+        usuario=request.user, nivel='advertencia',
+        datos={'estado': nuevo_estado, 'objetivo': usuario.email}, ip=ip_de(request),
+    )
     messages.success(
         request,
         f'{usuario.nombre_completo} quedó {"activo" if nuevo_estado == "activo" else "inactivo"}.'

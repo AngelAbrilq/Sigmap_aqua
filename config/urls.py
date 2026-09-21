@@ -26,6 +26,7 @@ urlpatterns = [
     path('ai/', include('apps.ia.urls')),
     path('', include('apps.monitoreo.urls_web')),   # sensores, monitoreo, historial, configuraciones
     path('', include('apps.reportes.urls')),        # graficas-reportes, comparacion-periodos
+    path('eventos/', include('apps.auditoria.urls')),  # RF018: registro de eventos (auditoria)
 
     # API REST de la app movil (personas, autenticadas con JWT).
     # Va ANTES de api/v1/ para que 'movil/' no lo capture la ruta del firmware.
