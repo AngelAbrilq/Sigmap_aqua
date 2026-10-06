@@ -14,3 +14,6 @@ logs/
 
 # Base de datos de desarrollo (SQLite)
 db_dev.sqlite3
+
+# Carpeta de salidas temporales (video duplicado)
+Claude outputs/

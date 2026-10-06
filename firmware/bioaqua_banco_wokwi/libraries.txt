@@ -1,0 +1,3 @@
+# Librerias del banco de cableado. Wokwi las descarga automaticamente.
+DallasTemperature
+OneWire

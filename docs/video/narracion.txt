@@ -1,0 +1,12 @@
+﻿En este video instalamos paso a paso el nodo de sensores E S P 32 de BioAqua System, que mide la calidad del agua de la geomembrana y la envía a la plataforma.
+Necesitamos un E S P 32 DevKit, cuatro sensores: temperatura, pH, oxígeno disuelto y turbidez. Además, una fuente de 5 voltios a 2 amperios, resistencias para los divisores y una caja I P 65.
+El E S P 32 trabaja a 3,3 voltios y no tolera 5. Nunca uses el G P I O 12. Con WiFi activo solo sirven los pines analógicos del A D C 1: 32, 33, 34, 35, 36 y 39.
+Registramos el nodo: el comando crear dispositivo genera un token que se muestra una sola vez. Lo copiamos en secrets punto h con la red WiFi de 2,4 gigahercios, y cargamos el handshake. Si el monitor serie muestra 200, el enlace funciona.
+Una sola fuente de 5 voltios alimenta el pin V I N y los sensores. Todas las tierras se unen en una bornera. Con el multímetro verificamos 5 voltios y 3,3 voltios.
+El sensor D S 18 B 20 va al G P I O 4, con una resistencia pull-up de 4,7 kiloohmios entre datos y 3,3 voltios. Si marca menos 127 grados, falta esa resistencia.
+pH y turbidez entregan hasta 5 voltios, así que cada uno lleva su divisor de 10 y 20 kiloohmios, que baja la señal a 3,3. pH va al G P I O 34, oxígeno al 35 y turbidez al 32.
+Calibramos: pH con los buffers 4,01 y 6,86. Oxígeno al 100 por ciento de saturación en aire. Turbidez con agua destilada como cero. En buffer de pH 7, la lectura debe quedar entre 6,9 y 7,1.
+Cargamos el firmware de ingesta. El nodo mide cada 30 segundos y envía un lote cada 5 minutos a la API de Django, que valida, clasifica, guarda y genera alertas. Sin red, el lote espera en la memoria flash.
+Montamos la electrónica en la caja I P 65. El cable entra con un lazo hacia abajo para que el agua escurra, y solo las sondas van sumergidas. Prueba final: 24 horas sin huecos.
+Si algo falla: menos 127 grados, revisa el pull-up. Un analógico fijo al máximo, le llegan más de 3,3 voltios. Reinicios, la fuente. Error 401, el token. Error 400, el código del sensor.
+Listo: el nodo mide y la plataforma recibe los datos en tiempo real. Gracias por ver.

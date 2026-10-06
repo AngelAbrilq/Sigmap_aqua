@@ -1,0 +1,495 @@
+{
+  "version": 1,
+  "author": "BioAqua System - SIGMAP AQUA",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-text",
+      "id": "t0",
+      "top": 10,
+      "left": 20,
+      "attrs": {
+        "text": "BioAqua System / SIGMAP-AQUA  -  Nodo ESP32  -  BANCO DE CABLEADO (no de medicion)",
+        "fontSize": "22px",
+        "color": "#1a3b5c"
+      }
+    },
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 120,
+      "left": 20,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-text",
+      "id": "t1",
+      "top": 90,
+      "left": 420,
+      "attrs": {
+        "text": "TEMPERATURA  DS18B20   SEN-001-TEM   ->  GPIO4   (OneWire + pull-up 4.7k a 3V3)",
+        "fontSize": "14px",
+        "color": "#0b6623"
+      }
+    },
+    {
+      "type": "wokwi-ds18b20",
+      "id": "temp1",
+      "top": 130,
+      "left": 440,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rPullup",
+      "top": 205,
+      "left": 330,
+      "rotate": 90,
+      "attrs": {
+        "value": "4700"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "t2",
+      "top": 280,
+      "left": 420,
+      "attrs": {
+        "text": "pH  PH-4502C  SEN-001-PH   salida 0-5 V  ->  divisor 10k/15k  ->  3.00 V  ->  GPIO34",
+        "fontSize": "14px",
+        "color": "#8a2be2"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "potPh",
+      "top": 320,
+      "left": 560,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rPh1",
+      "top": 345,
+      "left": 420,
+      "attrs": {
+        "value": "10000"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rPh2",
+      "top": 405,
+      "left": 420,
+      "rotate": 90,
+      "attrs": {
+        "value": "15000"
+      }
+    },
+    {
+      "type": "wokwi-capacitor",
+      "id": "cPh",
+      "top": 405,
+      "left": 340,
+      "rotate": 90,
+      "attrs": {
+        "value": "100n"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "t3",
+      "top": 470,
+      "left": 420,
+      "attrs": {
+        "text": "OXIGENO DISUELTO  SEN0237-A  SEN-001-OXI   salida 0-3.0 V  ->  directo  ->  GPIO35",
+        "fontSize": "14px",
+        "color": "#1f6feb"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "potOxi",
+      "top": 510,
+      "left": 560,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-text",
+      "id": "t4",
+      "top": 630,
+      "left": 420,
+      "attrs": {
+        "text": "TURBIDEZ  TS-300B  SEN-001-TUR   salida 0-4.5 V  ->  divisor 10k/20k  ->  3.00 V  ->  GPIO32",
+        "fontSize": "14px",
+        "color": "#b8860b"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "potTur",
+      "top": 670,
+      "left": 560,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rTur1",
+      "top": 695,
+      "left": 420,
+      "attrs": {
+        "value": "10000"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "rTur2",
+      "top": 755,
+      "left": 420,
+      "rotate": 90,
+      "attrs": {
+        "value": "20000"
+      }
+    },
+    {
+      "type": "wokwi-capacitor",
+      "id": "cTur",
+      "top": 755,
+      "left": 340,
+      "rotate": 90,
+      "attrs": {
+        "value": "100n"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "a1",
+      "top": 850,
+      "left": 20,
+      "attrs": {
+        "text": "AVISO - Wokwi no tiene sondas de pH, oxigeno disuelto ni turbidez.",
+        "fontSize": "15px",
+        "color": "#b00020"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "a2",
+      "top": 875,
+      "left": 20,
+      "attrs": {
+        "text": "Los potenciometros reemplazan la SALIDA ELECTRICA de esos modulos: validan el mapa de pines y la logica, no la medicion.",
+        "fontSize": "15px",
+        "color": "#b00020"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "a3",
+      "top": 900,
+      "left": 20,
+      "attrs": {
+        "text": "Estos valores NO son parametros del agua y NO deben enviarse a la API ni a la base de datos sigmap_agua.",
+        "fontSize": "15px",
+        "color": "#b00020"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "r1",
+      "top": 945,
+      "left": 20,
+      "attrs": {
+        "text": "Divisor:  V_pin = V_sonda x R2 / (R1 + R2)        factor_divisor = (R1 + R2) / R2",
+        "fontSize": "14px"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "r2",
+      "top": 970,
+      "left": 20,
+      "attrs": {
+        "text": "pH:        5.0 V x 15k / 25k = 3.00 V   ->  factor 1.667      (10k/20k daria 3.33 V y satura el ADC: NO usar)",
+        "fontSize": "14px"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "r3",
+      "top": 995,
+      "left": 20,
+      "attrs": {
+        "text": "Turbidez:  4.5 V x 20k / 30k = 3.00 V   ->  factor 1.500",
+        "fontSize": "14px"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "r4",
+      "top": 1020,
+      "left": 20,
+      "attrs": {
+        "text": "Oxigeno:   3.0 V directo                ->  factor 1.000      Tope util del ADC con 11 dB: ~3.1 V",
+        "fontSize": "14px"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "r5",
+      "top": 1045,
+      "left": 20,
+      "attrs": {
+        "text": "Resistencias de 1% (metal film): error +-0.8%. Con 5% el error llega a +-4%, que en pH son ~0.5 unidades.",
+        "fontSize": "14px"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "p1",
+      "top": 1090,
+      "left": 20,
+      "attrs": {
+        "text": "PROHIBIDO: GPIO12 (strapping: con 3.3V al arranque la placa no vuelve a encender)  |  GPIO6-11 (flash SPI interna)",
+        "fontSize": "14px",
+        "color": "#b00020"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "p2",
+      "top": 1115,
+      "left": 20,
+      "attrs": {
+        "text": "ADC2 no funciona con WiFi activo  ->  unicos analogicos utiles: GPIO 32, 33, 34, 35, 36, 39  (34/35/36/39 solo entrada, sin pull interno)",
+        "fontSize": "14px"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "p3",
+      "top": 1140,
+      "left": 20,
+      "attrs": {
+        "text": "Alimentacion real: fuente externa 5V/2A a VIN y a los sensores. GND comun obligatorio. Nunca alimentar sondas desde el pin 3V3.",
+        "fontSize": "14px"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:TX0",
+      "$serialMonitor:RX",
+      "",
+      []
+    ],
+    [
+      "esp:RX0",
+      "$serialMonitor:TX",
+      "",
+      []
+    ],
+    [
+      "temp1:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "v-30",
+        "h-140"
+      ]
+    ],
+    [
+      "temp1:GND",
+      "esp:GND.1",
+      "black",
+      [
+        "v70",
+        "h-220"
+      ]
+    ],
+    [
+      "temp1:DQ",
+      "esp:D4",
+      "green",
+      [
+        "v20",
+        "h-180"
+      ]
+    ],
+    [
+      "rPullup:1",
+      "temp1:DQ",
+      "red",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "rPullup:2",
+      "esp:3V3",
+      "red",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "potPh:VCC",
+      "esp:VIN",
+      "red",
+      [
+        "h-40",
+        "v-70"
+      ]
+    ],
+    [
+      "potPh:GND",
+      "esp:GND.1",
+      "black",
+      [
+        "h-60",
+        "v110"
+      ]
+    ],
+    [
+      "potPh:SIG",
+      "rPh1:2",
+      "green",
+      [
+        "h-30"
+      ]
+    ],
+    [
+      "rPh1:1",
+      "esp:D34",
+      "green",
+      [
+        "h-50"
+      ]
+    ],
+    [
+      "rPh2:1",
+      "rPh1:1",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "rPh2:2",
+      "esp:GND.1",
+      "black",
+      [
+        "v30"
+      ]
+    ],
+    [
+      "cPh:1",
+      "rPh1:1",
+      "gray",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "cPh:2",
+      "esp:GND.1",
+      "black",
+      [
+        "v30"
+      ]
+    ],
+    [
+      "potOxi:VCC",
+      "esp:3V3",
+      "red",
+      [
+        "h-50",
+        "v-140"
+      ]
+    ],
+    [
+      "potOxi:GND",
+      "esp:GND.2",
+      "black",
+      [
+        "h-70",
+        "v50"
+      ]
+    ],
+    [
+      "potOxi:SIG",
+      "esp:D35",
+      "green",
+      [
+        "h-60"
+      ]
+    ],
+    [
+      "potTur:VCC",
+      "esp:VIN",
+      "red",
+      [
+        "h-50",
+        "v-220"
+      ]
+    ],
+    [
+      "potTur:GND",
+      "esp:GND.2",
+      "black",
+      [
+        "h-70",
+        "v70"
+      ]
+    ],
+    [
+      "potTur:SIG",
+      "rTur1:2",
+      "green",
+      [
+        "h-30"
+      ]
+    ],
+    [
+      "rTur1:1",
+      "esp:D32",
+      "green",
+      [
+        "h-50"
+      ]
+    ],
+    [
+      "rTur2:1",
+      "rTur1:1",
+      "green",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "rTur2:2",
+      "esp:GND.2",
+      "black",
+      [
+        "v30"
+      ]
+    ],
+    [
+      "cTur:1",
+      "rTur1:1",
+      "gray",
+      [
+        "v0"
+      ]
+    ],
+    [
+      "cTur:2",
+      "esp:GND.2",
+      "black",
+      [
+        "v30"
+      ]
+    ]
+  ],
+  "dependencies": {}
+}

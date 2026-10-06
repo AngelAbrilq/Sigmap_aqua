@@ -168,7 +168,7 @@ static int enviarHandshake() {
 
   HTTPClient http;
   http.setTimeout(TIMEOUT_HTTP_MS);
-  http.setConnectTimeout(TIMEOUT_HTTP_MS);
+  http.setConnectTimeout(TIMEOUT_HTTP_MS); 
 
   if (!http.begin(url)) {
     Serial.println("[HTTP] ERROR: URL mal formada.");
