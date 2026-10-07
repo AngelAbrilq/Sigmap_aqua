@@ -98,7 +98,6 @@ def sensores(request):
     resumen['calibracion_vencida'] = queryset.filter(
         proxima_calibracion__lt=timezone.localdate()
     ).count()
-    resumen['bateria_baja'] = queryset.filter(bateria_nivel_actual__lt=20).count()
 
     paginador = Paginator(queryset, POR_PAGINA)
     pagina = paginador.get_page(request.GET.get('page'))
@@ -296,7 +295,6 @@ def _estado_sensores(geomembrana):
             'momento': lectura.timestamp_lectura if lectura else None,
             'rango_min': tipo.rango_normal_min,
             'rango_max': tipo.rango_normal_max,
-            'bateria': sensor.bateria_nivel_actual,
         })
     return tarjetas
 
@@ -330,7 +328,6 @@ def api_estado(request, pk):
                 'valor': float(t['valor']) if t['valor'] is not None else None,
                 'estado': t['estado'],
                 'momento': t['momento'].isoformat() if t['momento'] else None,
-                'bateria': t['bateria'],
             } for t in tarjetas],
         },
     })

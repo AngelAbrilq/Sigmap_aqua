@@ -88,7 +88,7 @@
           </div>
 
           <!-- Ayuda -->
-          <button class="topbar-icon-btn" title="Ayuda y Soporte">
+          <button class="topbar-icon-btn" id="ayudaSoporteBtn" title="Ayuda y Soporte" type="button" aria-haspopup="dialog" aria-expanded="false">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
@@ -133,6 +133,14 @@
                 </svg>
                 <span>Configuración</span>
               </a>
+              <button type="button" id="userDropdownAyudaBtn" class="user-dropdown-item" style="width:100%;border:none;background:transparent;cursor:pointer;text-align:left;font-family:inherit;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>Ayuda y Soporte</span>
+              </button>
               <div class="user-dropdown-divider"></div>
               <a href="{% url 'usuarios:logout' %}" class="user-dropdown-item text-danger">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -214,8 +222,179 @@
           }
         });
       }
+
+      // Modal de Ayuda y Soporte
+      const modalSoporte = document.getElementById('modalAyudaSoporte');
+      const btnSoporte = document.getElementById('ayudaSoporteBtn');
+      const btnDropdownSoporte = document.getElementById('userDropdownAyudaBtn');
+      const feedbackCopia = document.getElementById('soporteCopiadoFeedback');
+
+      const abrirSoporte = () => {
+        if (!modalSoporte) return;
+        modalSoporte.removeAttribute('hidden');
+        if (btnSoporte) btnSoporte.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      };
+
+      const cerrarSoporte = () => {
+        if (!modalSoporte) return;
+        modalSoporte.setAttribute('hidden', '');
+        if (btnSoporte) btnSoporte.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      };
+
+      if (btnSoporte) {
+        btnSoporte.addEventListener('click', function (e) {
+          e.preventDefault();
+          abrirSoporte();
+        });
+      }
+
+      if (btnDropdownSoporte) {
+        btnDropdownSoporte.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (menu) menu.classList.remove('show');
+          if (btn) btn.classList.remove('active');
+          abrirSoporte();
+        });
+      }
+
+      if (modalSoporte) {
+        modalSoporte.querySelectorAll('[data-cerrar-soporte]').forEach((el) => {
+          el.addEventListener('click', cerrarSoporte);
+        });
+
+        modalSoporte.querySelectorAll('[data-copiar]').forEach((btnCopiar) => {
+          btnCopiar.addEventListener('click', async function () {
+            const texto = this.getAttribute('data-copiar');
+            try {
+              await navigator.clipboard.writeText(texto);
+              if (feedbackCopia) {
+                feedbackCopia.textContent = `¡"${texto}" copiado al portapapeles!`;
+                feedbackCopia.style.display = 'block';
+                setTimeout(() => { feedbackCopia.style.display = 'none'; }, 2600);
+              }
+            } catch (err) {
+              const input = document.createElement('input');
+              input.value = texto;
+              document.body.appendChild(input);
+              input.select();
+              document.execCommand('copy');
+              document.body.removeChild(input);
+              if (feedbackCopia) {
+                feedbackCopia.textContent = `¡"${texto}" copiado al portapapeles!`;
+                feedbackCopia.style.display = 'block';
+                setTimeout(() => { feedbackCopia.style.display = 'none'; }, 2600);
+              }
+            }
+          });
+        });
+
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && !modalSoporte.hasAttribute('hidden')) {
+            cerrarSoporte();
+          }
+        });
+      }
     });
   </script>
+
+  <!-- ===== MODAL DE AYUDA Y SOPORTE ===== -->
+  <div class="sg-modal" id="modalAyudaSoporte" hidden>
+    <div class="sg-modal-fondo" data-cerrar-soporte></div>
+    <div class="sg-modal-caja sg-modal-caja--sm" role="dialog" aria-modal="true" aria-labelledby="tituloModalSoporte">
+      <div class="sg-modal-head" style="align-items: center;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(30, 58, 138, 0.1); color: #1e3a8a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <h2 id="tituloModalSoporte" style="margin: 0; font-size: 17px; font-weight: 700; color: #111827;">Ayuda y Soporte Técnico</h2>
+            <span style="font-size: 12px; color: #64748b;">Canales de atención SIGMAP-AQUA</span>
+          </div>
+        </div>
+        <button class="sg-modal-cerrar" type="button" data-cerrar-soporte aria-label="Cerrar">&times;</button>
+      </div>
+
+      <div class="sg-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <p style="margin: 0; font-size: 13.5px; color: #475569; line-height: 1.5;">
+          Si presentas fallas en el sistema, dudas con el monitoreo o requieres asistencia técnica con los sensores, puedes comunicarte por los siguientes canales:
+        </p>
+
+        <!-- Canales de contacto -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+
+          <!-- Teléfono / WhatsApp -->
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 38px; height: 38px; border-radius: 50%; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+              </div>
+              <div>
+                <span style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.04em;">Línea Directa & WhatsApp</span>
+                <span style="font-size: 15px; font-weight: 700; color: #0f172a;">322 453 2789</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <a href="tel:3224532789" class="sg-btn sg-btn--sm sg-btn--suave" title="Llamar" style="text-decoration: none;">
+                Llamar
+              </a>
+              <a href="https://wa.me/573224532789?text=Hola,%20solicito%20soporte%20t%C3%A9cnico%20en%20SIGMAP-AQUA" target="_blank" rel="noopener noreferrer" class="sg-btn sg-btn--sm sg-btn--ok" style="text-decoration: none;">
+                WhatsApp
+              </a>
+              <button type="button" class="sg-btn sg-btn--sm sg-btn--suave" data-copiar="3224532789" title="Copiar número de teléfono">
+                Copiar
+              </button>
+            </div>
+          </div>
+
+          <!-- Correo electrónico -->
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+              <div style="width: 38px; height: 38px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <div style="min-width: 0;">
+                <span style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.04em;">Correo Electrónico</span>
+                <span style="font-size: 13.5px; font-weight: 700; color: #0f172a; word-break: break-all;">jhonnyyunda86@gmail.com</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <a href="mailto:jhonnyyunda86@gmail.com?subject=Soporte%20T%C3%A9cnico%20SIGMAP-AQUA" class="sg-btn sg-btn--sm sg-btn--primario" style="text-decoration: none;">
+                Escribir
+              </a>
+              <button type="button" class="sg-btn sg-btn--sm sg-btn--suave" data-copiar="jhonnyyunda86@gmail.com" title="Copiar correo electrónico">
+                Copiar
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <div id="soporteCopiadoFeedback" style="display: none; font-size: 12.5px; color: #15803d; background: #dcfce7; padding: 8px 12px; border-radius: 6px; text-align: center; font-weight: 600;">
+          ¡Dato copiado al portapapeles!
+        </div>
+
+        <div style="font-size: 12px; color: #64748b; background: #f1f5f9; padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; gap: 8px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Atención técnica y operativa del sistema.</span>
+        </div>
+      </div>
+
+      <div class="sg-modal-pie">
+        <button type="button" class="sg-btn sg-btn--suave" data-cerrar-soporte>Cerrar</button>
+      </div>
+    </div>
+  </div>
 
   {% block extra_js %}{% endblock %}
 

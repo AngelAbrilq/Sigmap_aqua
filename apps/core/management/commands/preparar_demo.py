@@ -204,7 +204,6 @@ class Command(BaseCommand):
                         'rango_medicion_min': tipo.rango_critico_min,
                         'rango_medicion_max': tipo.rango_critico_max,
                         'intervalo_lectura_segundos': 300,
-                        'bateria_nivel_actual': random.randint(70, 100),
                         'firmware_version': '1.0.0',
                         'estado': 'activo',
                     },

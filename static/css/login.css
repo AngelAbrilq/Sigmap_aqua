@@ -12,24 +12,58 @@ body {
     font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
+    background-color: #f8fbfe;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sección central con el fondo traslúcido y la tarjeta */
+.login-hero-section {
+    position: relative;
+    flex: 1;
+    display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0f4f8;
-    padding: 24px 16px;
+    padding: 56px 16px;
+    overflow: hidden;
+    min-height: 560px;
+}
+
+.login-hero-section::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: 
+        linear-gradient(
+            135deg, 
+            rgba(241, 247, 252, 0.72) 0%, 
+            rgba(224, 237, 249, 0.65) 45%, 
+            rgba(206, 226, 246, 0.75) 100%
+        ),
+        url('../img/hero_bg.jpg') no-repeat center center;
+    background-size: cover;
+    z-index: 0;
+    filter: blur(4px);
+    transform: scale(1.03);
+    pointer-events: none;
 }
 
 /* ══════════════════════════════
    TARJETA PRINCIPAL
 ══════════════════════════════ */
 .card {
+    position: relative;
+    z-index: 1;
     display: flex;
     width: 100%;
     max-width: 860px;
     min-height: 520px;
     border-radius: 28px;
     box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.13),
-        0 4px 16px rgba(0, 0, 0, 0.07);
+        0 25px 60px rgba(10, 35, 70, 0.18),
+        0 6px 20px rgba(10, 35, 70, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.85);
     overflow: hidden;
     background: #ffffff;
     animation: rise 0.5s cubic-bezier(.22,.68,0,1.2) both;
@@ -185,6 +219,46 @@ body {
 .form-box {
     width: 100%;
     max-width: 340px;
+}
+
+/* Enlace Volver a la bienvenida */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    margin-bottom: 20px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    width: fit-content;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.back-link:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateX(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.back-link svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.back-link:hover svg {
+    transform: translateX(-2px);
 }
 
 .form-title {

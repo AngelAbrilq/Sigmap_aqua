@@ -94,7 +94,7 @@
             <table class="sg-tabla">
               <thead>
                 <tr><th>Sensor</th><th>Parámetro</th><th class="num">Última lectura</th>
-                    <th>Estado</th><th>Momento</th><th class="num">Batería</th></tr>
+                    <th>Estado</th><th>Momento</th></tr>
               </thead>
               <tbody>
                 {% for t in tarjetas %}
@@ -106,7 +106,6 @@
                       {% if t.estado == 'sin_datos' %}Sin datos{% else %}{{ t.estado|capfirst }}{% endif %}
                     </span></td>
                     <td>{% if t.momento %}{{ t.momento|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
-                    <td class="num">{% if t.bateria is not None %}{{ t.bateria }}%{% else %}—{% endif %}</td>
                   </tr>
                 {% endfor %}
               </tbody>

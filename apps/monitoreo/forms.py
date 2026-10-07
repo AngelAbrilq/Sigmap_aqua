@@ -22,7 +22,7 @@ class SensorForm(forms.ModelForm):
             'nombre_sensor', 'codigo_hardware', 'geomembrana', 'tipo_parametro',
             'ubicacion_exacta', 'modelo_sensor', 'marca_sensor',
             'rango_medicion_min', 'rango_medicion_max', 'precision_valor',
-            'intervalo_lectura_segundos', 'bateria_nivel_actual',
+            'intervalo_lectura_segundos',
             'ultima_calibracion', 'proxima_calibracion',
             'mac_address', 'ip_address', 'firmware_version', 'estado',
         ]
@@ -43,8 +43,6 @@ class SensorForm(forms.ModelForm):
             'precision_valor': forms.NumberInput(attrs={'class': 'gm-form-input', 'step': '0.0001'}),
             'intervalo_lectura_segundos': forms.NumberInput(attrs={
                 'class': 'gm-form-input', 'min': '10', 'placeholder': '300'}),
-            'bateria_nivel_actual': forms.NumberInput(attrs={
-                'class': 'gm-form-input', 'min': '0', 'max': '100'}),
             'ultima_calibracion': forms.DateInput(attrs={'class': 'gm-form-input', 'type': 'date'},
                                                   format='%Y-%m-%d'),
             'proxima_calibracion': forms.DateInput(attrs={'class': 'gm-form-input', 'type': 'date'},

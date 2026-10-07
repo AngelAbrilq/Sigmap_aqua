@@ -21,8 +21,7 @@ class DispositivoAdmin(admin.ModelAdmin):
 @admin.register(Sensor)
 class SensorAdmin(admin.ModelAdmin):
     list_display = ('codigo_hardware', 'nombre_sensor', 'geomembrana',
-                    'tipo_parametro', 'bateria_nivel_actual',
-                    'proxima_calibracion', 'estado')
+                    'tipo_parametro', 'proxima_calibracion', 'estado')
     list_filter = ('estado', 'geomembrana', 'tipo_parametro')
     search_fields = ('codigo_hardware', 'nombre_sensor', 'mac_address')
     list_select_related = ('geomembrana', 'tipo_parametro')
