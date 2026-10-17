@@ -142,7 +142,7 @@
                 <span>Ayuda y Soporte</span>
               </button>
               <div class="user-dropdown-divider"></div>
-              <a href="{% url 'usuarios:logout' %}" class="user-dropdown-item text-danger">
+              <a href="{% url 'usuarios:logout' %}" class="user-dropdown-item text-danger" onclick="try{sessionStorage.clear();localStorage.clear();}catch(e){}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                   <polyline points="16 17 21 12 16 7"/>
@@ -299,6 +299,58 @@
       document.querySelectorAll('.sg-barra-fill[data-progreso]').forEach((barra) => {
         barra.style.width = `${barra.dataset.progreso}%`;
       });
+
+      // Si la página se recupera de la caché del navegador (botón atrás tras cerrar sesión),
+      // forzar recarga inmediata para que el servidor verifique la sesión destruida y redirija al login.
+      window.addEventListener('pageshow', function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
+          window.location.reload();
+        }
+      });
+
+      // =========================================================================
+      // INTERCEPTAR BOTÓN RETROCEDER DEL NAVEGADOR Y CONFIRMAR CIERRE DE SESIÓN
+      // =========================================================================
+      const modalRetroceso = document.getElementById('modalConfirmarRetroceso');
+      const btnConfirmarRetroceso = document.getElementById('btnConfirmarRetroceso');
+      const btnCancelarRetroceso = document.getElementById('btnCancelarRetroceso');
+      const btnCancelarRetrocesoCruz = document.getElementById('btnCancelarRetrocesoCruz');
+      const modalRetrocesoFondo = document.getElementById('modalRetrocesoFondo');
+
+      if (modalRetroceso) {
+        // Empujar estado en el historial para detectar popstate
+        history.pushState({ sigmap_guard: true }, '', window.location.href);
+
+        window.addEventListener('popstate', function () {
+          // Re-armar el estado para no retroceder antes de que el usuario decida
+          history.pushState({ sigmap_guard: true }, '', window.location.href);
+          modalRetroceso.hidden = false;
+        });
+
+        function cerrarModalRetroceso() {
+          modalRetroceso.hidden = true;
+        }
+
+        if (btnCancelarRetroceso) btnCancelarRetroceso.addEventListener('click', cerrarModalRetroceso);
+        if (btnCancelarRetrocesoCruz) btnCancelarRetrocesoCruz.addEventListener('click', cerrarModalRetroceso);
+        if (modalRetrocesoFondo) modalRetrocesoFondo.addEventListener('click', cerrarModalRetroceso);
+
+        if (btnConfirmarRetroceso) {
+          btnConfirmarRetroceso.addEventListener('click', function () {
+            try {
+              sessionStorage.clear();
+              localStorage.clear();
+            } catch (e) {}
+            window.location.replace("{% url 'usuarios:logout' %}");
+          });
+        }
+
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && !modalRetroceso.hasAttribute('hidden')) {
+            cerrarModalRetroceso();
+          }
+        });
+      }
     });
   </script>
 
@@ -395,6 +447,43 @@
 
       <div class="sg-modal-pie">
         <button type="button" class="sg-btn sg-btn--suave" data-cerrar-soporte>Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL CONFIRMACION RETROCESO / CERRAR SESION ===== -->
+  <div class="sg-modal" id="modalConfirmarRetroceso" hidden>
+    <div class="sg-modal-fondo" id="modalRetrocesoFondo"></div>
+    <div class="sg-modal-caja sg-modal-caja--sm" role="dialog" aria-modal="true" aria-labelledby="tituloModalRetroceso">
+      <div class="sg-modal-head" style="align-items: center;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(220, 38, 38, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </div>
+          <div>
+            <h2 id="tituloModalRetroceso" style="margin: 0; font-size: 17px; font-weight: 700; color: #111827;">Aviso de seguridad</h2>
+            <span style="font-size: 12px; color: #64748b;">¿Deseas cerrar la sesión?</span>
+          </div>
+        </div>
+        <button class="sg-modal-cerrar" type="button" id="btnCancelarRetrocesoCruz" aria-label="Cerrar">&times;</button>
+      </div>
+
+      <div class="sg-modal-body" style="padding: 20px 24px;">
+        <p style="margin: 0; font-size: 14px; color: #475569; line-height: 1.5;">
+          Has presionado el botón <strong>retroceder</strong> en el navegador. Por seguridad, regresar al inicio cerrará tu sesión activa y no podrás acceder sin iniciar sesión nuevamente.
+        </p>
+        <p style="margin: 10px 0 0 0; font-size: 13px; color: #64748b;">
+          ¿Deseas salir del sistema y cerrar la sesión ahora?
+        </p>
+      </div>
+
+      <div class="sg-modal-pie">
+        <button type="button" class="sg-btn sg-btn--suave" id="btnCancelarRetroceso">Permanecer en el sistema</button>
+        <button type="button" class="sg-btn sg-btn--peligro" id="btnConfirmarRetroceso" style="background:#dc2626;color:#fff;">Sí, cerrar sesión</button>
       </div>
     </div>
   </div>

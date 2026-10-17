@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect, render
@@ -65,9 +66,38 @@ def login_view(request):
 
 
 def logout_view(request):
-    """Cierra sesion y vuelve al login."""
+    """
+    Destruye por completo la sesión del usuario, limpia las cookies del
+    navegador y redirige al login con directivas estrictas de no-cache para
+    evitar que el usuario use el botón atrás o conserve el estado.
+    """
+    if request.user.is_authenticated:
+        try:
+            registrar_evento(
+                EventoSistema.Tipo.SISTEMA,
+                f'Cierre de sesión de {request.user.nombre_completo}',
+                usuario=request.user,
+                ip=ip_de(request),
+            )
+        except Exception:
+            pass
+
+    try:
+        request.session.flush()
+    except Exception:
+        pass
+
     logout(request)
-    return redirect('usuarios:login')
+
+    response = redirect('usuarios:login')
+    cookie_name = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
+    response.delete_cookie(cookie_name)
+    response.delete_cookie('sessionid')
+    response.delete_cookie('messages')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 
 # ======================================================================
