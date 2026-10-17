@@ -48,6 +48,28 @@ def guardar_con_pk(lecturas):
     return lecturas
 
 
+INTERVALO_POR_DEFECTO_S = 300
+
+
+def intervalo_configurado(dispositivo):
+    """
+    Intervalo de lectura (s) que el ESP32 debe aplicar desde su proximo ciclo (RF011).
+
+    Se toma el menor `intervalo_lectura_segundos` de los sensores activos de la
+    geomembrana del dispositivo: el nodo lee todos sus sensores en un mismo ciclo,
+    asi que manda el que necesita mas frecuencia.
+
+    :param dispositivo: monitoreo.Dispositivo autenticado
+    :return: int con los segundos entre lotes
+    """
+    from django.db.models import Min
+    minimo = (
+        dispositivo.geomembrana.sensores.filter(estado='activo')
+        .aggregate(m=Min('intervalo_lectura_segundos'))['m']
+    )
+    return int(minimo or INTERVALO_POR_DEFECTO_S)
+
+
 def respuesta(success, data=None, message='', codigo=status.HTTP_200_OK):
     """Formato JSON unico para toda la API: {success, data, message}."""
     return Response({'success': success, 'data': data, 'message': message}, status=codigo)
@@ -216,6 +238,7 @@ class IngestaLecturasView(BaseVistaDispositivo):
                 'alertas_cerradas': alertas_cerradas,
                 'rechazadas': errores_parciales,
                 'hora_servidor': ahora.isoformat(),
+                'intervalo_segundos': intervalo_configurado(dispositivo),
                 'lecturas': LecturaSalidaSerializer(persistidas, many=True).data,
             },
             message=f'{len(persistidas)} lectura(s) registrada(s).',

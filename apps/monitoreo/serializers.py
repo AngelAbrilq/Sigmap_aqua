@@ -84,11 +84,17 @@ class LoteLecturasSerializer(serializers.Serializer):
     en MySQL, frente a un POST por cada muestra.
     """
 
-    firmware = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    # Se acepta una version larga y se recorta a 20 (tamano de la columna) en vez
+    # de rechazar el lote completo: el nombre del firmware no es una medicion.
+    firmware = serializers.CharField(max_length=64, required=False, allow_blank=True)
     mac = serializers.CharField(max_length=17, required=False, allow_blank=True)
     lecturas = serializers.ListField(
         child=serializers.DictField(), allow_empty=False, max_length=100
     )
+
+    def validate_firmware(self, valor):
+        """Recorta la version al largo de Dispositivo.firmware_version."""
+        return (valor or '')[:20]
 
     def validate_lecturas(self, elementos):
         dispositivo = self.context['dispositivo']

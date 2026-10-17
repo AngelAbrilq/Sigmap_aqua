@@ -5,7 +5,7 @@
  *
  * QUE HACE
  *   1. Se asocia al WiFi 2.4 GHz y sincroniza la hora por NTP.
- *   2. Cada INTERVALO_S: lee cada sensor ACTIVO, lo convierte a su unidad real,
+ *   2. Cada intervaloS (30 s, ajustable desde el software): lee cada sensor ACTIVO, lo convierte a su unidad real,
  *      marca cada lectura con su timestamp y arma un lote JSON.
  *   3. Intenta enviarlo por POST a /api/v1/lecturas/ con "Authorization: Device".
  *   4. MODO OFFLINE (RF019): si el envio falla (sin red / servidor caido), el
@@ -18,10 +18,10 @@
  *   - `codigo_hardware` DEBE coincidir EXACTO con la tabla `sensores` de la BD.
  *
  * SENSORES CABLEADOS (ver docs/HARDWARE_SENSORES.md para el cableado):
- *   GPIO4  DS18B20 temperatura   pull-up 4,7 kOhm, sin divisor
+ *   GPIO32 DS18B20 temperatura   pull-up 4,7 kOhm a 3V3, sin divisor
  *   GPIO34 pH PH-4502C           divisor 10k/20k obligatorio (sale hasta 5 V)
- *   GPIO35 oxigeno SEN0237-A     salida 0-3 V, directa al pin
- *   GPIO32 turbidez TS-300B      divisor 10k/20k obligatorio (sale hasta 4,5 V)
+ *   GPIO35 turbidez TS-300B      divisor 10k/10k obligatorio (sale hasta 4,5 V)
+ *   GPIO33 oxigeno SEN0237-A     salida 0-3 V, directa al pin (aun sin cablear)
  *
  * LIBRERIAS: ArduinoJson 7.x, OneWire, DallasTemperature.
  * PARTICION: elige en Arduino IDE una particion con SPIFFS/LittleFS
@@ -42,8 +42,13 @@
 #include <DallasTemperature.h>
 
 // ---------------------------------------------------------------------------
-static const char* FIRMWARE_VERSION = "1.2.0-4sensores";
-static const uint32_t INTERVALO_S   = 300;      // 5 min entre lotes
+static const char* FIRMWARE_VERSION = "1.3.0-sigmap";  // max 20 caracteres (columna firmware_version)
+// Intervalo entre lotes. Arranca en 30 s y lo ajusta el SOFTWARE en cada
+// respuesta (campo data.intervalo_segundos, RF011): sin reprogramar el ESP32.
+static const uint32_t INTERVALO_INICIAL_S = 30;
+static const uint32_t INTERVALO_MIN_S     = 10;
+static const uint32_t INTERVALO_MAX_S     = 3600;
+static uint32_t intervaloS = INTERVALO_INICIAL_S;
 static const uint32_t TIMEOUT_WIFI_MS = 20000;
 static const uint32_t TIMEOUT_HTTP_MS = 10000;
 static const uint8_t  MUESTRAS_ADC  = 31;      // impar: la mediana cae en una muestra real
@@ -70,8 +75,8 @@ enum TipoSensor {
  * Configuracion de un sensor cableado al nodo.
  *
  * factor_divisor: cuanto hay que multiplicar el voltaje leido en el pin para
- * recuperar el voltaje real del sensor. Con el divisor 10k/20k de la guia el
- * pin ve 2/3 de la senal, asi que el factor es 1.5. Sin divisor es 1.0.
+ * recuperar el voltaje real del sensor: (R1 + R2) / R2.
+ *   10k/20k -> 1.5   |   10k/10k -> 2.0   |   sin divisor -> 1.0
  */
 struct SensorCfg {
   const char* codigo_hardware;  // EXACTO como en la tabla `sensores` de la BD
@@ -85,8 +90,8 @@ struct SensorCfg {
 // Se obtiene con dos buffers. Ver docs/HARDWARE_SENSORES.md, seccion 8.
 //   pendiente  = (pH1 - pH2) / (V1 - V2)
 //   intercepto = pH1 - pendiente * V1
-static const float PH_M = -5.59f;
-static const float PH_B = 21.06f;
+static const float PH_M = -5.70f;   // calibracion vigente (sketch de prueba)
+static const float PH_B = 21.34f;
 
 // --- Calibracion del oxigeno disuelto (SEN0237-A) ---------------------------
 // Voltaje medido con la membrana humeda al aire (100 % de saturacion) y la
@@ -111,14 +116,14 @@ static const float TURB_NTU_MAX       = 3000.0f;
 
 static SensorCfg SENSORES[] = {
   //  codigo         tipo           gpio  divisor  activo
-  { "SEN-001-TEM", TEMP_DS18B20,     4,   1.0f,   true },
+  { "SEN-001-TEM", TEMP_DS18B20,    32,   1.0f,   true },
   { "SEN-001-PH",  PH_LINEAL,       34,   1.5f,   true },
-  { "SEN-001-OXI", OXIGENO_MGL,     35,   1.0f,   true },
-  { "SEN-001-TUR", TURBIDEZ_NTU,    32,   1.5f,   true },
+  { "SEN-001-OXI", OXIGENO_MGL,     33,   1.0f,   false },  // activar al cablear la sonda
+  { "SEN-001-TUR", TURBIDEZ_NTU,    35,   2.0f,   true  },  // divisor 10k/10k
 };
 static const size_t N_SENSORES = sizeof(SENSORES) / sizeof(SENSORES[0]);
 
-static const uint8_t PIN_ONEWIRE = 4;
+static const uint8_t PIN_ONEWIRE = 32;   // DS18B20 (debe coincidir con SEN-001-TEM)
 static OneWire oneWire(PIN_ONEWIRE);
 static DallasTemperature ds18(&oneWire);
 
@@ -263,6 +268,17 @@ static float leerSensor(const SensorCfg& s) {
   return NAN;
 }
 
+/** Nombre y unidad legibles de cada tipo de sensor, para el monitor serie. */
+static void etiquetaSensor(TipoSensor tipo, const char*& nombre, const char*& unidad) {
+  switch (tipo) {
+    case TEMP_DS18B20: nombre = "Temperatura"; unidad = "°C";   break;
+    case PH_LINEAL:    nombre = "pH";          unidad = "pH";   break;
+    case OXIGENO_MGL:  nombre = "Oxigeno";     unidad = "mg/L"; break;
+    case TURBIDEZ_NTU: nombre = "Turbidez";    unidad = "NTU";  break;
+    default:           nombre = "Sensor";      unidad = "";     break;
+  }
+}
+
 /** Arma el cuerpo JSON del lote actual. Devuelve "" si no hubo lecturas. */
 static String construirCuerpo() {
   JsonDocument doc;
@@ -274,11 +290,18 @@ static String construirCuerpo() {
   // El DS18B20 va primero en la tabla a proposito: su temperatura alimenta la
   // compensacion del oxigeno disuelto que se calcula unas lineas mas abajo.
   uint8_t incluidas = 0;
+  Serial.println("\n------------------------------------------------------------");
+  Serial.printf(" Lote %s\n", ts.length() ? ts.c_str() : "(sin hora NTP)");
+  Serial.println(" SENSOR       |     VALOR      | CODIGO");
+  Serial.println("--------------+----------------+-----------------");
   for (size_t i = 0; i < N_SENSORES; i++) {
     const SensorCfg& s = SENSORES[i];
     if (!s.activo) continue;
     float valor = leerSensor(s);
     if (isnan(valor)) { Serial.printf("[ADC] %s sin lectura, se omite.\n", s.codigo_hardware); continue; }
+    const char* nombre; const char* unidad;
+    etiquetaSensor(s.tipo, nombre, unidad);
+    Serial.printf(" %-12s | %8.2f %-5s | %s\n", nombre, valor, unidad, s.codigo_hardware);
     JsonObject l = arr.add<JsonObject>();
     l["codigo_hardware"] = s.codigo_hardware;
     l["valor"] = roundf(valor * 100.0f) / 100.0f;
@@ -286,13 +309,56 @@ static String construirCuerpo() {
     if (ts.length()) l["timestamp"] = ts;   // clave para el dedup offline
     incluidas++;
   }
+  Serial.println("------------------------------------------------------------");
   if (incluidas == 0) return String("");
+  // Paquete JSON que viaja al software (se muestra para la sustentacion).
+  Serial.println("[JSON] Paquete armado:");
+  serializeJsonPretty(doc, Serial);
+  Serial.println();
   String out; serializeJson(doc, out); return out;
 }
 
 // ---------------------------------------------------------------------------
 // Envio + cola offline (RF019)
 // ---------------------------------------------------------------------------
+/**
+ * @brief Procesa la respuesta del software: aplica el intervalo configurado
+ *        (RF011) y muestra el resumen o el motivo del rechazo.
+ * @param codigo Codigo HTTP recibido.
+ * @param cuerpo Cuerpo JSON {success, data, message}.
+ */
+static void aplicarRespuesta(int codigo, const String& cuerpo) {
+  JsonDocument resp;
+  if (deserializeJson(resp, cuerpo)) {
+    Serial.println("[HTTP] Respuesta no es JSON.");
+    return;
+  }
+  const char* mensaje = resp["message"] | "";
+  if (codigo == 401 || codigo == 403) {
+    Serial.printf("[AUTH] %s  -> revisa DEVICE_TOKEN y el estado del dispositivo.\n", mensaje);
+    return;
+  }
+  if (codigo >= 400) {
+    Serial.printf("[HTTP] Rechazado: %s\n", mensaje);
+    serializeJsonPretty(resp["data"], Serial); Serial.println();
+    return;
+  }
+  JsonObject data = resp["data"];
+  Serial.printf("[SIGMAP-AQUA] %s registradas=%d criticas=%d alertas=%d\n", mensaje,
+                data["registradas"] | 0, data["criticas"] | 0, data["alertas_generadas"] | 0);
+  JsonArray rechazadas = data["rechazadas"];
+  if (!rechazadas.isNull() && rechazadas.size() > 0) {
+    Serial.print("[HTTP] Lecturas rechazadas: ");
+    serializeJson(rechazadas, Serial); Serial.println();
+  }
+  const uint32_t nuevo = data["intervalo_segundos"] | 0;
+  if (nuevo >= INTERVALO_MIN_S && nuevo <= INTERVALO_MAX_S && nuevo != intervaloS) {
+    Serial.printf("[CONFIG] Intervalo actualizado por el software: %lu s -> %lu s\n",
+                  (unsigned long)intervaloS, (unsigned long)nuevo);
+    intervaloS = nuevo;
+  }
+}
+
 static bool enviarCuerpo(const String& cuerpo) {
   if (WiFi.status() != WL_CONNECTED) return false;
   char url[96];
@@ -309,6 +375,7 @@ static bool enviarCuerpo(const String& cuerpo) {
   int codigo = http.POST((uint8_t*)cuerpo.c_str(), cuerpo.length());
   bool ok = (codigo >= 200 && codigo < 300);
   Serial.printf("[HTTP] %d %s\n", codigo, ok ? "OK" : http.errorToString(codigo).c_str());
+  if (codigo > 0) aplicarRespuesta(codigo, http.getString());
   http.end();
   return ok;
 }
@@ -352,14 +419,14 @@ void setup() {
   analogSetAttenuation(ADC_11db);
   if (!LittleFS.begin(true)) Serial.println("[FS] LittleFS no monto; el modo offline no guardara.");
   // ds18.begin();
-  Serial.printf("\n=== BioAqua nodo v%s (con modo offline) ===\n", FIRMWARE_VERSION);
+  Serial.printf("\n=== SIGMAP-AQUA nodo v%s | intervalo %lu s | modo offline ===\n", FIRMWARE_VERSION, (unsigned long)intervaloS);
   if (conectarWiFi()) sincronizarHora();
 }
 
 void loop() {
   static uint32_t ultimo = 0;
   const uint32_t ahora = millis();
-  if (ultimo == 0 || (ahora - ultimo) >= INTERVALO_S * 1000UL) {
+  if (ultimo == 0 || (ahora - ultimo) >= intervaloS * 1000UL) {
     digitalWrite(PIN_LED_ESTADO, HIGH);
 
     if (!horaLista && conectarWiFi()) sincronizarHora();  // reintenta NTP si hizo falta
