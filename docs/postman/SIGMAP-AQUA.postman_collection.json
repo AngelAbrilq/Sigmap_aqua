@@ -1,0 +1,1662 @@
+{
+  "info": {
+    "_postman_id": "6ee39583-b1e0-4586-82d9-ea081e1fc594",
+    "name": "SIGMAP-AQUA API",
+    "description": "Pruebas de las dos APIs de SIGMAP-AQUA.\n\n1. ESP32 → /api/v1/ (token de dispositivo: `Authorization: Device <token>`).\n2. App móvil → /api/v1/movil/ (JWT: login → refresh rotativo → logout con blacklist).\n\nTodas las respuestas usan el formato `{success, data, message}`. Ejecutar en orden con el Collection Runner.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. ESP32 (token de dispositivo)",
+      "item": [
+        {
+          "name": "D1 Handshake sin token → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dispositivos/handshake/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dispositivos",
+                "handshake"
+              ]
+            },
+            "description": "Sin cabecera Authorization: el decorador dispositivo_requerido corta antes de tocar la BD.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D2 Handshake token inválido → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device token_falso_123"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dispositivos/handshake/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dispositivos",
+                "handshake"
+              ]
+            },
+            "description": "Token que no existe en la tabla dispositivos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D3 Handshake con 'Bearer' → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dispositivos/handshake/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dispositivos",
+                "handshake"
+              ]
+            },
+            "description": "El ESP32 usa el esquema 'Device', no JWT. 'Bearer' se rechaza.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D4 Handshake OK → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/dispositivos/handshake/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "dispositivos",
+                "handshake"
+              ]
+            },
+            "description": "Verifica enlace, actualiza ultima_conexion y devuelve los sensores esperados.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firmware\": \"postman-1.0\",\n  \"mac\": \"AA:BB:CC:DD:EE:FF\",\n  \"rssi\": -55\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Devuelve hora_servidor\", () => pm.expect(j.data.hora_servidor).to.be.a(\"string\"));",
+                  "const s = j.data.sensores_esperados || [];",
+                  "pm.collectionVariables.set(\"sensores_esperados\", JSON.stringify(s));",
+                  "if (s.length === 0) console.warn(\"La piscina del dispositivo no tiene sensores activos: la ingesta D9/D10 fallará con 400.\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D5 Lote vacío → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/lecturas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lecturas"
+              ]
+            },
+            "description": "allow_empty=False en LoteLecturasSerializer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturas\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D6 Sensor inexistente → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/lecturas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lecturas"
+              ]
+            },
+            "description": "codigo_hardware que no está registrado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturas\": [\n    {\n      \"codigo_hardware\": \"NO-EXISTE\",\n      \"valor\": 7.0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D7 Sensor de otra piscina → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/lecturas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lecturas"
+              ]
+            },
+            "description": "Un nodo no puede reportar sensores de una geomembrana que no es la suya.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturas\": [\n    {\n      \"codigo_hardware\": \"SEN-001-PH\",\n      \"valor\": 7.2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D8 Valor no numérico → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/lecturas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lecturas"
+              ]
+            },
+            "description": "DecimalField rechaza texto.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturas\": [\n    {\n      \"codigo_hardware\": \"SEN-001-PH\",\n      \"valor\": \"abc\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D9 Ingesta normal → 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/lecturas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lecturas"
+              ]
+            },
+            "description": "Arma el lote con los sensores que devolvió D4. Requiere que la piscina del dispositivo tenga sensores activos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firmware\": \"postman-1.0\",\n  \"mac\": \"AA:BB:CC:DD:EE:FF\",\n  \"lecturas\": {{lecturas_ok}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s = JSON.parse(pm.collectionVariables.get(\"sensores_esperados\") || \"[]\");",
+                  "const v = {ph: 7.2, oxigeno: 6.5, \"oxígeno\": 6.5, temperatura: 26.0, turbidez: 15.0};",
+                  "const pick = p => { p = (p||\"\").toLowerCase(); for (const k in v) if (p.includes(k)) return v[k]; return 1; };",
+                  "pm.variables.set(\"lecturas_ok\", JSON.stringify(s.map(x => ({codigo_hardware: x.codigo_hardware, valor: pick(x.parametro)}))));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Registradas > 0\", () => pm.expect(j.data.registradas).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "D10 Ingesta crítica → 201 + alertas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Device {{device_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/lecturas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "lecturas"
+              ]
+            },
+            "description": "Valores fuera de rango: deben abrir alertas en el motor de alertas.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lecturas\": {{lecturas_crit}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s = JSON.parse(pm.collectionVariables.get(\"sensores_esperados\") || \"[]\");",
+                  "const v = {ph: 9.6, oxigeno: 2.0, \"oxígeno\": 2.0, temperatura: 38.0, turbidez: 900.0};",
+                  "const pick = p => { p = (p||\"\").toLowerCase(); for (const k in v) if (p.includes(k)) return v[k]; return 1; };",
+                  "pm.variables.set(\"lecturas_crit\", JSON.stringify(s.map(x => ({codigo_hardware: x.codigo_hardware, valor: pick(x.parametro)}))));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Hay lecturas críticas\", () => pm.expect(j.data.criticas).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. App móvil (JWT)",
+      "item": [
+        {
+          "name": "M1 Login contraseña incorrecta → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/token/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "token"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"operario@sigmap.com\",\n  \"password\": \"incorrecta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M2 Login Operario → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/token/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "token"
+              ]
+            },
+            "description": "Guarda access y refresh en variables de colección.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_operario}}\",\n  \"password\": \"{{password_operario}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Trae access y refresh\", () => { pm.expect(j.data.access).to.be.a(\"string\"); pm.expect(j.data.refresh).to.be.a(\"string\"); });",
+                  "pm.test(\"Rol Operario\", () => pm.expect(j.data.usuario.rol).to.eql(\"Operario\"));",
+                  "pm.collectionVariables.set(\"access_operario\", j.data.access);",
+                  "pm.collectionVariables.set(\"refresh_operario\", j.data.refresh);",
+                  "pm.collectionVariables.set(\"refresh_viejo\", j.data.refresh);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M3 Perfil sin token → 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M4 Perfil Operario → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Incluye módulos de lectura/escritura\", () => pm.expect(j.data.modulos).to.have.keys(\"lectura\", \"escritura\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M5 Listar geomembranas → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/geomembranas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "geomembranas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Paginado\", () => pm.expect(j.data).to.include.keys(\"total\", \"resultados\"));",
+                  "const g = j.data.resultados.find(x => x.codigo_identificacion === \"GEO-001\") || j.data.resultados[0];",
+                  "pm.collectionVariables.set(\"geomembrana_id\", g.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M6 Detalle geomembrana → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/geomembranas/{{geomembrana_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "geomembranas",
+                "{{geomembrana_id}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M7 Últimas lecturas → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/geomembranas/{{geomembrana_id}}/ultimas-lecturas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "geomembranas",
+                "{{geomembrana_id}}",
+                "ultimas-lecturas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Trae parámetros\", () => pm.expect(j.data.parametros).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M8 Geomembrana inexistente → 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/geomembranas/99999/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "geomembranas",
+                "99999"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M9 Historial con filtro inválido → 400",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/lecturas/?desde=ayer",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "lecturas"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "ayer"
+                }
+              ]
+            },
+            "description": "FiltroHistorialSerializer valida los query params antes del ORM."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M10 Historial por geomembrana → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/lecturas/?geomembrana={{geomembrana_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "lecturas"
+              ],
+              "query": [
+                {
+                  "key": "geomembrana",
+                  "value": "{{geomembrana_id}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.test(\"Paginado\", () => pm.expect(j.data).to.include.keys(\"total\", \"pagina\", \"paginas\", \"resultados\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M11 Alertas activas → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/alertas/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "alertas"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "if (j.data.resultados.length) pm.collectionVariables.set(\"alerta_id\", j.data.resultados[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M12 Notificaciones → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/notificaciones/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "notificaciones"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M13 Predicciones IA → 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/predicciones/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "predicciones"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M14 Login Aprendiz → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/token/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "token"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email_aprendiz}}\",\n  \"password\": \"{{password_aprendiz}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.collectionVariables.set(\"access_aprendiz\", j.data.access);",
+                  "pm.collectionVariables.set(\"refresh_aprendiz\", j.data.refresh);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M15 Aprendiz reconoce alerta → 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_aprendiz}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/alertas/{{alerta_id}}/reconocer/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "alertas",
+                "{{alerta_id}}",
+                "reconocer"
+              ]
+            },
+            "description": "Control de acceso por rol en el backend (PermisoModulo).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accion_tomada\": \"prueba desde Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M16 Refresh → 200 (rota token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/refresh/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_operario}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));",
+                  "pm.collectionVariables.set(\"access_operario\", j.data.access);",
+                  "if (j.data.refresh) pm.collectionVariables.set(\"refresh_operario\", j.data.refresh);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M17 Reusar refresh viejo → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/refresh/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "ROTATE_REFRESH_TOKENS + BLACKLIST_AFTER_ROTATION: un refresh sirve una sola vez.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_viejo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M18 Refresh basura → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/refresh/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"xxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M19 Logout Operario → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_operario}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/logout/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_operario}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M20 Refresh tras logout → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/refresh/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_operario}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = false\", () => pm.expect(j.success).to.eql(false));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "M21 Logout Aprendiz → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_aprendiz}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/movil/auth/logout/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "movil",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_aprendiz}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Formato {success, data, message}\", () => {",
+                  "  pm.expect(j).to.have.all.keys(\"success\", \"data\", \"message\");",
+                  "});",
+                  "pm.test(\"success = true\", () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "sensores_esperados",
+      "value": ""
+    },
+    {
+      "key": "access_operario",
+      "value": ""
+    },
+    {
+      "key": "refresh_operario",
+      "value": ""
+    },
+    {
+      "key": "refresh_viejo",
+      "value": ""
+    },
+    {
+      "key": "access_aprendiz",
+      "value": ""
+    },
+    {
+      "key": "refresh_aprendiz",
+      "value": ""
+    },
+    {
+      "key": "geomembrana_id",
+      "value": ""
+    },
+    {
+      "key": "alerta_id",
+      "value": ""
+    }
+  ]
+}
