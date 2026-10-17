@@ -124,6 +124,8 @@ MIDDLEWARE = [
 
     # Bloquea el admin nativo para los roles operativos
     'apps.usuarios.middleware.BloqueoAdminNativoMiddleware',
+    # Evita que el navegador guarde en cache paginas autenticadas tras cerrar sesion
+    'apps.usuarios.middleware.SinCacheSesionMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -212,6 +214,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL           = '/auth/login/'
 LOGIN_REDIRECT_URL  = '/dashboard/'   # fallback: login_view enruta por rol
 LOGOUT_REDIRECT_URL = '/auth/login/'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # ---------------------------------------------------------------------------
 # API de ingesta IoT (nodos ESP32)

@@ -142,7 +142,7 @@
                 <span>Ayuda y Soporte</span>
               </button>
               <div class="user-dropdown-divider"></div>
-              <a href="{% url 'usuarios:logout' %}" class="user-dropdown-item text-danger">
+              <a href="{% url 'usuarios:logout' %}" class="user-dropdown-item text-danger" onclick="try{sessionStorage.clear();localStorage.clear();}catch(e){}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                   <polyline points="16 17 21 12 16 7"/>
@@ -298,6 +298,14 @@
       // Ajuste dinámico de barras de progreso según su atributo data-progreso
       document.querySelectorAll('.sg-barra-fill[data-progreso]').forEach((barra) => {
         barra.style.width = `${barra.dataset.progreso}%`;
+      });
+
+      // Si la página se recupera de la caché del navegador (botón atrás tras cerrar sesión),
+      // forzar recarga inmediata para que el servidor verifique la sesión destruida y redirija al login.
+      window.addEventListener('pageshow', function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
+          window.location.reload();
+        }
       });
     });
   </script>
