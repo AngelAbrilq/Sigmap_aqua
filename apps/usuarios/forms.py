@@ -8,6 +8,7 @@ Django). Un ModelForm plano guardaria el texto plano en la columna.
 import re
 
 from django import forms
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
@@ -137,3 +138,71 @@ class UsuarioForm(forms.ModelForm):
         if commit:
             usuario.save()
         return usuario
+
+
+# ======================================================================
+# RECUPERACION DE CONTRASENA (RF025 / HU 025)
+# ======================================================================
+
+
+class SolicitudRecuperacionForm(PasswordResetForm):
+    """
+    Paso 1: el usuario escribe su correo para recibir el enlace.
+
+    Django solo descarta cuentas con is_active=False, pero en este sistema una
+    cuenta desactivada tiene estado='inactivo'. Sin este filtro, un usuario que
+    el Instructor Lider desactivo podria volver a entrar cambiando su clave.
+    """
+
+    email = forms.EmailField(
+        label='Correo electrónico', max_length=100,
+        error_messages={
+            'required': 'Escribe el correo con el que ingresas al sistema.',
+            'invalid': 'Escribe un correo válido, por ejemplo nombre@correo.com.',
+        },
+        widget=forms.EmailInput(attrs={
+            'autocomplete': 'email', 'placeholder': 'Ej. juan.perez@empresa.com'}),
+    )
+
+    def clean_email(self):
+        """Normaliza el correo: el login es por email y no distingue mayúsculas."""
+        return self.cleaned_data['email'].strip().lower()
+
+    def get_users(self, email):
+        """
+        Cuentas que pueden recibir el enlace: activas en ambos campos y con
+        una contraseña usable.
+
+        :param email: correo ya normalizado
+        :return: iterable de Usuario
+        """
+        return (
+            usuario for usuario in Usuario.objects.filter(
+                email__iexact=email, is_active=True, estado='activo',
+            )
+            if usuario.has_usable_password()
+        )
+
+
+class NuevaContrasenaForm(SetPasswordForm):
+    """
+    Paso 2: el usuario abre el enlace y define la nueva contraseña.
+
+    Hereda la validación de AUTH_PASSWORD_VALIDATORS y la comparación de las
+    dos contraseñas; aquí solo se traducen etiquetas y mensajes.
+    """
+
+    error_messages = {
+        **SetPasswordForm.error_messages,
+        'password_mismatch': 'Las dos contraseñas no coinciden.',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_password1'].label = 'Nueva contraseña'
+        self.fields['new_password2'].label = 'Confirmar contraseña'
+        self.fields['new_password1'].widget.attrs.update(
+            {'placeholder': 'Mínimo 8 caracteres', 'autocomplete': 'new-password'})
+        self.fields['new_password2'].widget.attrs.update(
+            {'placeholder': 'Repite la contraseña', 'autocomplete': 'new-password'})
+        self.fields['new_password1'].help_text = ''

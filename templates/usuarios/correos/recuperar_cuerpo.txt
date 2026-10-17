@@ -1,0 +1,13 @@
+{% autoescape off %}Hola {{ user.nombre_completo }},
+
+Recibimos una solicitud para restablecer la contraseña de tu cuenta en SIGMAP-AQUA.
+
+Abre este enlace para crear una nueva contraseña:
+{{ protocol }}://{{ domain }}{% url 'usuarios:recuperar_confirmar' uidb64=uid token=token %}
+
+El enlace vence en {{ minutos_vigencia }} minutos y solo se puede usar una vez.
+
+Si no hiciste esta solicitud, ignora este correo: tu contraseña no cambiará.
+
+— Equipo SIGMAP-AQUA
+{% endautoescape %}

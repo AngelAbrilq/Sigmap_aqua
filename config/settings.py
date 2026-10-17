@@ -235,6 +235,33 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'apps.monitoreo.excepciones.manejador_errores',
 }
 
+# ---------------------------------------------------------------------------
+# Recuperacion de contrasena (RF025 / HU 025)
+# ---------------------------------------------------------------------------
+# El enlace de restablecimiento vence a los 30 minutos. Django lo invalida
+# solo en cuanto la contrasena cambia, asi que tambien es de un solo uso.
+PASSWORD_RESET_TIMEOUT = 30 * 60
+
+# Limite de solicitudes por correo: evita usar el formulario para inundar
+# la bandeja de alguien o probar correos a fuerza bruta.
+RECUPERACION_MAX_SOLICITUDES = 3
+RECUPERACION_VENTANA_SEGUNDOS = 15 * 60
+
+# Correo saliente. Sin EMAIL_HOST en el .env, los correos se imprimen en la
+# consola de runserver: sirve para desarrollo y para la demo sin internet.
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend' if EMAIL_HOST
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER or 'SIGMAP-AQUA <no-responder@sigmap-aqua.local>'
+)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

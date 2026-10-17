@@ -7,7 +7,7 @@ colisionan en el espacio de nombres.
 """
 from django.urls import path
 
-from . import views
+from . import views, views_recuperacion
 
 app_name = 'usuarios'
 
@@ -15,6 +15,17 @@ urlpatterns = [
     # Autenticacion
     path('auth/login/',  views.login_view,  name='login'),
     path('auth/logout/', views.logout_view, name='logout'),
+
+    # Recuperacion de contrasena (RF025 / HU 025)
+    path('auth/recuperar/',
+         views_recuperacion.SolicitarRecuperacionView.as_view(),
+         name='recuperar'),
+    path('auth/recuperar/enviado/',
+         views_recuperacion.RecuperacionEnviadaView.as_view(),
+         name='recuperar_enviado'),
+    path('auth/recuperar/<uidb64>/<token>/',
+         views_recuperacion.ConfirmarRecuperacionView.as_view(),
+         name='recuperar_confirmar'),
 
     # Gestion de cuentas (solo Instructor Lider escribe)
     path('usuarios/', views.listar, name='listar'),

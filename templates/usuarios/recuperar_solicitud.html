@@ -1,0 +1,40 @@
+{% extends "usuarios/base_auth.html" %}
+
+{% block titulo %}Recuperar contraseña{% endblock %}
+
+{% block contenido %}
+              <h1 class="form-title">Recuperar contraseña</h1>
+              <p class="form-desc">Escribe el correo con el que ingresas. Te enviaremos un enlace para crear una nueva contraseña.</p>
+
+              {% include "usuarios/_mensajes.html" %}
+
+              <form method="post" action="{% url 'usuarios:recuperar' %}" novalidate>
+                  {% csrf_token %}
+
+                  <div class="field">
+                      <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                      <div class="input-box{% if form.email.errors %} is-invalid{% endif %}">
+                          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+                          </svg>
+                          <input type="email" id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}"
+                              value="{{ form.email.value|default_if_none:'' }}"
+                              placeholder="Ej. juan.perez@empresa.com" maxlength="100"
+                              autocomplete="email" required
+                              {% if form.email.errors %}aria-invalid="true" aria-describedby="error-email"{% endif %}>
+                      </div>
+                      {% for error in form.email.errors %}
+                          <p class="field-error" id="error-email">{{ error }}</p>
+                      {% endfor %}
+                  </div>
+
+                  <button type="submit" class="btn-submit">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/>
+                      </svg>
+                      Enviar enlace
+                  </button>
+              </form>
+
+              <a href="{% url 'usuarios:login' %}" class="link-secundario">Volver a iniciar sesión</a>
+{% endblock %}

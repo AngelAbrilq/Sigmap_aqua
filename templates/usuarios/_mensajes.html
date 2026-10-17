@@ -1,0 +1,8 @@
+              {% if messages %}
+                  {% for message in messages %}
+                      <div class="alert{% if message.tags == 'success' %} alert--ok{% endif %}" role="{% if message.tags == 'success' %}status{% else %}alert{% endif %}">
+                          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                          {{ message }}
+                      </div>
+                  {% endfor %}
+              {% endif %}

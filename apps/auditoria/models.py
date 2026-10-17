@@ -21,6 +21,8 @@ class EventoSistema(models.Model):
         USUARIO_EDICION = 'usuario_edicion', 'Edición de usuario'
         USUARIO_ESTADO = 'usuario_estado', 'Cambio de estado de usuario'
         SESION_INICIO = 'sesion_inicio', 'Inicio de sesión'
+        RECUPERACION_SOLICITADA = 'recuperacion_solicitada', 'Solicitud de recuperación de contraseña'
+        CONTRASENA_RESTABLECIDA = 'contrasena_restablecida', 'Contraseña restablecida'
         ALERTA_RECONOCIDA = 'alerta_reconocida', 'Alerta reconocida'
         ALERTA_RESUELTA = 'alerta_resuelta', 'Alerta resuelta'
         SISTEMA = 'sistema', 'Evento del sistema'

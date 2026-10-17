@@ -1,0 +1,18 @@
+{% extends "usuarios/base_auth.html" %}
+
+{% block titulo %}Revisa tu correo{% endblock %}
+
+{% block contenido %}
+              <h1 class="form-title">Revisa tu correo</h1>
+
+              {# Mismo texto exista o no la cuenta: no se revela que correos estan registrados. #}
+              <div class="aviso" role="status">
+                  Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.
+                  El enlace vence en {{ minutos_vigencia }} minutos y solo se puede usar una vez.
+              </div>
+
+              <p class="form-desc">¿No te llegó? Revisa la carpeta de spam o solicita un enlace nuevo en unos minutos.</p>
+
+              <a href="{% url 'usuarios:recuperar' %}" class="link-secundario">Solicitar otro enlace</a>
+              <a href="{% url 'usuarios:login' %}" class="link-secundario">Volver a iniciar sesión</a>
+{% endblock %}
