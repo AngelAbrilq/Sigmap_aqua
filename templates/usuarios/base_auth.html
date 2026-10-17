@@ -290,5 +290,14 @@
 
 {% block scripts %}{% endblock %}
 
+<script>
+  // Evitar que al retroceder se muestren páginas en caché o estados inconsistentes
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
+      window.location.reload();
+    }
+  });
+</script>
+
 </body>
 </html>
