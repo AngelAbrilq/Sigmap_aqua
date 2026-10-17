@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="sg-modulo">
+<div class="sg-modulo" data-url-estado="{% if seleccionada %}{% url 'monitoreo:api_estado' seleccionada.pk %}{% endif %}" data-intervalo="{{ intervalo_refresco|default:10 }}">
 
   <div class="sg-card">
     <form class="sg-filtros" method="get">
@@ -46,7 +46,7 @@
           </span>
         </h2>
         <div class="sg-acciones">
-          <a class="sg-btn sg-btn--suave sg-btn--sm" href="{% url 'alertas:listar' %}?piscina={{ seleccionada.pk }}">
+          <a class="sg-btn sg-btn--suave sg-btn--sm" id="btnAlertasPiscina" href="{% url 'alertas:listar' %}?piscina={{ seleccionada.pk }}">
             Ver alertas ({{ seleccionada.alertas_activas.count }})
           </a>
           <a class="sg-btn sg-btn--suave sg-btn--sm" href="{% url 'monitoreo:historial' %}?piscina={{ seleccionada.pk }}">
@@ -65,7 +65,7 @@
               <div class="sg-kpi-info">
                 <span class="sg-kpi-label">{{ t.parametro }}</span>
                 <span class="sg-kpi-valor" data-campo="valor">
-                  {% if t.valor is not None %}{{ t.valor }} <small style="font-size:13px;font-weight:600;color:#6b7280;">{{ t.unidad }}</small>{% else %}—{% endif %}
+                  {% if t.valor is not None %}{{ t.valor }} <small class="sg-kpi-unidad">{{ t.unidad }}</small>{% else %}—{% endif %}
                 </span>
                 <span class="sg-kpi-sub" data-campo="meta">
                   {% if t.momento %}
@@ -98,14 +98,14 @@
               </thead>
               <tbody>
                 {% for t in tarjetas %}
-                  <tr>
+                  <tr data-sensor-fila="{{ t.sensor.codigo_hardware }}">
                     <td><strong>{{ t.sensor.codigo_hardware }}</strong><br><small style="color:#9ca3af;">{{ t.sensor.nombre_sensor }}</small></td>
                     <td>{{ t.parametro }}</td>
-                    <td class="num">{% if t.valor is not None %}{{ t.valor }} {{ t.unidad }}{% else %}—{% endif %}</td>
-                    <td><span class="sg-chip sg-chip--{{ t.estado }}">
+                    <td class="num" data-campo="tabla-valor">{% if t.valor is not None %}{{ t.valor }} {{ t.unidad }}{% else %}—{% endif %}</td>
+                    <td><span class="sg-chip sg-chip--{{ t.estado }}" data-campo="tabla-estado">
                       {% if t.estado == 'sin_datos' %}Sin datos{% else %}{{ t.estado|capfirst }}{% endif %}
                     </span></td>
-                    <td>{% if t.momento %}{{ t.momento|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+                    <td data-campo="tabla-momento">{% if t.momento %}{{ t.momento|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -126,7 +126,6 @@
 {% endblock %}
 
 {% block extra_js %}
-{% if seleccionada %}
 <script>
   /**
    * Refresco del tablero sin recargar la pagina.
@@ -137,11 +136,15 @@
    * actuales.
    */
   document.addEventListener('DOMContentLoaded', () => {
-    const URL_ESTADO = "{% url 'monitoreo:api_estado' seleccionada.pk %}";
-    const INTERVALO = {{ intervalo_refresco }} * 1000;
+    const modulo = document.querySelector('.sg-modulo');
+    const URL_ESTADO = modulo?.dataset.urlEstado;
+    const INTERVALO = (Number(modulo?.dataset.intervalo) || 10) * 1000;
 
-    const indicador = document.getElementById('estadoRefresco');
-    const semaforo  = document.getElementById('semaforoPiscina');
+    if (!URL_ESTADO) return;
+
+    const indicador  = document.getElementById('estadoRefresco');
+    const semaforo   = document.getElementById('semaforoPiscina');
+    const btnAlertas = document.getElementById('btnAlertasPiscina');
 
     /**
      * Formatea la antigüedad de una lectura en texto corto.
@@ -157,7 +160,7 @@
       return `hace ${Math.floor(segundos / 86400)} d`;
     };
 
-    /** Consulta el estado actual y repinta las tarjetas. */
+    /** Consulta el estado actual y repinta las tarjetas y la tabla. */
     const refrescar = async () => {
       try {
         const respuesta = await fetch(URL_ESTADO, {
@@ -169,28 +172,54 @@
         if (!success) throw new Error('Respuesta sin éxito');
 
         data.sensores.forEach((sensor) => {
+          // Actualizar tarjeta KPI
           const tarjeta = document.querySelector(`[data-sensor="${sensor.codigo}"]`);
-          if (!tarjeta) return;
+          if (tarjeta) {
+            const valor = tarjeta.querySelector('[data-campo="valor"]');
+            const meta  = tarjeta.querySelector('[data-campo="meta"]');
+            const icono = tarjeta.querySelector('.sg-kpi-icono');
 
-          const valor = tarjeta.querySelector('[data-campo="valor"]');
-          const meta  = tarjeta.querySelector('[data-campo="meta"]');
-          const icono = tarjeta.querySelector('.sg-kpi-icono');
-
-          if (valor) {
-            valor.innerHTML = sensor.valor !== null
-              ? `${sensor.valor} <small style="font-size:13px;font-weight:600;color:#6b7280;">${sensor.unidad}</small>`
-              : '—';
+            if (valor) {
+              valor.innerHTML = sensor.valor !== null
+                ? `${sensor.valor} <small class="sg-kpi-unidad">${sensor.unidad}</small>`
+                : '—';
+            }
+            if (meta) meta.textContent = hace(sensor.momento);
+            if (icono) {
+              const clase = { normal: 'ok', riesgo: 'warn', critico: 'crit' }[sensor.estado] || '';
+              icono.className = 'sg-kpi-icono' + (clase ? ` sg-kpi-icono--${clase}` : '');
+            }
           }
-          if (meta) meta.textContent = hace(sensor.momento);
-          if (icono) {
-            const clase = { normal: 'ok', riesgo: 'warn', critico: 'crit' }[sensor.estado] || '';
-            icono.className = 'sg-kpi-icono' + (clase ? ` sg-kpi-icono--${clase}` : '');
+
+          // Actualizar fila en tabla
+          const fila = document.querySelector(`[data-sensor-fila="${sensor.codigo}"]`);
+          if (fila) {
+            const tVal = fila.querySelector('[data-campo="tabla-valor"]');
+            const tEstado = fila.querySelector('[data-campo="tabla-estado"]');
+            const tMom = fila.querySelector('[data-campo="tabla-momento"]');
+            if (tVal) {
+              tVal.textContent = sensor.valor !== null ? `${sensor.valor} ${sensor.unidad}` : '—';
+            }
+            if (tEstado) {
+              tEstado.className = `sg-chip sg-chip--${sensor.estado}`;
+              tEstado.textContent = sensor.estado === 'sin_datos' ? 'Sin datos' : (sensor.estado.charAt(0).toUpperCase() + sensor.estado.slice(1));
+            }
+            if (tMom && sensor.momento) {
+              const fecha = new Date(sensor.momento);
+              tMom.textContent = fecha.toLocaleString('es-CO', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+              });
+            }
           }
         });
 
         if (semaforo) {
           semaforo.className = `sg-chip sg-chip--${data.semaforo}`;
           semaforo.textContent = data.semaforo_label;
+        }
+        if (btnAlertas && data.alertas_activas !== undefined) {
+          btnAlertas.textContent = `Ver alertas (${data.alertas_activas})`;
         }
         if (indicador) {
           indicador.className = 'sg-chip sg-chip--info';
@@ -208,5 +237,4 @@
     setInterval(refrescar, INTERVALO);
   });
 </script>
-{% endif %}
 {% endblock %}

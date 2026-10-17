@@ -162,9 +162,7 @@
         {% if messages %}
           <div style="margin-bottom: 16px;">
             {% for message in messages %}
-              <div style="padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;
-                          background: {% if message.tags == 'error' %}#FEF2F2{% else %}#F0FDF4{% endif %};
-                          color: {% if message.tags == 'error' %}#991B1B{% else %}#166534{% endif %};">
+              <div class="sg-alerta {% if message.tags == 'error' %}sg-alerta--crit{% elif message.tags == 'warning' %}sg-alerta--warn{% elif message.tags == 'info' %}sg-alerta--info{% else %}sg-alerta--ok{% endif %}" style="margin-bottom: 8px;">
                 {{ message }}
               </div>
             {% endfor %}
@@ -296,6 +294,11 @@
           }
         });
       }
+
+      // Ajuste dinámico de barras de progreso según su atributo data-progreso
+      document.querySelectorAll('.sg-barra-fill[data-progreso]').forEach((barra) => {
+        barra.style.width = `${barra.dataset.progreso}%`;
+      });
     });
   </script>
 

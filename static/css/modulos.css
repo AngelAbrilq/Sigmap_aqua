@@ -87,6 +87,7 @@
   text-transform: uppercase; letter-spacing: .04em;
 }
 .sg-kpi-valor { font-size: 22px; font-weight: 800; color: #111827; line-height: 1.2; }
+.sg-kpi-unidad { font-size: 13px; font-weight: 600; color: var(--sg-texto-suave); }
 .sg-kpi-valor--ok   { color: var(--sg-ok); }
 .sg-kpi-valor--warn { color: var(--sg-warn); }
 .sg-kpi-valor--crit { color: var(--sg-crit); }
@@ -239,6 +240,8 @@ textarea.gm-form-input { resize: vertical; min-height: 68px; }
   font-size: 13px; line-height: 1.6;
   background: var(--sg-crit-bg); color: var(--sg-crit-fg);
 }
+.sg-alerta--ok,
+.sg-alerta--success { background: var(--sg-ok-bg); color: var(--sg-ok-fg); }
 .sg-alerta--warn { background: var(--sg-warn-bg); color: var(--sg-warn-fg); }
 .sg-alerta--info { background: var(--sg-info-bg); color: var(--sg-info-fg); }
 .sg-alerta ul { margin: 0; padding-left: 18px; }
@@ -312,7 +315,7 @@ textarea.gm-form-input { resize: vertical; min-height: 68px; }
 .sg-barra {
   flex: 1; height: 7px; background: var(--sg-borde); border-radius: 4px; overflow: hidden;
 }
-.sg-barra-fill { height: 100%; border-radius: 4px; background: var(--sg-info); }
+.sg-barra-fill { height: 100%; border-radius: 4px; background: var(--sg-info); transition: width 0.3s ease; }
 .sg-barra-fill--ok   { background: var(--sg-ok); }
 .sg-barra-fill--warn { background: var(--sg-warn); }
 .sg-barra-fill--crit { background: var(--sg-crit); }

@@ -137,7 +137,7 @@ body {
 }
 
 .icon-btn:hover {
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
   color: var(--text-primary);
   border-color: #CBD5E1;
 }

@@ -4,7 +4,7 @@
 {% comment %}
   Graficas de evolucion y reportes persistidos.
 
-  Las series viajan en un <script type="application/json">, no interpoladas
+  Las series viajan en un bloque JSON aislado, no interpoladas
   dentro del codigo JavaScript: asi ningun dato de la base puede romper el
   script ni inyectar codigo.
 {% endcomment %}
@@ -101,7 +101,7 @@
                       <span style="min-width:44px;font-weight:700;">{{ fila.cumplimiento }}%</span>
                       <span class="sg-barra">
                         <span class="sg-barra-fill {% if fila.cumplimiento >= 95 %}sg-barra-fill--ok{% elif fila.cumplimiento >= 80 %}sg-barra-fill--warn{% else %}sg-barra-fill--crit{% endif %}"
-                              style="width: {{ fila.cumplimiento }}%;"></span>
+                              data-progreso="{{ fila.cumplimiento }}" style="width: 0%;"></span>
                       </span>
                     </span>
                   </td>

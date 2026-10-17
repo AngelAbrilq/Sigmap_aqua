@@ -6,7 +6,7 @@
 
   Todos los datos provienen de apps.piscinas.views.listar. No hay arrays
   hardcodeados: si la tabla `geomembranas` esta vacia, la pantalla lo muestra.
-  La seleccion del detalle se resuelve en el servidor via ?seleccion=<pk>,
+  La seleccion del detalle se resuelve en el servidor via ?seleccion={pk},
   por lo que sobrevive a recargas y es un enlace compartible.
 {% endcomment %}
 
@@ -22,7 +22,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="gm-container">
+<div class="gm-container" data-abrir-modal="{{ abrir_modal|default:'' }}">
 
   <!-- ===================================================================
        KPIs - calculados sobre el universo filtrado completo, no la pagina
@@ -237,30 +237,30 @@
         <!-- ===== TAB RESUMEN ===== -->
         <div class="gm-detail-body" data-panel="resumen">
         {% if aptitud %}
-        <div class="gm-aptitud" style="border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:16px;">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-            <strong>Aptitud para produccion</strong>
+        <div class="gm-aptitud">
+          <div class="gm-aptitud-header">
+            <span class="gm-aptitud-title">Aptitud para producción</span>
             {% if aptitud.apta %}
-              <span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;">Apta</span>
+              <span class="gm-chip gm-chip--ok">Apta</span>
             {% else %}
-              <span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;">No apta</span>
+              <span class="gm-chip gm-chip--crit">No apta</span>
             {% endif %}
           </div>
           {% if aptitud.motivos %}
-            <ul style="margin:0;padding-left:18px;">
+            <ul class="gm-aptitud-list">
               {% for m in aptitud.motivos %}
-                <li style="margin-bottom:6px;">
+                <li class="gm-aptitud-item">
                   <b>{{ m.parametro }}</b>: {{ m.valor }} {{ m.unidad }}
-                  <span style="color:{% if m.estado == 'critico' %}#991b1b{% else %}#92400e{% endif %};">({{ m.estado }})</span>
+                  <span class="gm-aptitud-estado gm-aptitud-estado--{{ m.estado }}">({{ m.estado }})</span>
                   &mdash; {{ m.recomendacion }}
                 </li>
               {% endfor %}
             </ul>
           {% else %}
-            <p style="margin:0;color:#166534;">Todos los parametros medidos estan en rango optimo.</p>
+            <p class="gm-aptitud-ok-msg">Todos los parámetros medidos están en rango óptimo.</p>
           {% endif %}
           {% if aptitud.sin_datos %}
-            <p style="margin:8px 0 0;color:#6b7280;font-size:13px;">Sin datos aun: {{ aptitud.sin_datos|join:", " }}</p>
+            <p class="gm-aptitud-nodata-msg">Sin datos aún: {{ aptitud.sin_datos|join:", " }}</p>
           {% endif %}
         </div>
         {% endif %}
@@ -297,7 +297,7 @@
                         <div class="gm-progress-row">
                           <span class="gm-progress-pct">{{ vida }}%</span>
                           <div class="gm-progress-bar">
-                            <div class="gm-progress-fill gm-progress-fill--{{ sem }}" style="width: {{ vida }}%;"></div>
+                            <div class="gm-progress-fill gm-progress-fill--{{ sem }}" data-progreso="{{ vida }}" style="width: 0%;"></div>
                           </div>
                         </div>
                       {% else %}
@@ -465,7 +465,7 @@
      MODAL: CREAR
      ===================================================================== -->
 {% if puede_editar %}
-<div class="gm-modal" id="modalCrear" {% if abrir_modal != 'crear' %}hidden{% endif %}>
+<div class="gm-modal" id="modalCrear" hidden>
   <div class="gm-modal-backdrop" data-cerrar-modal></div>
   <div class="gm-modal-box" role="dialog" aria-modal="true" aria-labelledby="tituloCrear">
     <div class="gm-modal-header">
@@ -481,7 +481,7 @@
         {% endif %}
         <div class="gm-form-grid">
           {% for campo in form %}
-            <div class="gm-form-group {% if campo.name in 'descripcion' %}gm-form-group--full{% endif %}">
+            <div class="gm-form-group {% if campo.name == 'descripcion' %}gm-form-group--full{% endif %}">
               <label class="gm-form-label" for="{{ campo.id_for_label }}">
                 {{ campo.label }}{% if campo.field.required %} <span class="gm-req">*</span>{% endif %}
               </label>
@@ -503,8 +503,9 @@
 <!-- =====================================================================
      MODAL: EDITAR
      ===================================================================== -->
-{% if seleccionada and form_editar %}
-<div class="gm-modal" id="modalEditar" {% if abrir_modal != 'editar' %}hidden{% endif %}>
+{% if seleccionada %}
+{% if form_editar %}
+<div class="gm-modal" id="modalEditar" hidden>
   <div class="gm-modal-backdrop" data-cerrar-modal></div>
   <div class="gm-modal-box" role="dialog" aria-modal="true" aria-labelledby="tituloEditar">
     <div class="gm-modal-header">
@@ -520,7 +521,7 @@
         {% endif %}
         <div class="gm-form-grid">
           {% for campo in form_editar %}
-            <div class="gm-form-group {% if campo.name in 'descripcion' %}gm-form-group--full{% endif %}">
+            <div class="gm-form-group {% if campo.name == 'descripcion' %}gm-form-group--full{% endif %}">
               <label class="gm-form-label" for="{{ campo.id_for_label }}">
                 {{ campo.label }}{% if campo.field.required %} <span class="gm-req">*</span>{% endif %}
               </label>
@@ -538,6 +539,7 @@
     </form>
   </div>
 </div>
+{% endif %}
 
 <!-- =====================================================================
      MODAL: ELIMINAR  (confirmacion explicita, nunca window.confirm)
@@ -623,11 +625,18 @@
       }
     });
 
-    // Si el servidor devolvio errores de validacion, el modal ya viene abierto:
-    // se restaura el bloqueo de scroll para que el estado sea coherente.
-    if (document.querySelector('.gm-modal:not([hidden])')) {
-      document.body.style.overflow = 'hidden';
+    // Si el servidor devolvió errores de validación, abrir el modal correspondiente
+    const modalPendiente = document.querySelector('.gm-container')?.dataset.abrirModal;
+    if (modalPendiente === 'crear') {
+      abrirModal('modalCrear');
+    } else if (modalPendiente === 'editar') {
+      abrirModal('modalEditar');
     }
+
+    // Ajuste dinámico de barras de progreso según su atributo data-progreso
+    document.querySelectorAll('.gm-progress-fill[data-progreso]').forEach((barra) => {
+      barra.style.width = `${barra.dataset.progreso}%`;
+    });
 
     // Pestañas del panel de detalle
     const pestanas = document.querySelectorAll('.gm-detail-tab');

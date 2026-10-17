@@ -758,7 +758,9 @@
   height: 100%;
   background: #16A34A;
   border-radius: 10px;
+  transition: width 0.4s ease;
 }
+
 
 /* Contenedor Imagen de referencia */
 .gm-ref-image-container {
@@ -1190,6 +1192,76 @@ textarea.gm-form-input { resize: vertical; min-height: 68px; }
 }
 .gm-form-alert--warn { background: #fffbeb; color: #92400e; }
 .gm-form-alert ul { margin: 0; padding-left: 18px; }
+
+/* =====================================================================
+   APTITUD PARA PRODUCCIÓN
+   ===================================================================== */
+.gm-aptitud {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: #FFFFFF;
+}
+
+.gm-aptitud-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.gm-aptitud-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.gm-aptitud-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gm-aptitud-item {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.gm-aptitud-item b {
+  color: #0F172A;
+}
+
+.gm-aptitud-estado {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.gm-aptitud-estado--critico {
+  color: #DC2626;
+}
+
+.gm-aptitud-estado--riesgo,
+.gm-aptitud-estado--warn {
+  color: #D97706;
+}
+
+.gm-aptitud-ok-msg {
+  margin: 0;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gm-aptitud-nodata-msg {
+  margin: 8px 0 0;
+  color: #64748B;
+  font-size: 12.5px;
+}
+
 
 /* Buscador y filtro del listado */
 select.gm-btn-filter { cursor: pointer; font-family: inherit; }

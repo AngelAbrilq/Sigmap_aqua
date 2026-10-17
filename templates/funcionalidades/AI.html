@@ -216,7 +216,7 @@
                       <span style="min-width:48px;font-weight:700;">{{ fila.tasa_acierto }}%</span>
                       <span class="sg-barra">
                         <span class="sg-barra-fill {% if fila.tasa_acierto >= 70 %}sg-barra-fill--ok{% elif fila.tasa_acierto >= 40 %}sg-barra-fill--warn{% else %}sg-barra-fill--crit{% endif %}"
-                              style="width: {{ fila.tasa_acierto }}%;"></span>
+                              data-progreso="{{ fila.tasa_acierto }}" style="width: 0%;"></span>
                       </span>
                     </span>
                   </td>
