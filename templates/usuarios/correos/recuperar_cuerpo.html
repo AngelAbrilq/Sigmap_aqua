@@ -1,20 +1,78 @@
 <!DOCTYPE html>
 <html lang="es">
-<body style="margin:0;padding:24px;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;">
-    <tr><td style="padding:28px;">
-      <h1 style="margin:0 0 16px;font-size:20px;">Recuperación de contraseña</h1>
-      <p style="margin:0 0 12px;font-size:14px;line-height:1.6;">Hola {{ user.nombre_completo }},</p>
-      <p style="margin:0 0 20px;font-size:14px;line-height:1.6;">Recibimos una solicitud para restablecer la contraseña de tu cuenta en SIGMAP-AQUA.</p>
-      <p style="margin:0 0 20px;">
-        <a href="{{ protocol }}://{{ domain }}{% url 'usuarios:recuperar_confirmar' uidb64=uid token=token %}"
-           style="display:inline-block;padding:12px 20px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:bold;">
-          Crear nueva contraseña
-        </a>
-      </p>
-      <p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:#475569;">El enlace vence en {{ minutos_vigencia }} minutos y solo se puede usar una vez.</p>
-      <p style="margin:0;font-size:13px;line-height:1.6;color:#475569;">Si no hiciste esta solicitud, ignora este correo: tu contraseña no cambiará.</p>
-    </td></tr>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperación de contraseña — SIGMAP-AQUA</title>
+</head>
+<body style="margin:0;padding:32px 16px;background-color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;margin:0 auto;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+    <!-- Cabecera institucional -->
+    <tr>
+      <td style="padding:28px 32px;background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%);color:#ffffff;text-align:center;">
+        <div style="font-size:24px;font-weight:800;letter-spacing:1px;margin-bottom:4px;">
+          🐟 SIGMAP-AQUA
+        </div>
+        <div style="font-size:12px;letter-spacing:0.5px;color:#e0f2fe;font-weight:500;text-transform:uppercase;">
+          Sistema Inteligente de Monitoreo para Acuicultura
+        </div>
+      </td>
+    </tr>
+    <!-- Contenido -->
+    <tr>
+      <td style="padding:32px 32px 24px 32px;">
+        <h2 style="margin:0 0 16px;font-size:18px;color:#0f172a;font-weight:700;">
+          Restablecimiento de contraseña
+        </h2>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#334155;">
+          Hola <strong>{{ user.nombre_completo }}</strong>,
+        </p>
+        <p style="margin:0 0 24px;font-size:14px;line-height:1.6;color:#475569;">
+          Hemos recibido una solicitud para cambiar la contraseña de tu cuenta en la plataforma <strong>SIGMAP-AQUA</strong>. Haz clic en el botón a continuación para crear una nueva clave:
+        </p>
+        
+        <!-- Boton de accion -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+          <tr>
+            <td align="center">
+              <a href="{{ protocol }}://{{ domain }}{% url 'usuarios:recuperar_confirmar' uidb64=uid token=token %}"
+                 style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%);color:#ffffff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:700;box-shadow:0 4px 12px rgba(2,132,199,0.35);">
+                Crear nueva contraseña &rarr;
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Alerta de seguridad y vigencia -->
+        <div style="background-color:#f8fafc;border-left:4px solid #0284c7;border-radius:6px;padding:12px 16px;margin-bottom:24px;">
+          <p style="margin:0 0 6px;font-size:13px;color:#334155;font-weight:600;">
+            ⏱️ Información de seguridad:
+          </p>
+          <p style="margin:0;font-size:13px;line-height:1.5;color:#64748b;">
+            Este enlace es de uso único y vencerá automáticamente en <strong>{{ minutos_vigencia }} minutos</strong>.
+          </p>
+        </div>
+
+        <p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:#64748b;">
+          Si el botón no funciona, copia y pega el siguiente enlace en tu navegador web:
+        </p>
+        <p style="margin:0 0 20px;font-size:12px;line-height:1.5;word-break:break-all;">
+          <a href="{{ protocol }}://{{ domain }}{% url 'usuarios:recuperar_confirmar' uidb64=uid token=token %}" style="color:#0284c7;text-decoration:underline;">
+            {{ protocol }}://{{ domain }}{% url 'usuarios:recuperar_confirmar' uidb64=uid token=token %}
+          </a>
+        </p>
+        <p style="margin:0;font-size:12px;line-height:1.6;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:16px;">
+          Si tú no realizaste esta solicitud, puedes ignorar este mensaje de forma segura. Tu contraseña no cambiará.
+        </p>
+      </td>
+    </tr>
+    <!-- Pie institucional -->
+    <tr>
+      <td style="padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#64748b;">
+        © 2026 SIGMAP-AQUA · Sistema Inteligente de Monitoreo para Acuicultura
+      </td>
+    </tr>
   </table>
 </body>
 </html>
+
