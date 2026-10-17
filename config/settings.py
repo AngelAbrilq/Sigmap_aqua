@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from datetime import timedelta
 from pathlib import Path
 from decouple import Config, RepositoryEnv, UndefinedValueError, config
 from django.core.exceptions import ImproperlyConfigured
@@ -102,9 +101,6 @@ INSTALLED_APPS = [
 
     # Terceros
     'rest_framework',
-    # Lista negra de refresh tokens: sin esto, "cerrar sesion" solo borraria
-    # el token del telefono y quien lo hubiera copiado seguiria entrando.
-    'rest_framework_simplejwt.token_blacklist',
 
     # Apps
     'apps.core',
@@ -114,7 +110,6 @@ INSTALLED_APPS = [
     'apps.alertas',
     'apps.reportes',
     'apps.ia',
-    'apps.api_movil',
     'apps.auditoria',
 ]
 
@@ -225,7 +220,6 @@ LOGOUT_REDIRECT_URL = '/auth/login/'
 # por token de Dispositivo. Los defaults de abajo aplican al resto de la API.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -237,37 +231,8 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%S%z',
 
     # Todos los errores salen como {success, data, message}, igual que los
-    # exitos: un cliente que aprende a leer una respuesta las lee todas.
-    'EXCEPTION_HANDLER': 'apps.api_movil.excepciones.manejador_errores',
-
-    # Listados paginados por defecto. La tabla de lecturas crece sin limite:
-    # un GET sin paginar la traeria entera al celular.
-    'DEFAULT_PAGINATION_CLASS': 'apps.api_movil.paginacion.PaginacionMovil',
-    'PAGE_SIZE': 20,
-
-    # El login es el unico endpoint publico: sin limite seria un oraculo de
-    # fuerza bruta contra las contrasenas del equipo.
-    'DEFAULT_THROTTLE_RATES': {'login': '8/min'},
-}
-
-
-# --- JSON Web Tokens para la app movil ------------------------------------
-# Los nodos ESP32 siguen con su token de dispositivo permanente: no hacen
-# login ni pueden refrescar nada. Las personas si.
-SIMPLE_JWT = {
-    # Corto a proposito: si un access token se filtra, caduca en 15 minutos.
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-
-    # Cada refresco emite un token nuevo e invalida el anterior, para que uno
-    # robado sirva una sola vez.
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-
-    'UPDATE_LAST_LOGIN': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
+    # exitos: el firmware lee una sola forma de respuesta.
+    'EXCEPTION_HANDLER': 'apps.monitoreo.excepciones.manejador_errores',
 }
 
 LOGGING = {

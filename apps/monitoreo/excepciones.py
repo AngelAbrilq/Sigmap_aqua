@@ -1,9 +1,9 @@
 """
-Manejador global de errores de DRF.
+Manejador global de errores de DRF para la API de ingesta.
 
 Sin esto, un 401 responde {"detail": "..."} y un error de validación responde
-{"email": ["..."]}: dos formas distintas que el cliente tendría que distinguir.
-Aquí todo sale como {success, data, message}.
+{"campo": ["..."]}: dos formas distintas que el nodo ESP32 tendría que
+distinguir. Aquí todo sale como {success, data, message}, igual que los éxitos.
 """
 from rest_framework.views import exception_handler
 
@@ -30,7 +30,7 @@ def manejador_errores(exc, context):
     elif isinstance(detalle, list):
         datos, mensaje = None, ' '.join(str(item) for item in detalle)
     else:
-        # Errores de validación campo por campo: la app los pinta bajo su input.
+        # Errores de validación campo por campo.
         datos, mensaje = detalle, 'Revisa los datos enviados.'
 
     respuesta_drf.data = {'success': False, 'data': datos, 'message': mensaje}

@@ -1,7 +1,7 @@
 """
 Autenticacion de dispositivos fisicos (ESP32) para la API de ingesta.
 
-No usa JWT: un nodo ESP32 no hace login ni refresca tokens, se reinicia y debe
+No usa sesion ni login: un nodo ESP32 no inicia sesion, se reinicia y debe
 autenticarse de inmediato. Cada Dispositivo tiene un token propio y revocable.
 
 Cabecera esperada:

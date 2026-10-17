@@ -223,7 +223,7 @@ def resolver_alertas_normalizadas(lecturas):
 
 
 # ======================================================================
-# Acciones sobre alertas, compartidas por la web y la API movil
+# Acciones sobre alertas usadas por las vistas web
 # ======================================================================
 class AccionInvalida(Exception):
     """La alerta no esta en un estado que admita esta accion."""
