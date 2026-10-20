@@ -38,17 +38,17 @@ Roles del sistema: **Instructor Líder (admin)**, **Operario piscícola**, **Apr
 | SO | Windows + PowerShell (ojo: archivos han quedado con BOM/UTF-16) |
 | Commits | Conventional Commits, **sin** línea `Co-Authored-By: Claude` |
 
-**Stack real:** Python 3 · Django 5.2 · Django REST Framework · SimpleJWT · MySQL · Chart.js · Flutter (Riverpod 3) · ESP32 (Arduino core 3.x) · Google Gemini.
+**Stack real:** Python 3 · Django 5.2 · Django REST Framework · MySQL · Chart.js · ESP32 (Arduino core 3.x) · Google Gemini.
 
-`requirements.txt`: Django 5.2.16, djangorestframework 3.17.1, djangorestframework_simplejwt 5.5.1, django-cors-headers, PyMySQL, python-decouple, pillow.
+`requirements.txt`: Django 5.2.16, djangorestframework 3.17.1, django-cors-headers, PyMySQL, python-decouple, pillow.
 
-`.env` (ver `.env.example`): `SECRET_KEY, DEBUG, ALLOWED_HOSTS, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, SECURE_SSL, CSRF_TRUSTED_ORIGINS, GEMINI_API_KEY, GEMINI_MODEL`.
+`.env` (ver `.env.example`): `SECRET_KEY, DEBUG, ALLOWED_HOSTS, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, SECURE_SSL, CSRF_TRUSTED_ORIGINS, GEMINI_API_KEY, GEMINI_MODEL, EMAIL_HOST, EMAIL_PORT, EMAIL_USE_TLS, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, DEFAULT_FROM_EMAIL`.
 
 ### Comandos útiles
 
 ```bash
 python manage.py runserver 0.0.0.0:8000          # para que el ESP32 lo vea en la LAN
-python manage.py test                             # 190 pruebas (todas en verde al 6-oct)
+python manage.py test                             # 179 pruebas
 python manage.py test --settings=config.settings_dev   # con SQLite
 python manage.py cargar_datos_iniciales
 python manage.py crear_usuarios_prueba
@@ -66,7 +66,7 @@ python firmware/tools/simular_nodo.py             # simula un ESP32 contra la AP
 
 | App | Responsabilidad | Rutas |
 |---|---|---|
-| `usuarios` | Login, roles, matriz de permisos, CRUD usuarios | `/auth/login`, `/auth/logout`, `/usuarios/` |
+| `usuarios` | Login, recuperación de contraseña, roles, matriz de permisos, CRUD usuarios | `/auth/login`, `/auth/logout`, `/auth/recuperar/`, `/usuarios/` |
 | `core` | Bienvenida y paneles por rol | `/`, `/dashboard/`, `/instructor-lider/`, `/operario/`, `/aprendiz/` |
 | `piscinas` | Geomembranas y etapas de producción | `/geomembranas/` |
 | `monitoreo` | Sensores, dispositivos, ingesta, monitoreo en vivo, historial, rangos, aptitud | `/sensores/`, `/monitoreo/`, `/historial/` (+CSV), `/configuraciones/` |
@@ -74,7 +74,6 @@ python firmware/tools/simular_nodo.py             # simula un ESP32 contra la AP
 | `reportes` | Gráficas, reportes por periodo (CSV), comparación de 2 periodos | `/graficas-reportes/`, `/comparacion-periodos/` |
 | `auditoria` | Registro de eventos | `/eventos/` |
 | `ia` | Diagnóstico y predicciones con Gemini, precisión histórica | `/ai/` |
-| `api_movil` | API REST con JWT para Flutter | `/api/v1/movil/` (auth/token, refresh, logout, me, lecturas, predicciones, notificaciones, geomembranas, alertas) |
 
 **API del ESP32** (autenticación `Authorization: Device <token>`):
 - `POST /api/v1/dispositivos/handshake/` → devuelve hora del servidor y sensores esperados.
@@ -82,7 +81,6 @@ python firmware/tools/simular_nodo.py             # simula un ESP32 contra la AP
 
 **Tablas principales:** `roles, usuarios, etapas_produccion, geomembranas, tipos_parametros (rangos normal/riesgo/crítico), sensores, dispositivos, lecturas_sensores, alertas, historial_estado_agua, notificaciones_push, eventos_sistema, reportes, comparaciones_datos, analisis_ia, predicciones_ia`.
 
-**App móvil:** carpeta `mobile/` (Flutter + Riverpod 3): login JWT, monitoreo, historial, alertas, piscinas, predicciones. Falta push y APK release.
 
 ---
 
@@ -173,7 +171,6 @@ Avance estimado: **RF ≈ 88 %**, **RNF ≈ 70 %**, plan Agile **53 %** (100 de 
 
 - `README.md` — portada del repo, estructura y arranque rápido.
 - `docs/HARDWARE_SENSORES.md` — guía única de hardware y firmware (unifica la antigua `CALIBRACION.md` y `README_DESPLIEGUE.md`).
-- `docs/GUIA_MODULO_MOVIL.md` — API móvil y app Flutter.
 - `docs/gestion/plan_proyecto_agile.md` — plan Agile (48 tareas, sprints 0–8 + HW) con resumen de pendientes (22 tareas, 87 puntos).
 - `docs/gestion/Acta_Constitucion_SIGMAP-AQUA.md` / `.docx` — acta de constitución.
 - `docs/gestion/lineamientos_sigmap-aqua_estado_oct2026.docx` — lineamientos con estado del software.

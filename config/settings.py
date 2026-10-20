@@ -75,7 +75,7 @@ ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='').split(',
 # cambia segun la red (router del SENA, hotspot de Windows en 192.168.137.1, o
 # el router de campo). Enumerar adaptadores con la libreria estandar no es
 # fiable en Windows: socket.gethostbyname_ex() devuelve solo el adaptador
-# principal y se salta el del punto de acceso movil.
+# principal y se salta el del hotspot de Windows.
 #
 # En DESARROLLO se acepta cualquier Host. Es seguro aqui porque el servidor de
 # runserver solo escucha en la LAN local y esta detras del firewall de Windows.

@@ -17,3 +17,10 @@ db_dev.sqlite3
 
 # Carpeta de salidas temporales (video duplicado)
 Claude outputs/
+
+# Respaldos de base de datos: contienen hashes de contrasenas y datos reales
+backups_bd/
+*.sql
+
+# Cachés de build de herramientas externas
+.gradle/

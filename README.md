@@ -1,6 +1,6 @@
 # SIGMAP-AQUA · BioAqua System
 
-Sistema de monitoreo en tiempo real de la calidad del agua en geomembranas piscícolas (tilapia). Un nodo **ESP32** lee temperatura, pH y turbidez (oxígeno disuelto pendiente), envía las lecturas por WiFi al software **Django**, que las valida, clasifica (normal / riesgo / crítico), guarda en **MySQL**, genera alertas y las muestra en el panel web y en la app móvil **Flutter**.
+Sistema de monitoreo en tiempo real de la calidad del agua en geomembranas piscícolas (tilapia). Un nodo **ESP32** lee temperatura, pH y turbidez (oxígeno disuelto pendiente), envía las lecturas por WiFi al software **Django**, que las valida, clasifica (normal / riesgo / crítico), guarda en **MySQL**, genera alertas y las muestra en el panel web.
 
 SENA · Tecnólogo en Análisis y Desarrollo de Software · Ficha 3230026 · Centro de Formación Agroindustrial, Regional Huila.
 
@@ -10,7 +10,7 @@ SENA · Tecnólogo en Análisis y Desarrollo de Software · Ficha 3230026 · Cen
 Sondas → ESP32 (firmware/bioaqua_ingesta) → POST /api/v1/lecturas/
       → apps/monitoreo (valida, clasifica, guarda en lecturas_sensores)
       → apps/alertas (abre / cierra alertas)
-      → /monitoreo/ (panel web, refresco cada 15 s) y app móvil
+      → /monitoreo/ (panel web, refresco cada 15 s)
 ```
 
 ## Estructura
@@ -18,10 +18,9 @@ Sondas → ESP32 (firmware/bioaqua_ingesta) → POST /api/v1/lecturas/
 | Carpeta | Contenido |
 |---|---|
 | `config/` | Settings, URLs raíz, WSGI/ASGI |
-| `apps/` | Apps Django: `usuarios`, `core`, `piscinas`, `monitoreo`, `alertas`, `reportes`, `auditoria`, `ia`, `api_movil` |
+| `apps/` | Apps Django: `usuarios`, `core`, `piscinas`, `monitoreo`, `alertas`, `reportes`, `auditoria`, `ia` |
 | `templates/` y `static/` | Interfaz web (Bootstrap + Chart.js) |
-| `firmware/` | Sketches del ESP32 y simulador de nodo |
-| `mobile/` | App Flutter (ver `mobile/README.md`) |
+| `firmware/` | Sketches del ESP32 y herramientas del nodo (`firmware/tools/`) |
 | `docs/` | Documentación del proyecto |
 | `tests/` | Pruebas |
 
@@ -40,6 +39,13 @@ python manage.py runserver 0.0.0.0:8000   # 0.0.0.0 para que el ESP32 lo vea en 
 
 Pruebas: `python manage.py test`. Simular un nodo sin hardware: `python firmware/tools/simular_nodo.py`.
 
+Antes de conectar el ESP32 real (deja intervalo de 30 s, límites físicos y vínculo del nodo con la piscina):
+
+```powershell
+python firmware/tools/preparar_sustentacion.py --intervalo 30
+python firmware/tools/monitor_lecturas.py      # en otra terminal: muestra las lecturas que llegan
+```
+
 ## Documentación
 
 | Documento | Para qué |
@@ -47,9 +53,9 @@ Pruebas: `python manage.py test`. Simular un nodo sin hardware: `python firmware
 | [`docs/HARDWARE_SENSORES.md`](docs/HARDWARE_SENSORES.md) | Cableado, pines, firmware, puesta en marcha, calibración y diagnóstico del ESP32 |
 | [`docs/CONTEXTO_SIGMAP_AQUA.md`](docs/CONTEXTO_SIGMAP_AQUA.md) | Estado general del proyecto: equipo, arquitectura, requerimientos y pendientes |
 | [`docs/PENDIENTES_TECNICOS.md`](docs/PENDIENTES_TECNICOS.md) | Bugs, inconsistencias y trampas detectadas en el recorrido del dato, con su corrección |
-| [`docs/GUIA_MODULO_MOVIL.md`](docs/GUIA_MODULO_MOVIL.md) | API móvil (JWT) y app Flutter |
 | [`docs/gestion/`](docs/gestion/) | Acta de constitución, plan Agile y lineamientos |
 | [`docs/diagramas/`](docs/diagramas/) | Arquitectura y modelo entidad-relación |
+| [`docs/postman/`](docs/postman/) | Colección Postman de la API del ESP32 |
 | [`docs/video/`](docs/video/) | Video de instalación del nodo |
 
 ## Equipo
@@ -58,5 +64,5 @@ Pruebas: `python manage.py test`. Simular un nodo sin hardware: `python firmware
 |---|---|
 | Ángel Nicolás Abril Quimbaya | Líder / Backend |
 | Juan José Gracia Cocomá | Backend / Datos y alertas |
-| Jhonny Stiven Yunda Guzmán | Frontend web y app móvil |
+| Jhonny Stiven Yunda Guzmán | Frontend web |
 | Yesman Ronaldo Ortega Ávila | Hardware / IoT |
