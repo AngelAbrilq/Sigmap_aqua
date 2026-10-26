@@ -816,7 +816,7 @@
         linkNode.textContent = msg.link.label || 'Abrir';
       }
       const finish = () => {
-        if (linkNode) bubble.append(document.createElement('br'), linkNode);
+        if (linkNode) bubble.append(linkNode);
         scrollToEnd();
         resolve();
       };
@@ -992,6 +992,16 @@
         ui.trigger.focus();
       }
     });
+
+    // La rueda del mouse desplaza la fila de chips en horizontal.
+    const chipsRow = agent.querySelector('.ia-agent__chips');
+    if (chipsRow) {
+      chipsRow.addEventListener('wheel', (event) => {
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        event.preventDefault();
+        chipsRow.scrollLeft += event.deltaY;
+      }, { passive: false });
+    }
 
     agent.querySelectorAll('[data-agent-intent]').forEach((chip) => {
       chip.addEventListener('click', () => ask(chip.textContent.trim(), chip.dataset.agentIntent));

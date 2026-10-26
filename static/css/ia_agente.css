@@ -402,7 +402,20 @@
   border-top: 1px solid var(--ia-line);
 }
 
-.ia-agent__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ia-agent__chips {
+  display: flex;
+  gap: 6px;
+  margin: 0 -14px;
+  padding: 2px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 28px), transparent);
+}
+
+.ia-agent__chips::-webkit-scrollbar { display: none; }
+.ia-agent__chips > * { flex: none; scroll-snap-align: start; white-space: nowrap; }
 
 .ia-chip-btn {
   padding: 7px 11px;
@@ -665,7 +678,9 @@
 
 /* enlace dentro de una burbuja del agente */
 .ia-msg__link {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
+  white-space: nowrap;
   align-items: center;
   gap: 6px;
   margin-top: 8px;
