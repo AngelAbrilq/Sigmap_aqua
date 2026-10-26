@@ -7,7 +7,7 @@
 
 ## 1. Qué es el proyecto
 
-Sistema automatizado de monitoreo de la calidad del agua en geomembranas (estanques) piscícolas. Nodos **ESP32** leen sensores (temperatura, pH, turbidez y, a futuro, oxígeno disuelto), envían los datos por WiFi a una **API Django**, se guardan en **MySQL**, se clasifica el estado del agua (óptimo / riesgo / crítico), se generan alertas, historial, gráficas, reportes, análisis con IA (Gemini) y hay una **app móvil Flutter**.
+Sistema automatizado de monitoreo de la calidad del agua en geomembranas (estanques) piscícolas. Nodos **ESP32** leen sensores (temperatura, pH, turbidez y, a futuro, oxígeno disuelto), envían los datos por WiFi a una **API Django**, se guardan en **MySQL**, se clasifica el estado del agua (óptimo / riesgo / crítico), se generan alertas, historial, gráficas, reportes y análisis con IA (DeepSeek, con Gemini de respaldo).
 
 - **Programa:** SENA – Tecnólogo en Análisis y Desarrollo de Software · Ficha **3230026**
 - **Centro:** Centro de Formación Agroindustrial – Regional Huila
@@ -38,17 +38,17 @@ Roles del sistema: **Instructor Líder (admin)**, **Operario piscícola**, **Apr
 | SO | Windows + PowerShell (ojo: archivos han quedado con BOM/UTF-16) |
 | Commits | Conventional Commits, **sin** línea `Co-Authored-By: Claude` |
 
-**Stack real:** Python 3 · Django 5.2 · Django REST Framework · MySQL · Chart.js · ESP32 (Arduino core 3.x) · Google Gemini.
+**Stack real:** Python 3 · Django 5.2 · Django REST Framework · MySQL · Chart.js · ESP32 (Arduino core 3.x) · DeepSeek (IA principal) · Google Gemini (respaldo).
 
 `requirements.txt`: Django 5.2.16, djangorestframework 3.17.1, django-cors-headers, PyMySQL, python-decouple, pillow.
 
-`.env` (ver `.env.example`): `SECRET_KEY, DEBUG, ALLOWED_HOSTS, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, SECURE_SSL, CSRF_TRUSTED_ORIGINS, GEMINI_API_KEY, GEMINI_MODEL, EMAIL_HOST, EMAIL_PORT, EMAIL_USE_TLS, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, DEFAULT_FROM_EMAIL`.
+`.env` (ver `.env.example`): `SECRET_KEY, DEBUG, ALLOWED_HOSTS, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, SECURE_SSL, CSRF_TRUSTED_ORIGINS, IA_PROVEEDOR, DEEPSEEK_API_KEY, DEEPSEEK_MODEL, GEMINI_API_KEY, GEMINI_MODEL, EMAIL_HOST, EMAIL_PORT, EMAIL_USE_TLS, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, DEFAULT_FROM_EMAIL`.
 
 ### Comandos útiles
 
 ```bash
 python manage.py runserver 0.0.0.0:8000          # para que el ESP32 lo vea en la LAN
-python manage.py test                             # 179 pruebas
+python manage.py test                             # 194 pruebas
 python manage.py test --settings=config.settings_dev   # con SQLite
 python manage.py cargar_datos_iniciales
 python manage.py crear_usuarios_prueba
@@ -73,7 +73,7 @@ python firmware/tools/simular_nodo.py             # simula un ESP32 contra la AP
 | `alertas` | Motor de alertas, estado del agua, notificaciones internas | `/alertas/` |
 | `reportes` | Gráficas, reportes por periodo (CSV), comparación de 2 periodos | `/graficas-reportes/`, `/comparacion-periodos/` |
 | `auditoria` | Registro de eventos | `/eventos/` |
-| `ia` | Diagnóstico y predicciones con Gemini, precisión histórica | `/ai/` |
+| `ia` | Diagnóstico y predicciones con DeepSeek (Gemini de respaldo), precisión histórica | `/ai/` |
 
 **API del ESP32** (autenticación `Authorization: Device <token>`):
 - `POST /api/v1/dispositivos/handshake/` → devuelve hora del servidor y sensores esperados.

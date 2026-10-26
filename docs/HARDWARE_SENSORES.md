@@ -418,3 +418,18 @@ El servidor siempre responde `{success, data, message}`.
 - Evaluar el ADS1115 si se agregan más analógicos (solo quedan GPIO36 y GPIO39).
 - Aplicar el tope `COLA_MAX_LINEAS` en `guardarEnCola()` (hoy la cola crece sin límite).
 - Migrar el envío a HTTPS antes de sacar el sistema de la red local.
+
+## Calibración desde el monitor serie (firmware 1.5.0)
+
+Monitor serie a **115200** baudios con **Both NL & CR**. La calibración se guarda en la memoria NVS del ESP32 y no se pierde al reiniciar ni al volver a cargar el firmware.
+
+| Comando | Cuándo | Qué hace |
+|---|---|---|
+| `VER` | Siempre | Muestra mV en el pin de cada sonda analógica y la calibración vigente |
+| `CAL TUR` | Sonda de turbidez en agua limpia (destilada o hervida) | Toma ese voltaje como 0 NTU |
+| `CAL PH 6.86` y luego `CAL PH 4.01` | Sonda en cada buffer, lavándola entre uno y otro | Recalcula la recta pH = m·V + b |
+| `RESET CAL` | Para volver a empezar | Restaura los valores de fábrica |
+
+**Turbidez:** la lectura se normaliza con el voltaje de agua limpia (`V·4,2/V_limpia`) y se aplica la curva DFRobot (válida de 2,5 a 4,2 V). Si la tabla muestra `[!] ADC SATURADO`, el pin recibe más de ~3,05 V y el ESP32 no distingue agua limpia de turbia: hay que bajar la señal con un divisor 10k/20k. Verificación rápida: 0,1 % de leche en agua ≈ 100 NTU, 0,5 % ≈ 500 NTU. Fuera del agua la lectura no tiene sentido físico.
+
+**Rangos por etapa:** el software clasifica cada lectura con el rango óptimo de la etapa de la piscina (Alevín, Levante, Engorde, Cosecha) y aplica alrededor el margen de riesgo del parámetro (`apps/monitoreo/rangos.py`).
