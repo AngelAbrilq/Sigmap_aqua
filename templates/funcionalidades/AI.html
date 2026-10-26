@@ -11,13 +11,17 @@
 
 {% block title %}SIGMAP-AQUA | Análisis predictivo{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/ia_predictiva.css' %}">
+{% endblock %}
+
 {% block page_title %}
   <h1>IA · Análisis predictivo</h1>
   <p>Diagnóstico y recomendaciones generadas sobre los datos reales del cultivo.</p>
 {% endblock %}
 
 {% block content %}
-<div class="sg-modulo">
+<div class="sg-modulo sg-ia">
 
   {% if not ia_configurada %}
     <div class="sg-alerta sg-alerta--warn">
@@ -433,6 +437,7 @@
 {% endblock %}
 
 {% block extra_js %}
+  {% include "componentes/_agente_ia.html" %}
   {% include "componentes/modales_js.html" %}
   <script>
     /**
