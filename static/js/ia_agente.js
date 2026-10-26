@@ -2,34 +2,69 @@
  * SIGMAP-AQUA · Agente IA flotante del módulo "IA - Análisis predictivo".
  * Archivo: static/js/ia_agente.js
  *
- * No llama endpoints nuevos: todo lo que dice el agente se lee del DOM que
- * ya renderiza la vista /ai/ (KPIs, predicciones pendientes, análisis
- * seleccionado, anomalías, recomendaciones y riesgo proyectado).
+ * - El avatar es un robot SVG generado por código (buildRobotSvg) para poder
+ *   animarlo: flota, parpadea, saluda, cambia los ojos según el riesgo,
+ *   sigue el mouse con la mirada, "habla" mientras escribe y se duerme si
+ *   nadie lo usa.
+ * - No llama endpoints nuevos: lee los atributos data-ia-* que ya renderiza
+ *   templates/funcionalidades/AI.html.
+ * - El chat se conserva en sessionStorage mientras navegas el módulo y se
+ *   puede limpiar con el botón de la cabecera.
  */
 (() => {
   'use strict';
 
-  const TYPING_DELAY_MS = 550;
-  const MAX_TYPE_DURATION_MS = 900;
-  const PARAM_ALIASES = {
+  /* ======================================================================
+     Configuración
+     ====================================================================== */
+  const CONFIG = Object.freeze({
+    typingDelayMs: 520,
+    maxTypeMs: 900,
+    blinkMinMs: 2600,
+    blinkMaxMs: 5200,
+    sleepAfterMs: 45000,
+    teaserDelayMs: 1600,
+    teaserDurationMs: 6500,
+    storageKey: 'sigmap_ia_chat_v1',
+    maxStoredMessages: 60,
+  });
+
+  /** Expresiones disponibles del robot. */
+  const FACE = Object.freeze({
+    HAPPY: 'happy',
+    OPEN: 'open',
+    WARN: 'warn',
+    ALERT: 'alert',
+    THINK: 'think',
+    SLEEP: 'sleep',
+  });
+
+  const PARAM_ALIASES = Object.freeze({
     ph: ['ph', 'acidez', 'acido'],
     turbidez: ['turbidez', 'turbio', 'ntu', 'solidos'],
     temperatura: ['temperatura', 'temp', 'calor', 'frio', 'termic'],
     oxigeno: ['oxigeno', 'od', 'disuelto'],
-  };
+  });
 
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const PARAM_LABELS = Object.freeze({
+    ph: 'pH', turbidez: 'Turbidez', temperatura: 'Temperatura', oxigeno: 'Oxígeno disuelto',
+  });
 
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ======================================================================
+     Utilidades
+     ====================================================================== */
   /** @param {string} value */
   const normalize = (value) =>
-    (value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    (value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 
   /** @param {Element|null} el */
   const textOf = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
 
-  /** Texto propio de un elemento sin el de sus hijos (ej. "7.0 – 7.4" sin el <small>). */
-  const ownText = (el) =>
-    el ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join(' ').replace(/\s+/g, ' ').trim() : '';
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, reducedMotion ? 0 : ms));
+
+  const randomBetween = (min, max) => min + Math.random() * (max - min);
 
   /** Primeras N oraciones de un texto largo. */
   const firstSentences = (text, count = 2) => {
@@ -37,132 +72,371 @@
     return parts ? parts.slice(0, count).join(' ').trim() : text;
   };
 
-  /**
-   * Busca el bloque que sigue a un <h3> cuyo texto contenga `title`.
-   * @param {Element} scope
-   * @param {string} title
-   * @returns {Element|null}
-   */
-  const blockAfterHeading = (scope, title) => {
-    const heading = [...scope.querySelectorAll('h3')].find((h) => normalize(h.textContent).includes(normalize(title)));
-    return heading ? heading.nextElementSibling : null;
+  const storage = {
+    read() {
+      try {
+        return JSON.parse(sessionStorage.getItem(CONFIG.storageKey)) || null;
+      } catch (error) {
+        return null;
+      }
+    },
+    write(state) {
+      try {
+        sessionStorage.setItem(CONFIG.storageKey, JSON.stringify(state));
+      } catch (error) {
+        /* almacenamiento bloqueado: el chat sigue funcionando en memoria */
+      }
+    },
+    clear() {
+      try { sessionStorage.removeItem(CONFIG.storageKey); } catch (error) { /* sin acción */ }
+    },
   };
 
+  /* ======================================================================
+     Robot SVG
+     ====================================================================== */
   /**
-   * Recolecta los datos que ya muestra el módulo IA.
-   * @returns {{kpis: Object, pending: Array, analysis: Object|null, poolOptions: string}}
+   * Construye el SVG del robot SigmaP Aqua.
+   * @param {string} uid - prefijo único para los ids de gradientes.
+   * @param {{variant?: 'full'|'bust'|'head'}} [options]
+   * @returns {string} markup SVG
    */
-  function collectModuleData() {
-    const root = document.querySelector('.sg-modulo') || document;
+  function buildRobotSvg(uid, { variant = 'full' } = {}) {
+    const viewBoxes = { full: '-6 -4 132 150', bust: '8 4 104 110', head: '26 8 68 58' };
+    const id = (name) => `${uid}-${name}`;
 
+    return `
+<svg class="rb rb--${variant}" viewBox="${viewBoxes[variant]}" data-face="${FACE.HAPPY}"
+     xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="${id('shell')}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#eef5fb"/><stop offset="1" stop-color="#c9daea"/>
+    </linearGradient>
+    <linearGradient id="${id('visor')}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16345c"/><stop offset="1" stop-color="#081a33"/>
+    </linearGradient>
+    <linearGradient id="${id('accent')}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f80ed"/><stop offset="1" stop-color="#0e5a8a"/>
+    </linearGradient>
+    <linearGradient id="${id('beam')}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5eead4" stop-opacity=".9"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="${id('glow')}" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#a5f3fc" stop-opacity=".9"/><stop offset="1" stop-color="#a5f3fc" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ambiente: burbujas y destellos -->
+  <g class="rb-fx">
+    <circle class="rb-bubble rb-bubble--1" cx="18" cy="40" r="3.4"/>
+    <circle class="rb-bubble rb-bubble--2" cx="104" cy="30" r="2.6"/>
+    <circle class="rb-bubble rb-bubble--3" cx="12" cy="74" r="2"/>
+    <circle class="rb-bubble rb-bubble--4" cx="108" cy="80" r="3"/>
+    <path class="rb-spark rb-spark--1" d="M100 52 l1.6 4.4 4.4 1.6 -4.4 1.6 -1.6 4.4 -1.6 -4.4 -4.4 -1.6 4.4 -1.6z"/>
+    <path class="rb-spark rb-spark--2" d="M14 56 l1.2 3.2 3.2 1.2 -3.2 1.2 -1.2 3.2 -1.2 -3.2 -3.2 -1.2 3.2 -1.2z"/>
+    <path class="rb-spark rb-spark--3" d="M96 104 l1 2.6 2.6 1 -2.6 1 -1 2.6 -1 -2.6 -2.6 -1 2.6 -1z"/>
+  </g>
+
+  <g class="rb-float">
+    <!-- propulsor -->
+    <g class="rb-thruster">
+      <path class="rb-beam" d="M53 116 L67 116 L80 146 L40 146 Z" fill="url(#${id('beam')})"/>
+      <rect class="rb-particle rb-particle--1" x="55" y="122" width="2.4" height="2.4" rx=".6"/>
+      <rect class="rb-particle rb-particle--2" x="62" y="126" width="2" height="2" rx=".5"/>
+      <rect class="rb-particle rb-particle--3" x="58" y="132" width="2.6" height="2.6" rx=".6"/>
+      <rect class="rb-particle rb-particle--4" x="66" y="120" width="1.8" height="1.8" rx=".4"/>
+      <rect class="rb-particle rb-particle--5" x="51" y="128" width="1.8" height="1.8" rx=".4"/>
+    </g>
+
+    <!-- brazo izquierdo (en reposo) -->
+    <g class="rb-arm rb-arm--left">
+      <path d="M37 74 C27 80 22 96 25 108 C27 112 31 110 33 104 C36 94 39 84 41 78 Z"
+            fill="url(#${id('shell')})" stroke="#1d3b63" stroke-width="1.6" stroke-linejoin="round"/>
+    </g>
+
+    <!-- cuerpo -->
+    <g class="rb-body">
+      <path d="M60 62 C80 62 87 76 86 92 C85 106 75 116 60 116 C45 116 35 106 34 92 C33 76 40 62 60 62 Z"
+            fill="url(#${id('shell')})" stroke="#1d3b63" stroke-width="1.8"/>
+      <path d="M41 96 C44 108 52 113 60 113" fill="none" stroke="#9fb6cc" stroke-width="1.2" stroke-linecap="round"/>
+      <ellipse cx="60" cy="66" rx="20" ry="5.6" fill="url(#${id('accent')})" stroke="#1d3b63" stroke-width="1.4"/>
+      <ellipse cx="60" cy="65.4" rx="14" ry="2.8" fill="#22d3ee" opacity=".55"/>
+      <rect class="rb-chest-led" x="45" y="74" width="10" height="3" rx="1.5"/>
+      <!-- emblema del pez -->
+      <circle cx="60" cy="90" r="9" fill="#ffffff" stroke="#2f80ed" stroke-width="1.6"/>
+      <path d="M54.5 90.5 C56.5 86.8 61.5 86.6 64 89.6 L66.6 87.4 L66 90.6 L66.6 93.6 L64 91.6 C61.5 94.4 56.5 94.2 54.5 90.5 Z"
+            fill="#2f80ed"/>
+      <circle cx="57.6" cy="89.6" r=".8" fill="#ffffff"/>
+      <path d="M53.5 95.4 q2 -1.2 4 0 t4 0 t4 0" fill="none" stroke="#22d3ee" stroke-width=".9" stroke-linecap="round"/>
+      <!-- tobera -->
+      <ellipse cx="60" cy="114.6" rx="11" ry="3.6" fill="#1d3b63"/>
+      <ellipse class="rb-nozzle" cx="60" cy="115.4" rx="7" ry="2" fill="#5eead4"/>
+    </g>
+
+    <!-- brazo derecho (el que saluda) -->
+    <g class="rb-arm rb-arm--right">
+      <path d="M83 74 C93 72 99 82 97 94 C96 100 91 100 89 95 C87 89 84 82 80 78 Z"
+            fill="url(#${id('shell')})" stroke="#1d3b63" stroke-width="1.6" stroke-linejoin="round"/>
+      <ellipse cx="94" cy="92" rx="3.4" ry="4.6" fill="url(#${id('accent')})" transform="rotate(-18 94 92)"/>
+      <ellipse cx="94.4" cy="91" rx="1.4" ry="2.4" fill="#22d3ee" opacity=".8" transform="rotate(-18 94 92)"/>
+    </g>
+
+    <!-- cabeza -->
+    <g class="rb-head">
+      <rect x="51" y="54" width="18" height="8" rx="3" fill="#1d3b63"/>
+      <path d="M60 12 C76 12 86 24 86 38 C86 50 76 58 60 58 C44 58 34 50 34 38 C34 24 44 12 60 12 Z"
+            fill="url(#${id('shell')})" stroke="#1d3b63" stroke-width="1.8"/>
+      <path d="M44 20 C52 14 66 13 75 18" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+      <path d="M38 32 C46 28 52 30 58 30" fill="none" stroke="#b9cde0" stroke-width="1" stroke-linecap="round"/>
+      <!-- orejas -->
+      <circle cx="34" cy="38" r="6" fill="url(#${id('accent')})" stroke="#1d3b63" stroke-width="1.4"/>
+      <circle class="rb-ear" cx="34" cy="38" r="3" fill="#22d3ee"/>
+      <circle cx="86" cy="38" r="6" fill="url(#${id('accent')})" stroke="#1d3b63" stroke-width="1.4"/>
+      <circle class="rb-ear" cx="86" cy="38" r="3" fill="#22d3ee"/>
+      <!-- visor -->
+      <rect class="rb-visor" x="38.5" y="26" width="43" height="23" rx="11.5" fill="url(#${id('visor')})" stroke="#1d3b63" stroke-width="1.4"/>
+      <ellipse class="rb-visor-glow" cx="60" cy="37.5" rx="18" ry="8" fill="url(#${id('glow')})" opacity=".18"/>
+      <path d="M45 30.5 C49 29 53 28.6 57 28.6" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity=".35"/>
+      <!-- ojos -->
+      <g class="rb-eyes">
+        <g class="rb-face rb-face--happy">
+          <path d="M47 39.5 Q51.5 32.5 56 39.5"/><path d="M64 39.5 Q68.5 32.5 73 39.5"/>
+        </g>
+        <g class="rb-face rb-face--open">
+          <rect x="48.5" y="32.5" width="6" height="9" rx="3"/><rect x="65.5" y="32.5" width="6" height="9" rx="3"/>
+        </g>
+        <g class="rb-face rb-face--warn">
+          <rect x="48.5" y="34.5" width="6.5" height="6" rx="3"/><rect x="65" y="34.5" width="6.5" height="6" rx="3"/>
+          <path class="rb-brow" d="M47 32.5 L56 33.5"/><path class="rb-brow" d="M64 33.5 L73 32.5"/>
+        </g>
+        <g class="rb-face rb-face--alert">
+          <rect x="48.5" y="34" width="6.5" height="7.5" rx="2.4"/><rect x="65" y="34" width="6.5" height="7.5" rx="2.4"/>
+          <path class="rb-brow" d="M47 31 L56 33.6"/><path class="rb-brow" d="M64 33.6 L73 31"/>
+        </g>
+        <g class="rb-face rb-face--think">
+          <rect x="50.5" y="31.5" width="5.6" height="7" rx="2.8"/><rect x="66.5" y="31.5" width="5.6" height="7" rx="2.8"/>
+        </g>
+        <g class="rb-face rb-face--sleep">
+          <path d="M47.5 37.5 Q51.5 40.5 55.5 37.5"/><path d="M64.5 37.5 Q68.5 40.5 72.5 37.5"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- zzz -->
+    <g class="rb-zzz">
+      <text x="84" y="16">z</text><text x="91" y="9">z</text><text x="98" y="2">Z</text>
+    </g>
+  </g>
+</svg>`;
+  }
+
+  /**
+   * Controlador de un robot ya insertado en el DOM.
+   * Expone métodos de gesto y gestiona parpadeo y mirada.
+   */
+  class Robot {
+    /** @param {SVGSVGElement} svg */
+    constructor(svg) {
+      this.svg = svg;
+      this.mood = FACE.HAPPY;
+      this.face = FACE.HAPPY;
+      this.blinkTimer = null;
+      this.gestureTimers = new Set();
+      if (!reducedMotion) this.scheduleBlink();
+    }
+
+    /** Expresión base según el estado del cultivo. */
+    setMood(face) {
+      this.mood = face;
+      if (![FACE.THINK, FACE.SLEEP].includes(this.face)) this.setFace(face);
+    }
+
+    setFace(face) {
+      this.face = face;
+      this.svg.dataset.face = face;
+    }
+
+    restoreMood() {
+      this.setFace(this.mood);
+    }
+
+    /** Aplica una clase temporal de gesto. */
+    gesture(name, durationMs) {
+      if (reducedMotion) return;
+      const cls = `rb--${name}`;
+      this.svg.classList.remove(cls);
+      // fuerza reflow para reiniciar la animación
+      void this.svg.getBoundingClientRect();
+      this.svg.classList.add(cls);
+      const timer = setTimeout(() => {
+        this.svg.classList.remove(cls);
+        this.gestureTimers.delete(timer);
+      }, durationMs);
+      this.gestureTimers.add(timer);
+    }
+
+    wave() { this.gesture('wave', 1700); }
+    hop() { this.gesture('hop', 650); }
+    shake() { this.gesture('shake', 700); }
+    spin() { this.gesture('spin', 900); }
+
+    setTalking(value) { this.svg.classList.toggle('rb--talking', value); }
+
+    blink() {
+      if (this.face === FACE.SLEEP) return;
+      this.svg.classList.add('rb--blink');
+      setTimeout(() => this.svg.classList.remove('rb--blink'), 160);
+    }
+
+    scheduleBlink() {
+      clearTimeout(this.blinkTimer);
+      this.blinkTimer = setTimeout(() => {
+        this.blink();
+        if (Math.random() < 0.25) setTimeout(() => this.blink(), 260); // doble parpadeo
+        this.scheduleBlink();
+      }, randomBetween(CONFIG.blinkMinMs, CONFIG.blinkMaxMs));
+    }
+
+    /**
+     * Orienta mirada y cabeza hacia un punto de la pantalla.
+     * @param {number} clientX
+     * @param {number} clientY
+     */
+    lookAt(clientX, clientY) {
+      const rect = this.svg.getBoundingClientRect();
+      if (!rect.width) return;
+      const dx = clientX - (rect.left + rect.width / 2);
+      const dy = clientY - (rect.top + rect.height / 3);
+      const distance = Math.hypot(dx, dy) || 1;
+      const reach = Math.min(1, distance / 260);
+      this.svg.style.setProperty('--rb-look-x', `${((dx / distance) * 2.6 * reach).toFixed(2)}px`);
+      this.svg.style.setProperty('--rb-look-y', `${((dy / distance) * 1.8 * reach).toFixed(2)}px`);
+      this.svg.style.setProperty('--rb-tilt', `${((dx / distance) * 7 * reach).toFixed(2)}deg`);
+    }
+
+    resetLook() {
+      ['--rb-look-x', '--rb-look-y', '--rb-tilt'].forEach((prop) => this.svg.style.removeProperty(prop));
+    }
+  }
+
+  /* ======================================================================
+     Lectura de datos del módulo (contrato data-ia-*)
+     ====================================================================== */
+  /**
+   * @typedef {Object} ModuleData
+   * @property {Object<string,{value:string, sub:string}>} kpis
+   * @property {Array<Object>} pending
+   * @property {Object|null} analysis
+   */
+
+  /** @returns {ModuleData} */
+  function collectModuleData() {
     const kpis = {};
-    root.querySelectorAll('.sg-kpi').forEach((card) => {
-      const key = normalize(textOf(card.querySelector('.sg-kpi-label')));
-      kpis[key] = {
+    document.querySelectorAll('[data-ia-kpi]').forEach((card) => {
+      kpis[card.dataset.iaKpi] = {
         value: textOf(card.querySelector('.sg-kpi-valor')),
         sub: textOf(card.querySelector('.sg-kpi-sub')),
       };
     });
 
-    const pending = [...root.querySelectorAll('[data-panel="pendientes"] tbody tr')].map((row) => {
-      const cells = row.cells;
-      return {
-        param: textOf(cells[0]),
-        targetDay: ownText(cells[1]),
-        interval: ownText(cells[2]),
-        expected: textOf(cells[2] && cells[2].querySelector('small')),
-        probability: parseFloat(textOf(cells[3])) || 0,
-        reason: textOf(cells[4]),
-        status: textOf(cells[5]),
-      };
-    }).filter((p) => p.param);
+    const pending = [...document.querySelectorAll('[data-ia-prediccion]')].map((row) => ({
+      param: row.dataset.parametro || '',
+      targetDay: row.dataset.fecha || '',
+      interval: row.dataset.intervalo || '',
+      expected: row.dataset.esperado || '',
+      probability: parseFloat(row.dataset.probabilidad) || 0,
+      overdue: row.dataset.vencida === '1',
+      reason: textOf(row.querySelector('[data-ia-justificacion]')),
+    }));
 
-    const detailCard = root.querySelector('.sg-split > .sg-card');
+    const hero = document.querySelector('[data-ia-analisis]');
     let analysis = null;
-
-    if (detailCard && detailCard.querySelector('.sg-card-body h3')) {
-      const body = detailCard.querySelector('.sg-card-body');
-      const title = detailCard.querySelector('.sg-card-head h2');
-      const diagnosis = blockAfterHeading(body, 'Diagnóstico');
-      const anomaliesBlock = blockAfterHeading(body, 'Anomalías');
-      const recsBlock = blockAfterHeading(body, 'Recomendaciones');
-
+    if (hero) {
       analysis = {
-        type: ownText(title),
-        confidence: textOf(title && title.querySelector('.sg-chip')),
-        pool: textOf(body.querySelector('.sg-alerta strong')),
-        meta: textOf(body.querySelector('.sg-alerta')),
-        diagnosis: diagnosis && diagnosis.tagName === 'P' ? textOf(diagnosis) : '',
-        anomalies: anomaliesBlock
-          ? [...anomaliesBlock.querySelectorAll('tbody tr')].map((row) => ({
-              param: textOf(row.cells[0]),
-              description: textOf(row.cells[1]),
-              severity: textOf(row.cells[2]),
-            }))
-          : [],
-        recommendations: recsBlock ? [...recsBlock.querySelectorAll('li')].map(textOf) : [],
-        risk: textOf(body.querySelector('.sg-metrica-valor')),
+        pool: hero.dataset.iaPiscina || '',
+        type: hero.dataset.iaTipo || '',
+        confidence: hero.dataset.iaConfianza || '',
+        risk: hero.dataset.iaRiesgo || '',
+        diagnosis: textOf(document.querySelector('[data-ia-diagnostico]')),
+        anomalies: [...document.querySelectorAll('[data-ia-anomalia]')].map((item) => ({
+          param: item.dataset.parametro || '',
+          severity: item.dataset.gravedad || '',
+          description: textOf(item.querySelector('[data-ia-descripcion]')),
+        })),
+        recommendations: [...document.querySelectorAll('[data-ia-recomendacion]')].map(textOf),
       };
     }
 
     return { kpis, pending, analysis };
   }
 
-  /** @param {string} severity */
-  const toneFromLevel = (severity) => {
-    const level = normalize(severity);
-    if (level.startsWith('alt') || level.startsWith('crit')) return 'alerta';
-    if (level.startsWith('med')) return 'aviso';
-    if (level.startsWith('baj')) return 'ok';
+  /** @param {string} level - alta|media|baja|alto|medio|bajo */
+  const toneFromLevel = (level) => {
+    const value = normalize(level);
+    if (value.startsWith('alt') || value.startsWith('crit')) return 'alerta';
+    if (value.startsWith('med')) return 'aviso';
+    if (value.startsWith('baj')) return 'ok';
     return 'info';
   };
 
-  /** Coincide un nombre de parámetro con una clave de PARAM_ALIASES. */
-  const matchParam = (paramName, key) =>
-    PARAM_ALIASES[key].some((alias) => normalize(paramName).replace(/\s/g, '').includes(alias.replace(/\s/g, '')));
+  /** Expresión del robot según el riesgo proyectado. */
+  const faceFromRisk = (risk) => {
+    const tone = toneFromLevel(risk);
+    if (tone === 'alerta') return FACE.ALERT;
+    if (tone === 'aviso') return FACE.WARN;
+    return FACE.HAPPY;
+  };
 
+  const matchParam = (paramName, key) =>
+    PARAM_ALIASES[key].some((alias) => normalize(paramName).replace(/\s/g, '').includes(alias));
+
+  /** Firma del análisis visible, para detectar cambios entre recargas. */
+  const analysisSignature = (analysis) =>
+    (analysis ? `${analysis.pool}|${analysis.type}|${analysis.confidence}|${analysis.risk}` : 'none');
+
+  /* ======================================================================
+     Respuestas del agente
+     ====================================================================== */
   /**
-   * Genera los mensajes del agente según la intención.
    * @param {string} intent
-   * @param {ReturnType<typeof collectModuleData>} data
+   * @param {ModuleData} data
    * @param {string} [paramKey]
    * @returns {Array<{tag?: string, text: string, tone: string}>}
    */
   function buildMessages(intent, data, paramKey) {
     const { kpis, pending, analysis } = data;
-    const overdue = pending.filter((p) => normalize(p.status).includes('vencid'));
+    const overdue = pending.filter((p) => p.overdue);
     const highAnomalies = analysis ? analysis.anomalies.filter((a) => toneFromLevel(a.severity) === 'alerta') : [];
     const noAnalysis = {
       tone: 'info',
-      text: 'Aún no hay un análisis seleccionado. Usa **Generar análisis** a la izquierda para que pueda leer el estado de una piscina.',
+      text: 'Aún no hay un análisis seleccionado. Usa **Generar análisis** para que pueda leer el estado de una piscina.',
     };
 
     switch (intent) {
       case 'bienvenida': {
+        if (!analysis) return [noAnalysis];
         const msgs = [{
-          tone: 'info',
-          text: '¡Hola! Soy el **Asistente IA de SigmaP Aqua**. Vigilo las predicciones de pH, temperatura, turbidez y oxígeno de tus piscinas.',
+          tag: analysis.pool || 'Estado actual',
+          tone: toneFromLevel(analysis.risk),
+          text: `Riesgo proyectado: **${analysis.risk || 'sin dato'}**. Detecté **${analysis.anomalies.length}** anomalía(s), ${highAnomalies.length} de gravedad alta.`,
         }];
-        if (analysis) {
-          msgs.push({
-            tag: analysis.pool || 'Estado actual',
-            tone: toneFromLevel(analysis.risk),
-            text: `Riesgo proyectado: **${analysis.risk || 'sin dato'}**. Detecté **${analysis.anomalies.length}** anomalía(s), ${highAnomalies.length} de gravedad alta.`,
-          });
-        } else {
-          msgs.push(noAnalysis);
-        }
         if (overdue.length) {
-          msgs.push({
-            tone: 'aviso',
-            text: `Tienes **${overdue.length} predicción(es) vencida(s)** listas para contrastar con los sensores.`,
-          });
+          msgs.push({ tone: 'aviso', text: `Tienes **${overdue.length} predicción(es) vencida(s)** listas para contrastar con los sensores.` });
         }
         return msgs;
       }
 
+      case 'cambio': {
+        if (!analysis) return [noAnalysis];
+        return [{
+          tag: 'Nuevo análisis en pantalla',
+          tone: toneFromLevel(analysis.risk),
+          text: `Ahora veo **${analysis.pool}** · ${analysis.type}. Riesgo **${analysis.risk || 'sin dato'}** con ${analysis.anomalies.length} anomalía(s).`,
+        }];
+      }
+
       case 'resumen': {
-        const precision = kpis['precision del modelo'];
+        const precision = kpis.precision;
         const hits = kpis.acertadas;
         const msgs = [{
           tag: 'Modelo predictivo',
@@ -171,11 +445,10 @@
         }];
         if (analysis) {
           msgs.push({
-            tag: `${analysis.type} · ${analysis.confidence}`,
+            tag: `${analysis.type} · confianza ${analysis.confidence || '?'}%`,
             tone: toneFromLevel(analysis.risk),
             text: firstSentences(analysis.diagnosis, 2) || 'El análisis no trae texto de diagnóstico.',
           });
-          msgs.push({ tone: toneFromLevel(analysis.risk), text: `Riesgo proyectado para **${analysis.pool}**: **${analysis.risk}**.` });
         } else {
           msgs.push(noAnalysis);
         }
@@ -210,9 +483,7 @@
         }
         const [first, ...rest] = analysis.recommendations;
         const msgs = [{ tag: `Prioridad de hoy · ${analysis.pool}`, tone: toneFromLevel(analysis.risk), text: first }];
-        if (rest.length) {
-          msgs.push({ tag: 'También conviene', tone: 'info', text: rest.map((r) => `• ${r}`).join('\n') });
-        }
+        if (rest.length) msgs.push({ tag: 'También conviene', tone: 'info', text: rest.map((r) => `• ${r}`).join('\n') });
         return msgs;
       }
 
@@ -223,7 +494,7 @@
         const msgs = [{
           tag: `${pending.length} predicción(es) en seguimiento`,
           tone: 'info',
-          text: pending.map((p) => `• **${p.param}** → ${p.interval} (${p.status}, ${p.targetDay})`).join('\n'),
+          text: pending.map((p) => `• **${p.param}** → ${p.interval} (${p.overdue ? 'vencida' : 'esperando'}, ${p.targetDay})`).join('\n'),
         }];
         if (overdue.length) {
           msgs.push({ tone: 'aviso', text: `Pulsa **Contrastar ${overdue.length} vencida(s)** en "Seguimiento de predicciones" para calcular el acierto real.` });
@@ -232,7 +503,7 @@
       }
 
       case 'parametro': {
-        const label = { ph: 'pH', turbidez: 'Turbidez', temperatura: 'Temperatura', oxigeno: 'Oxígeno disuelto' }[paramKey];
+        const label = PARAM_LABELS[paramKey];
         const anomaly = analysis && analysis.anomalies.find((a) => matchParam(a.param, paramKey));
         const prediction = pending.find((p) => matchParam(p.param, paramKey));
         const msgs = [];
@@ -241,26 +512,36 @@
           msgs.push({
             tag: `Predicción de ${label}`,
             tone: prediction.probability >= 70 ? 'aviso' : 'info',
-            text: `Intervalo previsto **${prediction.interval}** (${prediction.expected}) para el ${prediction.targetDay}. Probabilidad fuera de rango: **${prediction.probability}%**.\n${prediction.reason}`,
+            text: `Intervalo previsto **${prediction.interval}** (esperado ${prediction.expected}) para el ${prediction.targetDay}. Probabilidad fuera de rango: **${prediction.probability}%**.${prediction.reason ? `\n${prediction.reason}` : ''}`,
           });
         }
         if (!msgs.length) msgs.push({ tone: 'ok', text: `No tengo alertas ni predicciones activas de **${label}** en este momento.` });
         return msgs;
       }
 
+      case 'saludo':
+        return [{ tone: 'info', text: '¡Hola! 👋 Pregúntame por **pH**, **turbidez**, **temperatura** u **oxígeno**, o usa los botones rápidos.' }];
+
+      case 'gracias':
+        return [{ tone: 'ok', text: '¡Con gusto! Sigo vigilando el agua de tus piscinas. 🐟' }];
+
       default:
         return [{
           tone: 'info',
-          text: 'Puedo hablarte de **pH**, **turbidez**, **temperatura** u **oxígeno**, o usa los botones rápidos de abajo.',
+          text: 'Puedo hablarte de **pH**, **turbidez**, **temperatura** u **oxígeno**, darte un **resumen**, las **anomalías**, la **recomendación de hoy** o las **pendientes**.',
         }];
     }
   }
 
-  /** Detecta la intención a partir de la consulta escrita. */
+  /** Detecta la intención a partir de una consulta escrita. */
   function resolveQuery(query) {
     const q = normalize(query);
-    const paramKey = Object.keys(PARAM_ALIASES).find((key) => PARAM_ALIASES[key].some((alias) => q.split(/\W+/).some((w) => w.startsWith(alias))));
+    const words = q.split(/[^a-z0-9]+/).filter(Boolean);
+    const paramKey = Object.keys(PARAM_ALIASES)
+      .find((key) => PARAM_ALIASES[key].some((alias) => words.some((w) => w.startsWith(alias))));
     if (paramKey) return { intent: 'parametro', paramKey };
+    if (/^(hola|buenas|hey|saludos)/.test(q)) return { intent: 'saludo' };
+    if (/gracias|genial|perfecto/.test(q)) return { intent: 'gracias' };
     if (/resumen|estado|general|como va/.test(q)) return { intent: 'resumen' };
     if (/anomal|alerta|riesgo|problema/.test(q)) return { intent: 'anomalias' };
     if (/recomend|hacer|hoy|accion|consejo/.test(q)) return { intent: 'recomendacion' };
@@ -268,179 +549,371 @@
     return { intent: 'ayuda' };
   }
 
-  /** Convierte "**negrita**" en segmentos seguros (sin innerHTML). */
+  /** Divide "**negrita**" en segmentos seguros (sin innerHTML). */
   const toSegments = (text) => text.split(/\*\*/).map((part, i) => ({ text: part, bold: i % 2 === 1 })).filter((s) => s.text);
 
+  /* ======================================================================
+     Agente
+     ====================================================================== */
   function initAgent() {
     const agent = document.querySelector('[data-agent]');
     if (!agent) return;
 
-    const trigger = agent.querySelector('[data-agent-toggle]');
-    const panel = agent.querySelector('.ia-agent__panel');
-    const body = agent.querySelector('.ia-agent__body');
-    const badge = agent.querySelector('[data-agent-badge]');
-    const form = agent.querySelector('[data-agent-form]');
-    const input = form ? form.querySelector('input') : null;
-    const controls = agent.querySelectorAll('[data-agent-intent], .ia-agent__send');
-
-    let busy = false;
-    let greeted = false;
-
-    // Avatar de respaldo si la imagen no carga
-    agent.querySelectorAll('[data-agent-img]').forEach((img) => {
-      const useFallback = () => img.closest('[data-agent-avatar]').classList.add('is-fallback');
-      if (!img.getAttribute('src')) useFallback();
-      else if (img.complete && img.naturalWidth === 0) useFallback();
-      img.addEventListener('error', useFallback, { once: true });
-    });
-
-    // Badge: anomalías de gravedad alta del análisis actual
-    try {
-      const data = collectModuleData();
-      const high = data.analysis ? data.analysis.anomalies.filter((a) => toneFromLevel(a.severity) === 'alerta').length : 0;
-      if (badge && high > 0) {
-        badge.textContent = String(high);
-        badge.hidden = false;
-        trigger.setAttribute('aria-label', `Abrir Asistente IA de SigmaP Aqua (${high} anomalías altas)`);
-      }
-    } catch (error) {
-      console.error('[Agente IA] No se pudieron leer los datos del módulo:', error);
-    }
-
-    const scrollToEnd = () => { body.scrollTop = body.scrollHeight; };
-    const setBusy = (value) => {
-      busy = value;
-      controls.forEach((c) => { c.disabled = value; });
+    const ui = {
+      trigger: agent.querySelector('[data-agent-toggle]'),
+      triggerAvatar: agent.querySelector('[data-agent-robot="trigger"]'),
+      headerAvatar: agent.querySelector('[data-agent-robot="header"]'),
+      panel: agent.querySelector('.ia-agent__panel'),
+      body: agent.querySelector('[data-agent-body]'),
+      welcome: agent.querySelector('[data-agent-welcome]'),
+      welcomeAvatar: agent.querySelector('[data-agent-robot="welcome"]'),
+      welcomeText: agent.querySelector('[data-agent-welcome-text]'),
+      log: agent.querySelector('[data-agent-log]'),
+      badge: agent.querySelector('[data-agent-badge]'),
+      teaser: agent.querySelector('[data-agent-teaser]'),
+      teaserText: agent.querySelector('[data-agent-teaser-text]'),
+      status: agent.querySelector('[data-agent-status]'),
+      clear: agent.querySelector('[data-agent-clear]'),
+      close: agent.querySelector('[data-agent-close]'),
+      form: agent.querySelector('[data-agent-form]'),
+      input: agent.querySelector('[data-agent-form] input'),
+      controls: agent.querySelectorAll('[data-agent-intent], .ia-agent__send, [data-agent-clear]'),
     };
 
-    /** Escribe un mensaje con efecto de tecleo. */
-    const typeMessage = (msg) => new Promise((resolve) => {
+    // ---- Robots ---------------------------------------------------------
+    const mountRobot = (host, variant) => {
+      if (!host) return null;
+      host.innerHTML = buildRobotSvg(`rb-${variant}-${Math.random().toString(36).slice(2, 7)}`, { variant });
+      return new Robot(host.querySelector('svg'));
+    };
+    const robots = {
+      trigger: mountRobot(ui.triggerAvatar, 'bust'),
+      header: mountRobot(ui.headerAvatar, 'head'),
+      welcome: mountRobot(ui.welcomeAvatar, 'full'),
+    };
+    const allRobots = () => Object.values(robots).filter(Boolean);
+    const everyRobot = (fn) => allRobots().forEach(fn);
+
+    // ---- Estado ---------------------------------------------------------
+    let data;
+    try {
+      data = collectModuleData();
+    } catch (error) {
+      console.error('[Agente IA] No se pudieron leer los datos del módulo:', error);
+      data = { kpis: {}, pending: [], analysis: null };
+    }
+    const mood = data.analysis ? faceFromRisk(data.analysis.risk) : FACE.HAPPY;
+    const highCount = data.analysis ? data.analysis.anomalies.filter((a) => toneFromLevel(a.severity) === 'alerta').length : 0;
+    agent.dataset.mood = mood;
+    everyRobot((r) => r.setMood(mood));
+
+    let busy = false;
+    let history = [];
+
+    const persist = () => {
+      storage.write({ signature: analysisSignature(data.analysis), messages: history.slice(-CONFIG.maxStoredMessages) });
+    };
+
+    const setStatus = (text) => { if (ui.status) ui.status.textContent = text; };
+
+    const setBusy = (value) => {
+      busy = value;
+      ui.controls.forEach((control) => { control.disabled = value; });
+      agent.classList.toggle('is-busy', value);
+    };
+
+    const scrollToEnd = () => { ui.body.scrollTop = ui.body.scrollHeight; };
+
+    const showWelcome = (visible) => {
+      ui.welcome.hidden = !visible;
+      ui.log.hidden = visible;
+    };
+
+    // ---- Badge + teaser -------------------------------------------------
+    if (ui.badge && highCount > 0) {
+      ui.badge.textContent = String(highCount);
+      ui.badge.hidden = false;
+      ui.trigger.setAttribute('aria-label', `Abrir Asistente IA de SigmaP Aqua (${highCount} anomalías altas)`);
+    }
+
+    if (ui.welcomeText) {
+      ui.welcomeText.textContent = data.analysis
+        ? `Estoy viendo ${data.analysis.pool}. Riesgo ${data.analysis.risk || 'sin dato'}. ¿Qué quieres saber?`
+        : 'Vigilo pH, temperatura, turbidez y oxígeno de tus piscinas. ¿Qué quieres saber?';
+    }
+
+    let teaserTimer = null;
+    const hideTeaser = () => {
+      clearTimeout(teaserTimer);
+      if (ui.teaser) ui.teaser.classList.remove('is-visible');
+    };
+    const showTeaser = () => {
+      if (!ui.teaser || agent.classList.contains('is-open')) return;
+      let text = '¡Hola! Soy tu asistente de calidad del agua.';
+      if (highCount) text = `Detecté ${highCount} anomalía${highCount > 1 ? 's' : ''} grave${highCount > 1 ? 's' : ''} en ${data.analysis.pool}.`;
+      else if (data.analysis) text = `${data.analysis.pool}: riesgo ${data.analysis.risk || 'sin dato'}. ¿Te cuento?`;
+      ui.teaserText.textContent = text;
+      ui.teaser.classList.add('is-visible');
+      robots.trigger && robots.trigger.wave();
+      teaserTimer = setTimeout(hideTeaser, CONFIG.teaserDurationMs);
+    };
+
+    // ---- Mensajes -------------------------------------------------------
+    /**
+     * Pinta un mensaje del agente.
+     * @param {{tag?: string, text: string, tone?: string}} msg
+     * @param {boolean} animate - efecto de tecleo
+     */
+    const renderAgentMessage = (msg, animate) => new Promise((resolve) => {
       const bubble = document.createElement('div');
       bubble.className = `ia-msg ia-msg--${msg.tone || 'info'}`;
       if (msg.tag) {
         const tag = document.createElement('span');
         tag.className = 'ia-msg__tag';
         tag.textContent = msg.tag;
-        bubble.append(tag, document.createElement('br'));
+        bubble.append(tag);
       }
-      const segments = toSegments(msg.text).map((seg) => {
-        const node = seg.bold ? document.createElement('strong') : document.createTextNode('');
-        bubble.appendChild(node);
-        return { node, text: seg.text };
-      });
-      body.appendChild(bubble);
+      const content = document.createElement('div');
+      content.className = 'ia-msg__text';
+      bubble.append(content);
 
-      const total = segments.reduce((n, s) => n + s.text.length, 0);
-      if (prefersReducedMotion || total === 0) {
+      const segments = toSegments(msg.text).map((segment) => {
+        const node = segment.bold ? document.createElement('strong') : document.createTextNode('');
+        content.appendChild(node);
+        return { node, text: segment.text };
+      });
+      ui.log.appendChild(bubble);
+
+      const total = segments.reduce((sum, s) => sum + s.text.length, 0);
+      if (!animate || reducedMotion || total === 0) {
         segments.forEach((s) => { s.node.textContent = s.text; });
         scrollToEnd();
         resolve();
         return;
       }
 
+      // setTimeout (no requestAnimationFrame): rAF se pausa con la pestaña en
+      // segundo plano y dejaría el chat bloqueado a mitad de mensaje.
       const start = performance.now();
-      const duration = Math.min(MAX_TYPE_DURATION_MS, total * 14);
-      const step = (now) => {
-        let budget = Math.ceil(total * Math.min(1, (now - start) / duration));
+      const duration = Math.min(CONFIG.maxTypeMs, total * 14);
+      const step = () => {
+        const elapsed = performance.now() - start;
+        let budget = Math.ceil(total * Math.min(1, elapsed / duration));
         segments.forEach((s) => {
           const take = Math.max(0, Math.min(s.text.length, budget));
           s.node.textContent = s.text.slice(0, take);
           budget -= take;
         });
         scrollToEnd();
-        if (now - start < duration) requestAnimationFrame(step);
+        if (elapsed < duration) setTimeout(step, 16);
         else resolve();
       };
-      requestAnimationFrame(step);
+      step();
     });
+
+    const renderUserMessage = (text) => {
+      const bubble = document.createElement('div');
+      bubble.className = 'ia-msg ia-msg--user';
+      bubble.textContent = text;
+      ui.log.appendChild(bubble);
+      scrollToEnd();
+    };
 
     const showTyping = () => {
       const dots = document.createElement('div');
       dots.className = 'ia-typing';
       dots.setAttribute('aria-label', 'El asistente está escribiendo');
       dots.innerHTML = '<span></span><span></span><span></span>';
-      body.appendChild(dots);
+      ui.log.appendChild(dots);
       scrollToEnd();
       return dots;
     };
 
-    /** Reproduce una secuencia de mensajes del agente. */
+    /** Reproduce una secuencia de mensajes del agente con gestos. */
     const speak = async (messages) => {
       setBusy(true);
+      showWelcome(false);
       try {
         for (const msg of messages) {
+          everyRobot((r) => r.setFace(FACE.THINK));
+          setStatus('Pensando…');
           const dots = showTyping();
-          await new Promise((r) => setTimeout(r, prefersReducedMotion ? 0 : TYPING_DELAY_MS));
+          await wait(CONFIG.typingDelayMs);
           dots.remove();
-          await typeMessage(msg);
+
+          everyRobot((r) => { r.restoreMood(); r.setTalking(true); });
+          setStatus('Escribiendo…');
+          if (msg.tone === 'alerta') everyRobot((r) => r.shake());
+          await renderAgentMessage(msg, true);
+          everyRobot((r) => r.setTalking(false));
+
+          history.push({ role: 'agent', ...msg });
         }
+        persist();
       } finally {
+        everyRobot((r) => { r.setTalking(false); r.restoreMood(); });
+        setStatus('Análisis predictivo en tiempo real');
         setBusy(false);
       }
     };
 
     const respond = (intent, paramKey) => {
-      let data;
+      let fresh;
       try {
-        data = collectModuleData();
+        fresh = collectModuleData();
       } catch (error) {
         console.error('[Agente IA] Error leyendo el módulo:', error);
         return speak([{ tone: 'alerta', text: 'No pude leer los datos del módulo. Recarga la página e inténtalo de nuevo.' }]);
       }
-      return speak(buildMessages(intent, data, paramKey));
+      return speak(buildMessages(intent, fresh, paramKey));
     };
 
-    const addUserBubble = (text) => {
-      const bubble = document.createElement('div');
-      bubble.className = 'ia-msg ia-msg--user';
-      bubble.textContent = text;
-      body.appendChild(bubble);
-      scrollToEnd();
+    const ask = (label, intent, paramKey) => {
+      if (busy) return;
+      renderUserMessage(label);
+      history.push({ role: 'user', text: label });
+      showWelcome(false);
+      robots.header && robots.header.hop();
+      respond(intent, paramKey);
     };
 
+    // ---- Limpiar chat ---------------------------------------------------
+    const clearChat = async () => {
+      if (busy) return;
+      setBusy(true);
+      const bubbles = [...ui.log.children];
+      bubbles.forEach((el, i) => {
+        el.style.transitionDelay = `${Math.min(i * 30, 300)}ms`;
+        el.classList.add('is-leaving');
+      });
+      everyRobot((r) => r.spin());
+      await wait(bubbles.length ? 420 : 0);
+      ui.log.replaceChildren();
+      history = [];
+      storage.clear();
+      showWelcome(true);
+      robots.welcome && robots.welcome.wave();
+      setBusy(false);
+      ui.input && ui.input.focus();
+    };
+
+    // ---- Restaurar sesión -----------------------------------------------
+    const saved = storage.read();
+    const signature = analysisSignature(data.analysis);
+    let greetIntent = 'bienvenida';
+    if (saved && Array.isArray(saved.messages) && saved.messages.length) {
+      history = saved.messages;
+      history.forEach((msg) => {
+        if (msg.role === 'user') renderUserMessage(msg.text);
+        else renderAgentMessage(msg, false);
+      });
+      showWelcome(false);
+      greetIntent = saved.signature !== signature ? 'cambio' : null;
+    } else {
+      showWelcome(true);
+    }
+
+    // ---- Abrir / cerrar ---------------------------------------------------
+    let greeted = false;
     const open = () => {
+      hideTeaser();
       agent.classList.add('is-open');
-      panel.setAttribute('aria-hidden', 'false');
-      trigger.setAttribute('aria-expanded', 'true');
-      if (badge) badge.hidden = true;
-      if (!greeted) {
+      ui.panel.setAttribute('aria-hidden', 'false');
+      ui.trigger.setAttribute('aria-expanded', 'true');
+      if (ui.badge) ui.badge.hidden = true;
+      wake();
+      everyRobot((r) => r.wave());
+      if (!greeted && greetIntent) {
         greeted = true;
-        respond('bienvenida');
+        setTimeout(() => respond(greetIntent), reducedMotion ? 0 : 500);
       }
+      greeted = true;
+      setTimeout(() => ui.input && ui.input.focus({ preventScroll: true }), 320);
     };
 
     const close = () => {
       agent.classList.remove('is-open');
-      panel.setAttribute('aria-hidden', 'true');
-      trigger.setAttribute('aria-expanded', 'false');
-      trigger.focus();
+      ui.panel.setAttribute('aria-hidden', 'true');
+      ui.trigger.setAttribute('aria-expanded', 'false');
+      robots.trigger && robots.trigger.hop();
     };
 
-    trigger.addEventListener('click', () => (agent.classList.contains('is-open') ? close() : open()));
-    agent.querySelector('[data-agent-close]').addEventListener('click', close);
+    ui.trigger.addEventListener('click', () => (agent.classList.contains('is-open') ? close() : open()));
+    ui.trigger.addEventListener('mouseenter', () => robots.trigger && robots.trigger.wave());
+    ui.close.addEventListener('click', () => { close(); ui.trigger.focus(); });
+    ui.clear.addEventListener('click', clearChat);
+    if (ui.teaser) {
+      ui.teaser.addEventListener('click', (event) => {
+        if (event.target.closest('[data-agent-teaser-close]')) hideTeaser();
+        else open();
+      });
+    }
 
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && agent.classList.contains('is-open')) close();
+      if (event.key === 'Escape' && agent.classList.contains('is-open')) {
+        close();
+        ui.trigger.focus();
+      }
     });
 
     agent.querySelectorAll('[data-agent-intent]').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        if (busy) return;
-        addUserBubble(chip.textContent.trim());
-        respond(chip.dataset.agentIntent);
-      });
+      chip.addEventListener('click', () => ask(chip.textContent.trim(), chip.dataset.agentIntent));
     });
 
-    if (form && input) {
-      form.addEventListener('submit', (event) => {
+    if (ui.form && ui.input) {
+      ui.form.addEventListener('submit', (event) => {
         event.preventDefault();
-        const query = input.value.trim();
+        const query = ui.input.value.trim();
         if (!query || busy) return;
-        addUserBubble(query);
-        input.value = '';
+        ui.input.value = '';
         const { intent, paramKey } = resolveQuery(query);
-        respond(intent, paramKey);
+        ask(query, intent, paramKey);
       });
+    }
+
+    // ---- Mirada, sueño y despertar ----------------------------------------
+    let sleepTimer = null;
+    let asleep = false;
+
+    function wake() {
+      clearTimeout(sleepTimer);
+      if (asleep) {
+        asleep = false;
+        agent.classList.remove('is-sleeping');
+        everyRobot((r) => { r.restoreMood(); r.hop(); });
+      }
+      if (!reducedMotion) {
+        sleepTimer = setTimeout(() => {
+          if (agent.classList.contains('is-open')) return;
+          asleep = true;
+          agent.classList.add('is-sleeping');
+          everyRobot((r) => r.setFace(FACE.SLEEP));
+        }, CONFIG.sleepAfterMs);
+      }
+    }
+
+    if (!reducedMotion) {
+      let frame = null;
+      let pointer = null;
+      window.addEventListener('pointermove', (event) => {
+        pointer = { x: event.clientX, y: event.clientY };
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = null;
+          wake();
+          everyRobot((r) => r.lookAt(pointer.x, pointer.y));
+        });
+      }, { passive: true });
+      document.addEventListener('mouseleave', () => everyRobot((r) => r.resetLook()));
+      wake();
+    }
+
+    // El globo de aviso aparece una sola vez por sesión del navegador.
+    let teaserShown = false;
+    try { teaserShown = sessionStorage.getItem(`${CONFIG.storageKey}_teaser`) === '1'; } catch (error) { /* sin acción */ }
+    if (!teaserShown) {
+      setTimeout(showTeaser, CONFIG.teaserDelayMs);
+      try { sessionStorage.setItem(`${CONFIG.storageKey}_teaser`, '1'); } catch (error) { /* sin acción */ }
     }
   }
 

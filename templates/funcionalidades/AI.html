@@ -24,7 +24,7 @@
 <div class="sg-modulo sg-ia">
 
   {% if not ia_configurada %}
-    <div class="sg-alerta sg-alerta--warn">
+    <div class="sg-alerta sg-alerta--warn ia-aviso">
       <strong>La IA no está configurada.</strong>
       Falta <code>DEEPSEEK_API_KEY</code> en el archivo <code>.env</code>.
       Consíguela en <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>
@@ -33,228 +33,460 @@
     </div>
   {% endif %}
 
-
   {% comment %}
-    Seguimiento de predicciones: lo que convierte al sistema en predictivo.
-
-    Una recomendación de IA sin contraste no es auditable. Aquí se ve qué
-    proyectó el modelo, qué midieron los sensores y qué tanto viene acertando.
+    Panel de mando:
+      - Columna principal: análisis seleccionado (hero) -> rendimiento del modelo
+        -> diagnóstico -> anomalías + recomendaciones -> seguimiento.
+      - Columna lateral: generar análisis + historial.
+    Los atributos data-ia-* son el contrato de lectura del agente flotante
+    (static/js/ia_agente.js): no dependen del orden visual de la página.
   {% endcomment %}
-  <div class="sg-fila-kpi">
-    <div class="sg-kpi">
-      <div class="sg-kpi-icono {% if precision.tasa_acierto >= 70 %}sg-kpi-icono--ok{% elif precision.tasa_acierto %}sg-kpi-icono--warn{% endif %}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-      </div>
-      <div class="sg-kpi-info">
-        <span class="sg-kpi-label">Precisión del modelo</span>
-        <span class="sg-kpi-valor {% if precision.tasa_acierto >= 70 %}sg-kpi-valor--ok{% elif precision.tasa_acierto %}sg-kpi-valor--warn{% endif %}">
-          {% if precision.tasa_acierto is not None %}{{ precision.tasa_acierto }}%{% else %}—{% endif %}
-        </span>
-        <span class="sg-kpi-sub">
-          {% if precision.evaluadas %}sobre {{ precision.evaluadas }} predicción(es){% else %}sin predicciones evaluadas aún{% endif %}
-        </span>
-      </div>
-    </div>
+  <div class="ia-layout">
 
-    <div class="sg-kpi">
-      <div class="sg-kpi-icono">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </div>
-      <div class="sg-kpi-info">
-        <span class="sg-kpi-label">Pendientes</span>
-        <span class="sg-kpi-valor">{{ precision.pendientes }}</span>
-        <span class="sg-kpi-sub">
-          {% if vencidas_sin_evaluar %}{{ vencidas_sin_evaluar }} ya vencida(s){% else %}esperando su fecha{% endif %}
-        </span>
-      </div>
-    </div>
+    <!-- =================== COLUMNA PRINCIPAL =================== -->
+    <div class="ia-main">
 
-    <div class="sg-kpi">
-      <div class="sg-kpi-icono sg-kpi-icono--ok">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="sg-kpi-info">
-        <span class="sg-kpi-label">Acertadas</span>
-        <span class="sg-kpi-valor sg-kpi-valor--ok">{{ precision.acertadas }}</span>
-        <span class="sg-kpi-sub">{{ precision.fallidas }} fallida(s)</span>
-      </div>
-    </div>
+      {% if seleccionado %}
+        {% with riesgo=seleccionado.resultados_salida.riesgo_proyectado %}
+        <section class="ia-hero ia-hero--{{ riesgo|default:'na' }}"
+                 data-ia-analisis
+                 data-ia-piscina="{{ seleccionado.geomembrana.nombre_piscina }}"
+                 data-ia-tipo="{{ seleccionado.get_tipo_analisis_display }}"
+                 data-ia-confianza="{{ seleccionado.confianza|floatformat:0|default:'' }}"
+                 data-ia-riesgo="{{ riesgo|default:'' }}"
+                 aria-labelledby="iaHeroTitulo">
+          <div class="ia-hero__info">
+            <span class="ia-hero__eyebrow">
+              <span class="ia-hero__pulso" aria-hidden="true"></span>
+              {{ seleccionado.get_tipo_analisis_display }}
+            </span>
+            <h2 class="ia-hero__titulo" id="iaHeroTitulo">
+              {{ seleccionado.geomembrana.nombre_piscina }}
+              <small>{{ seleccionado.geomembrana.codigo_identificacion }}</small>
+            </h2>
 
-    <div class="sg-kpi">
-      <div class="sg-kpi-icono">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-      </div>
-      <div class="sg-kpi-info">
-        <span class="sg-kpi-label">Error medio</span>
-        <span class="sg-kpi-valor">{% if precision.error_medio is not None %}{{ precision.error_medio }}{% else %}—{% endif %}</span>
-        <span class="sg-kpi-sub">
-          {% if precision.sin_datos %}{{ precision.sin_datos }} sin datos (excluidas){% else %}desviación absoluta{% endif %}
-        </span>
-      </div>
-    </div>
-  </div>
+            <ul class="ia-hero__meta">
+              <li title="Ventana de datos analizada">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                {{ seleccionado.datos_entrada.ventana_dias|default:"?" }} días
+              </li>
+              <li title="Lecturas de sensores usadas">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                {{ seleccionado.datos_entrada.total_lecturas|default:"0" }} lecturas
+              </li>
+              <li title="Modelo de IA">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>
+                <code>{{ seleccionado.modelo_usado }}</code>
+              </li>
+              <li title="Fecha de generación">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {{ seleccionado.fecha_generacion|date:"d/m/Y H:i" }}
+              </li>
+            </ul>
+          </div>
 
-  <div class="sg-card">
-    <div class="sg-card-head">
-      <h2>Seguimiento de predicciones</h2>
-      {% if puede_generar and vencidas_sin_evaluar %}
-        <form method="post" action="{% url 'ia:evaluar' %}">
-          {% csrf_token %}
-          <input type="hidden" name="piscina" value="{{ filtro_piscina }}">
-          <button type="submit" class="sg-btn sg-btn--primario sg-btn--sm">
-            Contrastar {{ vencidas_sin_evaluar }} vencida(s)
-          </button>
-        </form>
-      {% endif %}
-    </div>
+          <div class="ia-hero__indicadores">
+            <div class="ia-indicador ia-indicador--riesgo">
+              <span class="ia-indicador__label">Riesgo proyectado</span>
+              <span class="ia-riesgo ia-riesgo--{{ riesgo|default:'na' }}">
+                <span class="ia-riesgo__barras" aria-hidden="true"><i></i><i></i><i></i></span>
+                {{ riesgo|default:"Sin dato"|capfirst }}
+              </span>
+            </div>
 
-    <nav class="sg-filtros" style="gap:6px;">
-      <a class="sg-tab active" data-tab="evaluadas" style="cursor:pointer;">Ya contrastadas</a>
-      <a class="sg-tab" data-tab="pendientes" style="cursor:pointer;">Pendientes</a>
-      <a class="sg-tab" data-tab="parametro" style="cursor:pointer;">Acierto por parámetro</a>
-    </nav>
+            <div class="ia-indicador">
+              <span class="ia-indicador__label">Confianza</span>
+              <span class="ia-dial ia-dial--{{ seleccionado.nivel_confianza }}"
+                    style="--p: {{ seleccionado.confianza|floatformat:0|default:'0' }};"
+                    role="img" aria-label="Confianza {{ seleccionado.confianza|floatformat:0|default:'desconocida' }}%">
+                <span class="ia-dial__valor">{{ seleccionado.confianza|floatformat:0|default:"?" }}<small>%</small></span>
+              </span>
+            </div>
 
-    {# --- Predicciones ya contrastadas --- #}
-    <div data-panel="evaluadas">
-      {% if predicciones_evaluadas %}
-        <div class="sg-tabla-wrap">
-          <table class="sg-tabla">
-            <thead>
-              <tr><th>Parámetro</th><th>Día objetivo</th><th class="num">Predicho</th>
-                  <th class="num">Real medido</th><th class="num">Error</th>
-                  <th>Resultado</th><th class="num">Lecturas</th></tr>
-            </thead>
-            <tbody>
-              {% for p in predicciones_evaluadas %}
-                <tr>
-                  <td><strong>{{ p.tipo_parametro.nombre_parametro }}</strong>
-                      <small style="color:#9ca3af;">{{ p.tipo_parametro.unidad_medida }}</small></td>
-                  <td>{{ p.fecha_objetivo|date:"d/m/Y" }}</td>
-                  <td class="num">{{ p.valor_esperado }}<br>
-                      <small style="color:#9ca3af;">{{ p.rango_previsto }}</small></td>
-                  <td class="num">{{ p.valor_real }}</td>
-                  <td class="num">
-                    {{ p.error_absoluto }}
-                    {% if p.error_relativo_pct is not None %}
-                      <br><small style="color:#9ca3af;">{{ p.error_relativo_pct }}%</small>
-                    {% endif %}
-                  </td>
-                  <td><span class="sg-chip sg-chip--{% if p.estado == 'acertada' %}ok{% else %}crit{% endif %}">
-                    {{ p.get_estado_display }}</span></td>
-                  <td class="num">{{ p.lecturas_evaluadas }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+            <div class="ia-indicador">
+              <span class="ia-indicador__label">Anomalías</span>
+              <span class="ia-indicador__num">{{ seleccionado.anomalias_detectadas|length }}</span>
+              <span class="ia-puntos" aria-hidden="true">
+                {% for anomalia in seleccionado.anomalias_detectadas %}<i class="ia-punto ia-punto--{{ anomalia.gravedad }}"></i>{% endfor %}
+              </span>
+            </div>
+          </div>
+          <div class="ia-hero__pie">
+            <div class="ia-hero__estado">
+              <span class="sg-chip sg-chip--{% if seleccionado.estado == 'validado' or seleccionado.estado == 'implementado' %}ok{% elif seleccionado.estado == 'descartado' %}off{% else %}info{% endif %}">
+                {{ seleccionado.get_estado_display }}
+              </span>
+              {% if seleccionado.validado_por %}
+                <span class="ia-hero__revisor">
+                  Revisado por {{ seleccionado.validado_por.nombre_completo }}
+                </span>
+              {% endif %}
+            </div>
+
+            {% if puede_validar %}
+              <form method="post" action="{% url 'ia:cambiar_estado' seleccionado.pk %}" class="sg-acciones ia-hero__acciones">
+                {% csrf_token %}
+                <button type="submit" name="estado" value="validado" class="sg-btn sg-btn--ok sg-btn--sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                  Validar
+                </button>
+                <button type="submit" name="estado" value="implementado" class="sg-btn sg-btn--primario sg-btn--sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  Implementado
+                </button>
+                <button type="submit" name="estado" value="descartado" class="sg-btn sg-btn--peligro sg-btn--sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Descartar
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </section>
+        {% endwith %}
       {% else %}
-        <div class="sg-vacio">
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-          <p class="sg-vacio-titulo">Todavía no hay predicciones contrastadas</p>
-          <p class="sg-vacio-desc">
-            Genera un análisis de tipo <strong>Predicción de riesgo</strong>. El sistema
-            guardará los intervalos previstos y, pasada la fecha objetivo, los comparará
-            contra lo que midan los sensores para calcular el porcentaje real de acierto.
-          </p>
-        </div>
+        <section class="ia-hero ia-hero--vacio">
+          <div class="sg-vacio">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.4" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10l7 3"/></svg>
+            <p class="sg-vacio-titulo">Ningún análisis seleccionado</p>
+            <p class="sg-vacio-desc">
+              Genera uno nuevo o elige uno del historial. El análisis se apoya en las
+              lecturas reales de la piscina: sin mediciones registradas no se puede producir.
+            </p>
+          </div>
+        </section>
       {% endif %}
+
+      {# ---------- Rendimiento del modelo ---------- #}
+      <section class="ia-seccion" aria-labelledby="iaModeloTitulo">
+        <h2 class="ia-seccion__titulo" id="iaModeloTitulo">Rendimiento del modelo</h2>
+        <div class="sg-fila-kpi">
+          <div class="sg-kpi" data-ia-kpi="precision">
+            <div class="sg-kpi-icono {% if precision.tasa_acierto >= 70 %}sg-kpi-icono--ok{% elif precision.tasa_acierto %}sg-kpi-icono--warn{% endif %}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <div class="sg-kpi-info">
+              <span class="sg-kpi-label">Precisión del modelo</span>
+              <span class="sg-kpi-valor {% if precision.tasa_acierto >= 70 %}sg-kpi-valor--ok{% elif precision.tasa_acierto %}sg-kpi-valor--warn{% endif %}">
+                {% if precision.tasa_acierto is not None %}{{ precision.tasa_acierto }}%{% else %}—{% endif %}
+              </span>
+              <span class="sg-kpi-sub">
+                {% if precision.evaluadas %}sobre {{ precision.evaluadas }} predicción(es){% else %}sin predicciones evaluadas aún{% endif %}
+              </span>
+            </div>
+          </div>
+
+          <div class="sg-kpi" data-ia-kpi="pendientes">
+            <div class="sg-kpi-icono {% if vencidas_sin_evaluar %}sg-kpi-icono--warn{% endif %}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="sg-kpi-info">
+              <span class="sg-kpi-label">Pendientes</span>
+              <span class="sg-kpi-valor">{{ precision.pendientes }}</span>
+              <span class="sg-kpi-sub">
+                {% if vencidas_sin_evaluar %}{{ vencidas_sin_evaluar }} ya vencida(s){% else %}esperando su fecha{% endif %}
+              </span>
+            </div>
+          </div>
+
+          <div class="sg-kpi" data-ia-kpi="acertadas">
+            <div class="sg-kpi-icono sg-kpi-icono--ok">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="sg-kpi-info">
+              <span class="sg-kpi-label">Acertadas</span>
+              <span class="sg-kpi-valor sg-kpi-valor--ok">{{ precision.acertadas }}</span>
+              <span class="sg-kpi-sub">{{ precision.fallidas }} fallida(s)</span>
+            </div>
+          </div>
+
+          <div class="sg-kpi" data-ia-kpi="error">
+            <div class="sg-kpi-icono">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            </div>
+            <div class="sg-kpi-info">
+              <span class="sg-kpi-label">Error medio</span>
+              <span class="sg-kpi-valor">{% if precision.error_medio is not None %}{{ precision.error_medio }}{% else %}—{% endif %}</span>
+              <span class="sg-kpi-sub">
+                {% if precision.sin_datos %}{{ precision.sin_datos }} sin datos (excluidas){% else %}desviación absoluta{% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {% if seleccionado %}
+        {# ---------- Diagnóstico ---------- #}
+        <article class="sg-card ia-card">
+          <div class="sg-card-head">
+            <h2>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Diagnóstico
+            </h2>
+          </div>
+          <div class="sg-card-body">
+            <p class="ia-diagnostico" data-ia-diagnostico>{{ seleccionado.descripcion_analisis|linebreaksbr }}</p>
+          </div>
+        </article>
+
+        {# ---------- Anomalías + Recomendaciones ---------- #}
+        <div class="ia-dos-col">
+          <article class="sg-card ia-card">
+            <div class="sg-card-head">
+              <h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Anomalías detectadas
+              </h2>
+              <span class="ia-contador">{{ seleccionado.anomalias_detectadas|length }}</span>
+            </div>
+            <div class="sg-card-body">
+              {% if seleccionado.anomalias_detectadas %}
+                <ul class="ia-anomalias">
+                  {% for anomalia in seleccionado.anomalias_detectadas %}
+                    <li class="ia-anomalia ia-anomalia--{{ anomalia.gravedad }}"
+                        data-ia-anomalia
+                        data-parametro="{{ anomalia.parametro }}"
+                        data-gravedad="{{ anomalia.gravedad }}">
+                      <div class="ia-anomalia__cabeza">
+                        <span class="ia-param-icono" aria-hidden="true">
+                          {% with nombre=anomalia.parametro|lower %}
+                            {% if 'ph' in nombre %}pH{% elif 'temp' in nombre %}°C{% elif 'turb' in nombre %}NTU{% elif 'ox' in nombre %}O₂{% else %}{{ anomalia.parametro|slice:":2" }}{% endif %}
+                          {% endwith %}
+                        </span>
+                        <strong>{{ anomalia.parametro }}</strong>
+                        <span class="sg-chip sg-chip--{{ anomalia.gravedad }}">{{ anomalia.gravedad|capfirst }}</span>
+                      </div>
+                      <p data-ia-descripcion>{{ anomalia.descripcion }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div class="sg-vacio sg-vacio--ok">
+                  <p class="sg-vacio-titulo">Sin anomalías</p>
+                  <p class="sg-vacio-desc">Los parámetros se mantuvieron dentro de lo esperado.</p>
+                </div>
+              {% endif %}
+            </div>
+          </article>
+
+          <article class="sg-card ia-card">
+            <div class="sg-card-head">
+              <h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Recomendaciones
+              </h2>
+              <span class="ia-contador">{{ seleccionado.resultados_salida.recomendaciones|length }}</span>
+            </div>
+            <div class="sg-card-body">
+              {% if seleccionado.recomendaciones %}
+                <ol class="ia-recomendaciones">
+                  {% for recomendacion in seleccionado.resultados_salida.recomendaciones %}
+                    <li data-ia-recomendacion>{{ recomendacion }}</li>
+                  {% endfor %}
+                </ol>
+              {% else %}
+                <div class="sg-vacio">
+                  <p class="sg-vacio-titulo">Sin recomendaciones</p>
+                  <p class="sg-vacio-desc">Genera un análisis de tipo <strong>Recomendación operativa</strong>.</p>
+                </div>
+              {% endif %}
+            </div>
+          </article>
+        </div>
+
+        <details class="ia-datos">
+          <summary>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            Ver los datos con los que se generó este análisis
+          </summary>
+          <pre>{{ seleccionado.datos_entrada|pprint }}</pre>
+        </details>
+      {% endif %}
+
+      {% comment %}
+        Seguimiento de predicciones: lo que convierte al sistema en predictivo.
+        Una recomendación de IA sin contraste no es auditable. Aquí se ve qué
+        proyectó el modelo, qué midieron los sensores y qué tanto viene acertando.
+      {% endcomment %}
+      <section class="sg-card ia-card" aria-labelledby="iaSeguimientoTitulo">
+        <div class="sg-card-head">
+          <h2 id="iaSeguimientoTitulo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Seguimiento de predicciones
+          </h2>
+          {% if puede_generar and vencidas_sin_evaluar %}
+            <form method="post" action="{% url 'ia:evaluar' %}">
+              {% csrf_token %}
+              <input type="hidden" name="piscina" value="{{ filtro_piscina }}">
+              <button type="submit" class="sg-btn sg-btn--primario sg-btn--sm">
+                Contrastar {{ vencidas_sin_evaluar }} vencida(s)
+              </button>
+            </form>
+          {% endif %}
+        </div>
+
+        <nav class="sg-filtros" aria-label="Vistas del seguimiento">
+          <a class="sg-tab active" data-tab="evaluadas" href="#" role="button">Ya contrastadas</a>
+          <a class="sg-tab" data-tab="pendientes" href="#" role="button">
+            Pendientes{% if predicciones_pendientes %} <span class="ia-tab-num">{{ predicciones_pendientes|length }}</span>{% endif %}
+          </a>
+          <a class="sg-tab" data-tab="parametro" href="#" role="button">Acierto por parámetro</a>
+        </nav>
+
+        {# --- Predicciones ya contrastadas --- #}
+        <div data-panel="evaluadas">
+          {% if predicciones_evaluadas %}
+            <div class="sg-tabla-wrap">
+              <table class="sg-tabla">
+                <thead>
+                  <tr><th>Parámetro</th><th>Día objetivo</th><th class="num">Predicho</th>
+                      <th class="num">Real medido</th><th class="num">Error</th>
+                      <th>Resultado</th><th class="num">Lecturas</th></tr>
+                </thead>
+                <tbody>
+                  {% for p in predicciones_evaluadas %}
+                    <tr>
+                      <td><strong>{{ p.tipo_parametro.nombre_parametro }}</strong>
+                          <small>{{ p.tipo_parametro.unidad_medida }}</small></td>
+                      <td>{{ p.fecha_objetivo|date:"d/m/Y" }}</td>
+                      <td class="num">{{ p.valor_esperado }}<br>
+                          <small>{{ p.rango_previsto }}</small></td>
+                      <td class="num">{{ p.valor_real }}</td>
+                      <td class="num">
+                        {{ p.error_absoluto }}
+                        {% if p.error_relativo_pct is not None %}
+                          <br><small>{{ p.error_relativo_pct }}%</small>
+                        {% endif %}
+                      </td>
+                      <td><span class="sg-chip sg-chip--{% if p.estado == 'acertada' %}ok{% else %}crit{% endif %}">
+                        {{ p.get_estado_display }}</span></td>
+                      <td class="num">{{ p.lecturas_evaluadas }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="sg-vacio">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              <p class="sg-vacio-titulo">Todavía no hay predicciones contrastadas</p>
+              <p class="sg-vacio-desc">
+                Genera un análisis de tipo <strong>Predicción de riesgo</strong>. El sistema
+                guardará los intervalos previstos y, pasada la fecha objetivo, los comparará
+                contra lo que midan los sensores para calcular el porcentaje real de acierto.
+              </p>
+            </div>
+          {% endif %}
+        </div>
+
+        {# --- Pendientes de contrastar --- #}
+        <div data-panel="pendientes" hidden>
+          {% if predicciones_pendientes %}
+            <div class="sg-tabla-wrap">
+              <table class="sg-tabla">
+                <thead>
+                  <tr><th>Parámetro</th><th>Día objetivo</th><th class="num">Intervalo previsto</th>
+                      <th class="num">Prob. fuera de rango</th><th>Justificación</th><th>Estado</th></tr>
+                </thead>
+                <tbody>
+                  {% for p in predicciones_pendientes %}
+                    <tr data-ia-prediccion
+                        data-parametro="{{ p.tipo_parametro.nombre_parametro }}"
+                        data-fecha="{{ p.fecha_objetivo|date:'d/m/Y' }}"
+                        data-intervalo="{{ p.rango_previsto }}"
+                        data-esperado="{{ p.valor_esperado }}"
+                        data-probabilidad="{{ p.probabilidad_fuera_rango|default_if_none:'' }}"
+                        data-vencida="{% if p.vencida %}1{% else %}0{% endif %}">
+                      <td><strong>{{ p.tipo_parametro.nombre_parametro }}</strong></td>
+                      <td>{{ p.fecha_objetivo|date:"d/m/Y" }}
+                          <br><small>horizonte {{ p.horizonte_dias }} d</small></td>
+                      <td class="num">{{ p.rango_previsto }}
+                          <br><small>esperado {{ p.valor_esperado }}</small></td>
+                      <td class="num">
+                        {% if p.probabilidad_fuera_rango is not None %}
+                          <span class="ia-prob {% if p.probabilidad_fuera_rango >= 70 %}ia-prob--alta{% elif p.probabilidad_fuera_rango >= 40 %}ia-prob--media{% endif %}">{{ p.probabilidad_fuera_rango }}%</span>
+                        {% else %}—{% endif %}
+                      </td>
+                      <td class="ia-justificacion"><small data-ia-justificacion>{{ p.justificacion|truncatechars:140 }}</small></td>
+                      <td>
+                        {% if p.vencida %}
+                          <span class="sg-chip sg-chip--warn">Vencida</span>
+                        {% else %}
+                          <span class="sg-chip sg-chip--info">Esperando</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="sg-vacio">
+              <p class="sg-vacio-titulo">Sin predicciones pendientes</p>
+              <p class="sg-vacio-desc">Todas las proyecciones generadas ya fueron contrastadas.</p>
+            </div>
+          {% endif %}
+        </div>
+
+        {# --- Acierto desglosado por parametro --- #}
+        <div data-panel="parametro" hidden>
+          {% if precision.por_parametro %}
+            <div class="sg-tabla-wrap">
+              <table class="sg-tabla">
+                <thead>
+                  <tr><th>Parámetro</th><th class="num">Evaluadas</th><th class="num">Acertadas</th>
+                      <th>Tasa de acierto</th><th class="num">Error medio</th></tr>
+                </thead>
+                <tbody>
+                  {% for fila in precision.por_parametro %}
+                    <tr>
+                      <td><strong>{{ fila.parametro }}</strong>
+                          <small>{{ fila.unidad }}</small></td>
+                      <td class="num">{{ fila.evaluadas }}</td>
+                      <td class="num">{{ fila.acertadas }}</td>
+                      <td>
+                        <span class="sg-barra-row">
+                          <span class="ia-tasa">{{ fila.tasa_acierto }}%</span>
+                          <span class="sg-barra">
+                            <span class="sg-barra-fill {% if fila.tasa_acierto >= 70 %}sg-barra-fill--ok{% elif fila.tasa_acierto >= 40 %}sg-barra-fill--warn{% else %}sg-barra-fill--crit{% endif %}"
+                                  data-progreso="{{ fila.tasa_acierto }}" style="width: 0%;"></span>
+                          </span>
+                        </span>
+                      </td>
+                      <td class="num">{{ fila.error_medio }} {{ fila.unidad }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <p class="sg-form-help ia-nota">
+              Las predicciones marcadas <strong>sin datos</strong> quedan fuera de este cálculo:
+              contarlas como fallo castigaría al modelo por un sensor caído, y contarlas como
+              acierto inflaría la métrica con días que nadie midió.
+            </p>
+          {% else %}
+            <div class="sg-vacio">
+              <p class="sg-vacio-titulo">Sin datos de acierto todavía</p>
+              <p class="sg-vacio-desc">Se llena cuando haya predicciones contrastadas.</p>
+            </div>
+          {% endif %}
+        </div>
+      </section>
     </div>
 
-    {# --- Pendientes de contrastar --- #}
-    <div data-panel="pendientes" hidden>
-      {% if predicciones_pendientes %}
-        <div class="sg-tabla-wrap">
-          <table class="sg-tabla">
-            <thead>
-              <tr><th>Parámetro</th><th>Día objetivo</th><th class="num">Intervalo previsto</th>
-                  <th class="num">Prob. fuera de rango</th><th>Justificación</th><th>Estado</th></tr>
-            </thead>
-            <tbody>
-              {% for p in predicciones_pendientes %}
-                <tr>
-                  <td><strong>{{ p.tipo_parametro.nombre_parametro }}</strong></td>
-                  <td>{{ p.fecha_objetivo|date:"d/m/Y" }}
-                      <br><small style="color:#9ca3af;">horizonte {{ p.horizonte_dias }} d</small></td>
-                  <td class="num">{{ p.rango_previsto }}
-                      <br><small style="color:#9ca3af;">esperado {{ p.valor_esperado }}</small></td>
-                  <td class="num">{% if p.probabilidad_fuera_rango is not None %}{{ p.probabilidad_fuera_rango }}%{% else %}—{% endif %}</td>
-                  <td style="max-width:320px;"><small>{{ p.justificacion|truncatechars:140 }}</small></td>
-                  <td>
-                    {% if p.vencida %}
-                      <span class="sg-chip sg-chip--warn">Vencida</span>
-                    {% else %}
-                      <span class="sg-chip sg-chip--info">Esperando</span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="sg-vacio">
-          <p class="sg-vacio-titulo">Sin predicciones pendientes</p>
-          <p class="sg-vacio-desc">Todas las proyecciones generadas ya fueron contrastadas.</p>
-        </div>
-      {% endif %}
-    </div>
-
-    {# --- Acierto desglosado por parametro --- #}
-    <div data-panel="parametro" hidden>
-      {% if precision.por_parametro %}
-        <div class="sg-tabla-wrap">
-          <table class="sg-tabla">
-            <thead>
-              <tr><th>Parámetro</th><th class="num">Evaluadas</th><th class="num">Acertadas</th>
-                  <th>Tasa de acierto</th><th class="num">Error medio</th></tr>
-            </thead>
-            <tbody>
-              {% for fila in precision.por_parametro %}
-                <tr>
-                  <td><strong>{{ fila.parametro }}</strong>
-                      <small style="color:#9ca3af;">{{ fila.unidad }}</small></td>
-                  <td class="num">{{ fila.evaluadas }}</td>
-                  <td class="num">{{ fila.acertadas }}</td>
-                  <td>
-                    <span class="sg-barra-row">
-                      <span style="min-width:48px;font-weight:700;">{{ fila.tasa_acierto }}%</span>
-                      <span class="sg-barra">
-                        <span class="sg-barra-fill {% if fila.tasa_acierto >= 70 %}sg-barra-fill--ok{% elif fila.tasa_acierto >= 40 %}sg-barra-fill--warn{% else %}sg-barra-fill--crit{% endif %}"
-                              data-progreso="{{ fila.tasa_acierto }}" style="width: 0%;"></span>
-                      </span>
-                    </span>
-                  </td>
-                  <td class="num">{{ fila.error_medio }} {{ fila.unidad }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <p class="sg-form-help" style="padding:12px 20px;">
-          Las predicciones marcadas <strong>sin datos</strong> quedan fuera de este cálculo:
-          contarlas como fallo castigaría al modelo por un sensor caído, y contarlas como
-          acierto inflaría la métrica con días que nadie midió.
-        </p>
-      {% else %}
-        <div class="sg-vacio">
-          <p class="sg-vacio-titulo">Sin datos de acierto todavía</p>
-          <p class="sg-vacio-desc">Se llena cuando haya predicciones contrastadas.</p>
-        </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="sg-split">
-
-    <!-- ---------- PANEL IZQUIERDO: generar + historial ---------- -->
-    <div style="display:flex;flex-direction:column;gap:18px;">
+    <!-- =================== COLUMNA LATERAL =================== -->
+    <aside class="ia-aside" aria-label="Generar e historial de análisis">
 
       {% if puede_generar %}
-        <div class="sg-card">
-          <div class="sg-card-head"><h2>Generar análisis</h2></div>
+        <div class="sg-card ia-card ia-generar">
+          <div class="sg-card-head">
+            <h2>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></svg>
+              Generar análisis
+            </h2>
+          </div>
           <form method="post" action="{% url 'ia:generar' %}" class="sg-card-body">
             {% csrf_token %}
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="ia-form">
               <div class="sg-form-group">
                 <label class="sg-form-label" for="piscina">Piscina <span class="sg-req">*</span></label>
                 <select class="gm-form-input" id="piscina" name="piscina" required>
@@ -299,8 +531,8 @@
                 </span>
               </div>
 
-              <button type="submit" class="sg-btn sg-btn--primario" {% if not piscinas %}disabled{% endif %}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10l7 3"/></svg>
+              <button type="submit" class="sg-btn sg-btn--primario ia-btn-analizar" {% if not piscinas %}disabled{% endif %}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></svg>
                 Analizar con IA
               </button>
             </div>
@@ -308,12 +540,27 @@
         </div>
       {% endif %}
 
-      <div class="sg-card">
-        <div class="sg-card-head"><h2>Análisis previos</h2></div>
+      <div class="sg-card ia-card">
+        <div class="sg-card-head">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><polyline points="12 7 12 12 15 15"/></svg>
+            Análisis previos
+          </h2>
+        </div>
         <div class="sg-lista">
           {% for a in analisis %}
             <a class="sg-lista-item {% if seleccionado and seleccionado.pk == a.pk %}sg-lista-item--activo{% endif %}"
-               href="?seleccion={{ a.pk }}{% if filtro_piscina %}&piscina={{ filtro_piscina }}{% endif %}">
+               href="?seleccion={{ a.pk }}{% if filtro_piscina %}&piscina={{ filtro_piscina }}{% endif %}"
+               {% if seleccionado and seleccionado.pk == a.pk %}aria-current="true"{% endif %}>
+              <span class="ia-tipo-icono ia-tipo-icono--{{ a.tipo_analisis }}" aria-hidden="true">
+                {% if a.tipo_analisis == 'prediccion' %}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+                {% elif a.tipo_analisis == 'recomendacion' %}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg>
+                {% else %}
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                {% endif %}
+              </span>
               <div class="sg-lista-cuerpo">
                 <span class="sg-lista-titulo">{{ a.geomembrana.nombre_piscina }}</span>
                 <span class="sg-lista-meta">
@@ -336,102 +583,7 @@
         </div>
         {% include "componentes/paginacion.html" with pagina=pagina %}
       </div>
-    </div>
-
-    <!-- ---------- PANEL DERECHO: detalle del analisis ---------- -->
-    <div class="sg-card">
-      {% if seleccionado %}
-        <div class="sg-card-head">
-          <h2>
-            {{ seleccionado.get_tipo_analisis_display }}
-            <span class="sg-chip sg-chip--{% if seleccionado.nivel_confianza == 'alta' %}ok{% elif seleccionado.nivel_confianza == 'media' %}warn{% else %}off{% endif %}">
-              Confianza {{ seleccionado.confianza|floatformat:0|default:"?" }}%
-            </span>
-          </h2>
-          {% if puede_validar %}
-            <form method="post" action="{% url 'ia:cambiar_estado' seleccionado.pk %}" class="sg-acciones">
-              {% csrf_token %}
-              <button type="submit" name="estado" value="validado" class="sg-btn sg-btn--ok sg-btn--sm">Validar</button>
-              <button type="submit" name="estado" value="implementado" class="sg-btn sg-btn--primario sg-btn--sm">Implementado</button>
-              <button type="submit" name="estado" value="descartado" class="sg-btn sg-btn--peligro sg-btn--sm">Descartar</button>
-            </form>
-          {% endif %}
-        </div>
-
-        <div class="sg-card-body">
-          <div class="sg-alerta sg-alerta--info" style="margin-bottom:18px;">
-            <strong>{{ seleccionado.geomembrana.nombre_piscina }}</strong> ·
-            {{ seleccionado.datos_entrada.ventana_dias }} días ·
-            {{ seleccionado.datos_entrada.total_lecturas }} lecturas ·
-            modelo <code>{{ seleccionado.modelo_usado }}</code> ·
-            {{ seleccionado.fecha_generacion|date:"d/m/Y H:i" }}
-            {% if seleccionado.validado_por %}
-              <br>Revisado por {{ seleccionado.validado_por.nombre_completo }}
-              ({{ seleccionado.get_estado_display|lower }}).
-            {% endif %}
-          </div>
-
-          <h3 style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Diagnóstico</h3>
-          <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#1f2937;">
-            {{ seleccionado.descripcion_analisis|linebreaksbr }}
-          </p>
-
-          {% if seleccionado.anomalias_detectadas %}
-            <h3 style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Anomalías detectadas</h3>
-            <div class="sg-tabla-wrap" style="margin-bottom:20px;">
-              <table class="sg-tabla">
-                <thead><tr><th>Parámetro</th><th>Descripción</th><th>Gravedad</th></tr></thead>
-                <tbody>
-                  {% for anomalia in seleccionado.anomalias_detectadas %}
-                    <tr>
-                      <td><strong>{{ anomalia.parametro }}</strong></td>
-                      <td>{{ anomalia.descripcion }}</td>
-                      <td><span class="sg-chip sg-chip--{{ anomalia.gravedad }}">{{ anomalia.gravedad|capfirst }}</span></td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% endif %}
-
-          {% if seleccionado.recomendaciones %}
-            <h3 style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;">Recomendaciones</h3>
-            <ul style="margin:0 0 20px;padding-left:20px;font-size:14px;line-height:1.8;color:#1f2937;">
-              {% for recomendacion in seleccionado.resultados_salida.recomendaciones %}
-                <li>{{ recomendacion }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-
-          {% if seleccionado.resultados_salida.riesgo_proyectado %}
-            <div class="sg-metrica" style="max-width:260px;">
-              <span class="sg-metrica-label">Riesgo proyectado</span>
-              <span class="sg-metrica-valor">
-                <span class="sg-chip sg-chip--{{ seleccionado.resultados_salida.riesgo_proyectado }}">
-                  {{ seleccionado.resultados_salida.riesgo_proyectado|capfirst }}
-                </span>
-              </span>
-            </div>
-          {% endif %}
-
-          <details style="margin-top:22px;">
-            <summary style="cursor:pointer;font-size:12.5px;color:#6b7280;font-weight:600;">
-              Ver los datos con los que se generó este análisis
-            </summary>
-            <pre style="margin-top:10px;padding:14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:11.5px;overflow-x:auto;line-height:1.6;">{{ seleccionado.datos_entrada|pprint }}</pre>
-          </details>
-        </div>
-      {% else %}
-        <div class="sg-vacio">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.4"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 2v10l7 3"/></svg>
-          <p class="sg-vacio-titulo">Ningún análisis seleccionado</p>
-          <p class="sg-vacio-desc">
-            Genera uno nuevo o elige uno del historial. El análisis se apoya en las
-            lecturas reales de la piscina: sin mediciones registradas no se puede producir.
-          </p>
-        </div>
-      {% endif %}
-    </div>
+    </aside>
   </div>
 </div>
 {% endblock %}
