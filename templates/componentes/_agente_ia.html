@@ -1,13 +1,17 @@
 {% load static %}
 {% comment %}
-  SIGMAP-AQUA · Agente IA flotante
+  SIGMAP-AQUA · Agente IA flotante (global)
   Archivo: templates/componentes/_agente_ia.html
-  Se incluye en el bloque extra_js de templates/funcionalidades/AI.html.
+  Se incluye desde base.html en TODAS las páginas cuando el context processor
+  apps.ia.context_processors.agente_ia entrega `agente_ia` (usuario con acceso
+  al módulo de IA). El resumen del último análisis viaja en el JSON
+  #iaAgenteDatos; dentro de /ai/ el agente lee además la página en vivo.
 
   El robot NO es una imagen: static/js/ia_agente.js lo dibuja en SVG dentro de
   cada contenedor [data-agent-robot] para poder animarlo (flotar, parpadear,
   saludar, ojos según el riesgo, seguir el mouse, dormir...).
 {% endcomment %}
+{{ agente_ia|json_script:"iaAgenteDatos" }}
 <div class="ia-agent" id="iaAgent" data-agent>
 
   <section class="ia-agent__panel" id="iaAgentPanel" role="dialog"
@@ -49,6 +53,10 @@
         <button type="button" class="ia-chip-btn" data-agent-intent="anomalias">⚠️ Ver anomalías</button>
         <button type="button" class="ia-chip-btn" data-agent-intent="recomendacion">💧 Recomendación de hoy</button>
         <button type="button" class="ia-chip-btn" data-agent-intent="pendientes">⏳ Pendientes</button>
+        <button type="button" class="ia-chip-btn" data-agent-intent="alertas">🔔 Alertas activas</button>
+        {% if not agente_ia.en_modulo_ia %}
+          <a class="ia-chip-btn ia-chip-btn--link" href="{{ agente_ia.url_analisis|default:agente_ia.url_modulo }}">🧠 Abrir análisis completo</a>
+        {% endif %}
       </div>
       <form class="ia-agent__form" data-agent-form autocomplete="off">
         <label for="iaAgentInput" class="ia-sr-only">Pregunta al asistente</label>

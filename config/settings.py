@@ -141,6 +141,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.core.context_processors.usuario_context',
+                'apps.ia.context_processors.agente_ia',
             ],
         },
     },

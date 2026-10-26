@@ -23,6 +23,9 @@
   <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
 
   {# Cada pagina hija agrega su CSS especifico con: block extra_css ... endblock #}
+  {# Asistente IA flotante: global para quien tenga acceso al módulo de IA #}
+  {% if agente_ia %}<link rel="stylesheet" href="{% static 'css/ia_agente.css' %}">{% endif %}
+
   {% block extra_css %}{% endblock %}
 
   <!-- Chart.js disponible globalmente -->
@@ -487,6 +490,8 @@
       </div>
     </div>
   </div>
+
+  {% if agente_ia %}{% include "componentes/_agente_ia.html" %}{% endif %}
 
   {% block extra_js %}{% endblock %}
 

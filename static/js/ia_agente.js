@@ -6,8 +6,10 @@
  *   animarlo: flota, parpadea, saluda, cambia los ojos según el riesgo,
  *   sigue el mouse con la mirada, "habla" mientras escribe y se duerme si
  *   nadie lo usa.
- * - No llama endpoints nuevos: lee los atributos data-ia-* que ya renderiza
- *   templates/funcionalidades/AI.html.
+ * - Es global: base.html lo incluye en todas las páginas. Dentro de /ai/ lee
+ *   los atributos data-ia-* de la página (datos en vivo); en el resto usa el
+ *   resumen JSON #iaAgenteDatos que entrega apps.ia.context_processors.
+ * - No llama endpoints nuevos.
  * - El chat se conserva en sessionStorage mientras navegas el módulo y se
  *   puede limpiar con el botón de la cabecera.
  */
@@ -51,6 +53,22 @@
   });
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /** Resumen global entregado por el context processor (todas las páginas). */
+  const readGlobalData = () => {
+    const node = document.getElementById('iaAgenteDatos');
+    if (!node) return {};
+    try {
+      return JSON.parse(node.textContent) || {};
+    } catch (error) {
+      console.error('[Agente IA] Resumen global inválido:', error);
+      return {};
+    }
+  };
+  const GLOBAL = readGlobalData();
+
+  /** Solo se aceptan enlaces internos del propio sistema. */
+  const safeHref = (href) => (typeof href === 'string' && /^\/(?!\/)/.test(href) ? href : null);
 
   /* ======================================================================
      Utilidades
@@ -329,8 +347,12 @@
    * @property {Object|null} analysis
    */
 
-  /** @returns {ModuleData} */
-  function collectModuleData() {
+  /**
+   * Lee los datos en vivo de la página del módulo de IA.
+   * @returns {ModuleData|null} null si la página actual no es /ai/
+   */
+  function collectFromPage() {
+    if (!document.querySelector('[data-ia-analisis], [data-ia-kpi]')) return null;
     const kpis = {};
     document.querySelectorAll('[data-ia-kpi]').forEach((card) => {
       kpis[card.dataset.iaKpi] = {
@@ -370,6 +392,66 @@
     return { kpis, pending, analysis };
   }
 
+  /**
+   * Adapta el resumen JSON global a la misma forma que collectFromPage.
+   * @returns {ModuleData}
+   */
+  function collectFromGlobal() {
+    const precision = GLOBAL.precision || {};
+    const kpis = {
+      precision: {
+        value: precision.tasa_acierto != null ? `${precision.tasa_acierto}%` : '—',
+        sub: precision.evaluadas ? `sobre ${precision.evaluadas} predicción(es)` : 'sin predicciones evaluadas aún',
+      },
+      acertadas: {
+        value: String(precision.acertadas || 0),
+        sub: `${precision.fallidas || 0} fallida(s)`,
+      },
+    };
+
+    const pending = (GLOBAL.pendientes || []).map((p) => ({
+      param: p.parametro || '',
+      targetDay: p.fecha || '',
+      interval: p.intervalo || '',
+      expected: p.esperado || '',
+      probability: Number(p.probabilidad) || 0,
+      overdue: Boolean(p.vencida),
+      reason: p.justificacion || '',
+    }));
+
+    const a = GLOBAL.analisis;
+    const analysis = a ? {
+      pool: a.piscina || '',
+      type: a.tipo || '',
+      confidence: a.confianza != null ? String(a.confianza) : '',
+      risk: a.riesgo || '',
+      diagnosis: a.diagnostico || '',
+      anomalies: (a.anomalias || []).map((x) => ({
+        param: x.parametro || '', severity: x.gravedad || '', description: x.descripcion || '',
+      })),
+      recommendations: a.recomendaciones || [],
+    } : null;
+
+    return { kpis, pending, analysis };
+  }
+
+  /**
+   * Datos para el agente: la página en vivo si estamos en /ai/, si no el
+   * resumen global. Siempre agrega alertas activas y enlaces de navegación.
+   * @returns {ModuleData}
+   */
+  function collectModuleData() {
+    const fromPage = collectFromPage();
+    const data = fromPage || collectFromGlobal();
+    data.inModule = Boolean(fromPage) || Boolean(GLOBAL.en_modulo_ia);
+    data.alerts = GLOBAL.alertas || { activas: 0, graves: 0 };
+    data.links = {
+      module: safeHref(GLOBAL.url_analisis) || safeHref(GLOBAL.url_modulo) || '/ai/',
+      alerts: safeHref(GLOBAL.url_alertas) || '/alertas/',
+    };
+    return data;
+  }
+
   /** @param {string} level - alta|media|baja|alto|medio|bajo */
   const toneFromLevel = (level) => {
     const value = normalize(level);
@@ -404,12 +486,29 @@
    * @returns {Array<{tag?: string, text: string, tone: string}>}
    */
   function buildMessages(intent, data, paramKey) {
+    const msgs = buildIntentMessages(intent, data, paramKey);
+    const linkable = ['resumen', 'anomalias', 'recomendacion', 'pendientes', 'parametro'];
+    const last = msgs[msgs.length - 1];
+    if (!data.inModule && data.analysis && last && !last.link && linkable.includes(intent)) {
+      last.link = { href: data.links.module, label: 'Ver en el módulo de IA →' };
+    }
+    return msgs;
+  }
+
+  /**
+   * Mensajes base de cada intención.
+   * @param {string} intent
+   * @param {ModuleData} data
+   * @param {string} [paramKey]
+   */
+  function buildIntentMessages(intent, data, paramKey) {
     const { kpis, pending, analysis } = data;
     const overdue = pending.filter((p) => p.overdue);
     const highAnomalies = analysis ? analysis.anomalies.filter((a) => toneFromLevel(a.severity) === 'alerta') : [];
     const noAnalysis = {
       tone: 'info',
-      text: 'Aún no hay un análisis seleccionado. Usa **Generar análisis** para que pueda leer el estado de una piscina.',
+      text: 'Aún no hay un análisis. Usa **Generar análisis** en el módulo de IA para que pueda leer el estado de una piscina.',
+      link: data.inModule ? undefined : { href: data.links.module, label: 'Ir al módulo de IA →' },
     };
 
     switch (intent) {
@@ -423,7 +522,28 @@
         if (overdue.length) {
           msgs.push({ tone: 'aviso', text: `Tienes **${overdue.length} predicción(es) vencida(s)** listas para contrastar con los sensores.` });
         }
+        if (data.alerts.activas) {
+          msgs.push({
+            tone: data.alerts.graves ? 'alerta' : 'aviso',
+            text: `Además hay **${data.alerts.activas}** alerta(s) activa(s) de sensores.`,
+            link: { href: data.links.alerts, label: 'Ver alertas →' },
+          });
+        }
+        if (!data.inModule) {
+          msgs[0].link = { href: data.links.module, label: 'Abrir análisis completo →' };
+        }
         return msgs;
+      }
+
+      case 'alertas': {
+        const { activas, graves } = data.alerts;
+        if (!activas) return [{ tone: 'ok', text: 'No hay alertas activas de sensores en este momento. ✅' }];
+        return [{
+          tag: 'Alertas de sensores',
+          tone: graves ? 'alerta' : 'aviso',
+          text: `Hay **${activas}** alerta(s) activa(s)${graves ? `, **${graves}** de severidad alta o crítica` : ''}. Revísalas para confirmar si el problema sigue en el agua.`,
+          link: { href: data.links.alerts, label: 'Ir a Alertas →' },
+        }];
       }
 
       case 'cambio': {
@@ -528,7 +648,7 @@
       default:
         return [{
           tone: 'info',
-          text: 'Puedo hablarte de **pH**, **turbidez**, **temperatura** u **oxígeno**, darte un **resumen**, las **anomalías**, la **recomendación de hoy** o las **pendientes**.',
+          text: 'Puedo hablarte de **pH**, **turbidez**, **temperatura** u **oxígeno**, darte un **resumen**, las **anomalías**, la **recomendación de hoy**, las **pendientes** o las **alertas activas**.',
         }];
     }
   }
@@ -543,6 +663,7 @@
     if (/^(hola|buenas|hey|saludos)/.test(q)) return { intent: 'saludo' };
     if (/gracias|genial|perfecto/.test(q)) return { intent: 'gracias' };
     if (/resumen|estado|general|como va/.test(q)) return { intent: 'resumen' };
+    if (/alertas|sensor|alarma/.test(q)) return { intent: 'alertas' };
     if (/anomal|alerta|riesgo|problema/.test(q)) return { intent: 'anomalias' };
     if (/recomend|hacer|hoy|accion|consejo/.test(q)) return { intent: 'recomendacion' };
     if (/pendient|vencid|contrast/.test(q)) return { intent: 'pendientes' };
@@ -600,7 +721,7 @@
       data = collectModuleData();
     } catch (error) {
       console.error('[Agente IA] No se pudieron leer los datos del módulo:', error);
-      data = { kpis: {}, pending: [], analysis: null };
+      data = { kpis: {}, pending: [], analysis: null, inModule: false, alerts: { activas: 0, graves: 0 }, links: { module: '/ai/', alerts: '/alertas/' } };
     }
     const mood = data.analysis ? faceFromRisk(data.analysis.risk) : FACE.HAPPY;
     const highCount = data.analysis ? data.analysis.anomalies.filter((a) => toneFromLevel(a.severity) === 'alerta').length : 0;
@@ -637,9 +758,13 @@
     }
 
     if (ui.welcomeText) {
-      ui.welcomeText.textContent = data.analysis
-        ? `Estoy viendo ${data.analysis.pool}. Riesgo ${data.analysis.risk || 'sin dato'}. ¿Qué quieres saber?`
-        : 'Vigilo pH, temperatura, turbidez y oxígeno de tus piscinas. ¿Qué quieres saber?';
+      if (!data.analysis) {
+        ui.welcomeText.textContent = 'Vigilo pH, temperatura, turbidez y oxígeno de tus piscinas. ¿Qué quieres saber?';
+      } else if (data.inModule) {
+        ui.welcomeText.textContent = `Estoy viendo ${data.analysis.pool}. Riesgo ${data.analysis.risk || 'sin dato'}. ¿Qué quieres saber?`;
+      } else {
+        ui.welcomeText.textContent = `Te acompaño en todo SIGMAP-AQUA. Último análisis: ${data.analysis.pool}, riesgo ${data.analysis.risk || 'sin dato'}. ¿Qué quieres saber?`;
+      }
     }
 
     let teaserTimer = null;
@@ -682,13 +807,25 @@
         content.appendChild(node);
         return { node, text: segment.text };
       });
+      const href = msg.link && safeHref(msg.link.href);
+      let linkNode = null;
+      if (href) {
+        linkNode = document.createElement('a');
+        linkNode.className = 'ia-msg__link';
+        linkNode.href = href;
+        linkNode.textContent = msg.link.label || 'Abrir';
+      }
+      const finish = () => {
+        if (linkNode) bubble.append(document.createElement('br'), linkNode);
+        scrollToEnd();
+        resolve();
+      };
       ui.log.appendChild(bubble);
 
       const total = segments.reduce((sum, s) => sum + s.text.length, 0);
       if (!animate || reducedMotion || total === 0) {
         segments.forEach((s) => { s.node.textContent = s.text; });
-        scrollToEnd();
-        resolve();
+        finish();
         return;
       }
 
@@ -706,7 +843,7 @@
         });
         scrollToEnd();
         if (elapsed < duration) setTimeout(step, 16);
-        else resolve();
+        else finish();
       };
       step();
     });
