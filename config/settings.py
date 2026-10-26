@@ -305,12 +305,24 @@ LOGGING = {
 (BASE_DIR / 'logs').mkdir(exist_ok=True)
 
 
-# --- Analisis predictivo con Gemini ---------------------------------------
-# La clave se obtiene gratis en https://aistudio.google.com/apikey
-# Sin ella el modulo de IA sigue accesible pero avisa que no esta configurado:
-# ningun otro modulo depende de esto.
+# --- Analisis predictivo con IA -------------------------------------------
+# DeepSeek es el proveedor principal; Gemini queda de respaldo y solo se usa
+# si DeepSeek falla o no tiene clave. Sin ninguna clave el modulo de IA sigue
+# accesible pero avisa que no esta configurado: ningun otro modulo depende de esto.
+IA_PROVEEDOR = config('IA_PROVEEDOR', default='deepseek')
+
+# Clave en https://platform.deepseek.com/api_keys (servicio prepago).
+DEEPSEEK_API_KEY = config('DEEPSEEK_API_KEY', default='')
+DEEPSEEK_MODEL = config('DEEPSEEK_MODEL', default='deepseek-flash')
+DEEPSEEK_BASE_URL = config('DEEPSEEK_BASE_URL', default='https://api.deepseek.com')
+
+# Respaldo. Clave gratis en https://aistudio.google.com/apikey
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.5-flash-lite')
+
+# Oxigeno disuelto ficticio en el tablero en vivo mientras se instala el sensor
+# real. No se guarda en la BD ni genera alertas (apps/monitoreo/simulacion.py).
+MONITOREO_OXIGENO_SIMULADO = config('MONITOREO_OXIGENO_SIMULADO', default=True, cast=bool)
 
 # --- Seguridad en produccion (RNF003) -------------------------------------
 # Se activa sola cuando DEBUG=False. La capa HTTPS va detras de un flag aparte

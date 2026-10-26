@@ -4,6 +4,7 @@ Agregaciones, reportes, exportaciones y el modulo de IA.
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.test import override_settings
 from django.utils import timezone
 
 from apps.ia.models import AnalisisIA
@@ -146,6 +147,7 @@ class MonitoreoTiempoRealTest(BaseSigmap):
         self.assertEqual(sensores['SEN-OX']['estado'], 'sin_datos')
 
 
+@override_settings(DEEPSEEK_API_KEY='clave-de-prueba', GEMINI_API_KEY='')
 class AnalisisIATest(BaseSigmap):
     """
     Modulo de IA. Las llamadas a Gemini se simulan: una prueba no debe
@@ -184,7 +186,7 @@ class AnalisisIATest(BaseSigmap):
         with self.assertRaises(ErrorIA):
             generar_analisis(vacia, tipo='diagnostico', dias=7)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_persiste_el_analisis_con_su_evidencia(self, llamada_simulada):
         """Camino feliz: la recomendacion queda auditable."""
         llamada_simulada.return_value = {
@@ -201,7 +203,7 @@ class AnalisisIATest(BaseSigmap):
         self.assertEqual(analisis.datos_entrada['total_lecturas'], 3)
         self.assertEqual(len(analisis.anomalias_detectadas), 1)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_acota_una_confianza_fuera_de_rango(self, llamada_simulada):
         """
         Caso limite: el modelo puede devolver 150. Se recorta a 100 en vez de
@@ -214,7 +216,7 @@ class AnalisisIATest(BaseSigmap):
         analisis = generar_analisis(self.piscina, dias=7)
         self.assertEqual(analisis.confianza, 100)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_una_confianza_no_numerica_no_rompe_el_guardado(self, llamada_simulada):
         """Caso limite: el modelo devuelve texto donde se esperaba un numero."""
         llamada_simulada.return_value = {
@@ -229,14 +231,14 @@ class AnalisisIATest(BaseSigmap):
         Caso de error: sin API key la vista informa y vuelve al panel, sin
         excepcion sin capturar.
         """
-        with self.settings(GEMINI_API_KEY=''):
+        with self.settings(DEEPSEEK_API_KEY='', GEMINI_API_KEY=''):
             respuesta = self.client.post('/ai/generar/', {
                 'piscina': self.piscina.pk, 'tipo': 'diagnostico', 'dias': '7',
             }, follow=True)
         self.assertEqual(respuesta.status_code, 200)
         self.assertFalse(AnalisisIA.objects.exists())
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_solo_el_instructor_valida_un_analisis(self, llamada_simulada):
         """
         Una recomendacion de IA solo se vuelve instruccion operativa cuando

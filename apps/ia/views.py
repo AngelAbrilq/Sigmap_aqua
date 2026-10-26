@@ -8,7 +8,6 @@ responde por las decisiones tomadas sobre el cultivo.
 """
 import logging
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -27,7 +26,10 @@ from apps.usuarios.permissions import (
 )
 
 from .models import AnalisisIA, Prediccion
-from .services import ErrorIA, evaluar_predicciones_vencidas, generar_analisis, precision_historica
+from .services import (
+    ErrorIA, evaluar_predicciones_vencidas, generar_analisis, ia_configurada,
+    precision_historica,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +88,7 @@ def panel(request):
         'horizontes': sorted(HORIZONTES_VALIDOS),
         'puede_generar': puede_editar_modulo(request.user, MODULO),
         'puede_validar': obtener_nombre_rol(request.user) == ROL_INSTRUCTOR,
-        'ia_configurada': bool(getattr(settings, 'GEMINI_API_KEY', '')),
+        'ia_configurada': ia_configurada(),
         # Seguimiento de predicciones
         'precision': precision_historica(piscina),
         'predicciones_pendientes': predicciones.pendientes()[:12],

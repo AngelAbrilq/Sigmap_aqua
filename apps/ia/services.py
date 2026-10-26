@@ -1,12 +1,17 @@
 """
-Cliente de Gemini y construccion del contexto de analisis.
+Clientes de IA (DeepSeek principal, Gemini de respaldo) y construccion del
+contexto de analisis.
 
 Usa urllib de la biblioteca estandar en vez de `requests`: el proyecto ya
 tiene 11 dependencias y este modulo solo hace un POST con JSON.
 
-El sistema NO depende de que la IA este disponible. Si falta la API key o
-Google responde con error, se lanza ErrorIA y la vista lo informa; el resto
-del monitoreo sigue funcionando igual.
+Orden de proveedores: IA_PROVEEDOR (deepseek por defecto) y, si falla o no
+tiene clave, el otro proveedor que si este configurado. Asi una caida o una
+cuota agotada en uno no deja sin analisis al Instructor Lider.
+
+El sistema NO depende de que la IA este disponible. Si ningun proveedor
+responde, se lanza ErrorIA y la vista lo informa; el resto del monitoreo
+sigue funcionando igual.
 """
 import json
 import logging
@@ -26,8 +31,10 @@ from .models import AnalisisIA, Prediccion
 
 logger = logging.getLogger(__name__)
 
-URL_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
-TIEMPO_ESPERA = 30  # segundos
+URL_GEMINI = 'https://generativelanguage.googleapis.com/v1beta/models'
+TIEMPO_ESPERA = 30  # segundos (Gemini)
+# DeepSeek puede razonar antes de responder: se le da mas margen.
+TIEMPO_ESPERA_DEEPSEEK = 90
 
 # Esquema que se le exige al modelo. Forzar JSON estructurado evita tener que
 # parsear prosa libre y hace el resultado utilizable por el template.
@@ -245,9 +252,151 @@ def _construir_prompt(contexto, tipo, horizonte=3):
 # ----------------------------------------------------------------------
 # Cliente
 # ----------------------------------------------------------------------
+PROVEEDORES = ('deepseek', 'gemini')
+
+
+def _modelo_de(proveedor):
+    """
+    Modelo configurado para un proveedor.
+
+    :param proveedor: 'deepseek' | 'gemini'
+    :return: str con el id del modelo
+    """
+    if proveedor == 'deepseek':
+        return getattr(settings, 'DEEPSEEK_MODEL', 'deepseek-flash')
+    return getattr(settings, 'GEMINI_MODEL', 'gemini-3.5-flash-lite')
+
+
+def _tiene_clave(proveedor):
+    """True si el proveedor tiene API key en el .env."""
+    clave = 'DEEPSEEK_API_KEY' if proveedor == 'deepseek' else 'GEMINI_API_KEY'
+    return bool(getattr(settings, clave, ''))
+
+
+def proveedores_configurados():
+    """
+    Proveedores con clave, en orden de prioridad: primero IA_PROVEEDOR.
+
+    :return: list[str]
+    """
+    principal = getattr(settings, 'IA_PROVEEDOR', 'deepseek')
+    orden = [principal] + [p for p in PROVEEDORES if p != principal]
+    return [p for p in orden if p in PROVEEDORES and _tiene_clave(p)]
+
+
+def ia_configurada():
+    """True si al menos un proveedor de IA tiene clave."""
+    return bool(proveedores_configurados())
+
+
+def _llamar_ia(prompt, esquema=None):
+    """
+    Envia el prompt al proveedor principal y, si falla, al de respaldo.
+
+    :param prompt: texto de la peticion
+    :param esquema: esquema JSON a exigir (por defecto ESQUEMA_RESPUESTA)
+    :return: tuple (dict con la respuesta, str con el modelo que respondio)
+    :raises ErrorIA: si no hay proveedores configurados o todos fallan
+    """
+    proveedores = proveedores_configurados()
+    if not proveedores:
+        raise ErrorIA(
+            'La IA no está configurada. Agrega DEEPSEEK_API_KEY al archivo .env '
+            '(se obtiene en https://platform.deepseek.com/api_keys).'
+        )
+
+    llamadas = {'deepseek': _llamar_deepseek, 'gemini': _llamar_gemini}
+    ultimo_error = None
+    for proveedor in proveedores:
+        try:
+            return llamadas[proveedor](prompt, esquema), _modelo_de(proveedor)
+        except ErrorIA as error:
+            logger.warning('Proveedor de IA %s falló: %s', proveedor, error)
+            ultimo_error = error
+    raise ultimo_error
+
+
+def _llamar_deepseek(prompt, esquema=None):
+    """
+    Envia el prompt a DeepSeek (API compatible con OpenAI) en modo JSON.
+
+    DeepSeek no acepta un esquema como Gemini: solo garantiza que la salida
+    sea un objeto JSON. Por eso el esquema va escrito en el mensaje de sistema
+    y la palabra "JSON" aparece en el prompt, como exige su modo JSON.
+
+    :param prompt: texto de la peticion
+    :param esquema: esquema JSON a exigir (por defecto ESQUEMA_RESPUESTA)
+    :return: dict con la respuesta estructurada del modelo
+    :raises ErrorIA: si falta la clave, la red falla o la respuesta es invalida
+    """
+    api_key = getattr(settings, 'DEEPSEEK_API_KEY', '')
+    if not api_key:
+        raise ErrorIA('Falta DEEPSEEK_API_KEY en el archivo .env.')
+
+    url_base = getattr(settings, 'DEEPSEEK_BASE_URL', 'https://api.deepseek.com').rstrip('/')
+    sistema = (
+        f'{INSTRUCCION_SISTEMA}\n\n'
+        'Responde SOLO con un objeto JSON válido que cumpla este esquema '
+        '(los tipos están en mayúsculas: STRING, NUMBER, ARRAY, OBJECT):\n'
+        f'{json.dumps(esquema or ESQUEMA_RESPUESTA, ensure_ascii=False)}'
+    )
+
+    cuerpo = json.dumps({
+        'model': _modelo_de('deepseek'),
+        'messages': [
+            {'role': 'system', 'content': sistema},
+            {'role': 'user', 'content': prompt},
+        ],
+        'temperature': 0.2,          # analisis tecnico: poca creatividad
+        'max_tokens': 4000,
+        'response_format': {'type': 'json_object'},
+        'stream': False,
+    }).encode('utf-8')
+
+    peticion = urllib.request.Request(
+        f'{url_base}/chat/completions', data=cuerpo,
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}',
+        },
+        method='POST',
+    )
+
+    try:
+        with urllib.request.urlopen(peticion, timeout=TIEMPO_ESPERA_DEEPSEEK) as respuesta:
+            datos = json.loads(respuesta.read().decode('utf-8'))
+    except urllib.error.HTTPError as exc:
+        detalle = exc.read().decode('utf-8', errors='replace')[:400]
+        logger.error('DeepSeek respondió %s: %s', exc.code, detalle)
+        if exc.code == 401:
+            raise ErrorIA('La API key de DeepSeek fue rechazada. Verifica DEEPSEEK_API_KEY.') from exc
+        if exc.code == 402:
+            raise ErrorIA('La cuenta de DeepSeek no tiene saldo. Recarga en platform.deepseek.com.') from exc
+        if exc.code == 429:
+            raise ErrorIA('DeepSeek está limitando las peticiones. Intenta más tarde.') from exc
+        raise ErrorIA(f'DeepSeek devolvió un error {exc.code}.') from exc
+    except urllib.error.URLError as exc:
+        logger.error('Sin conexión con DeepSeek: %s', exc.reason)
+        raise ErrorIA('No hay conexión con la API de DeepSeek. Revisa la red del servidor.') from exc
+    except TimeoutError as exc:
+        raise ErrorIA(f'DeepSeek no respondió en {TIEMPO_ESPERA_DEEPSEEK} segundos.') from exc
+
+    try:
+        eleccion = datos['choices'][0]
+        if eleccion.get('finish_reason') == 'length':
+            raise ErrorIA('La respuesta de DeepSeek se cortó por longitud.')
+        texto = eleccion['message']['content']
+        if not texto:
+            raise ValueError('contenido vacío')
+        return json.loads(texto)
+    except (KeyError, IndexError, ValueError, TypeError) as exc:
+        logger.error('Respuesta de DeepSeek con formato inesperado: %s', str(datos)[:400])
+        raise ErrorIA('DeepSeek devolvió una respuesta que no se pudo interpretar.') from exc
+
+
 def _llamar_gemini(prompt, esquema=None):
     """
-    Envia el prompt a Gemini y devuelve la respuesta ya parseada.
+    Envia el prompt a Gemini (respaldo) y devuelve la respuesta ya parseada.
 
     :param prompt: texto de la peticion
     :param esquema: esquema JSON a exigir (por defecto ESQUEMA_RESPUESTA)
@@ -256,13 +405,10 @@ def _llamar_gemini(prompt, esquema=None):
     """
     api_key = getattr(settings, 'GEMINI_API_KEY', '')
     if not api_key:
-        raise ErrorIA(
-            'Falta GEMINI_API_KEY en el archivo .env. Consíguela gratis en '
-            'https://aistudio.google.com/apikey y agrégala como GEMINI_API_KEY=tu_clave.'
-        )
+        raise ErrorIA('Falta GEMINI_API_KEY en el archivo .env.')
 
-    modelo = getattr(settings, 'GEMINI_MODEL', 'gemini-3.5-flash-lite')
-    url = f'{URL_BASE}/{modelo}:generateContent?key={api_key}'
+    modelo = _modelo_de('gemini')
+    url = f'{URL_GEMINI}/{modelo}:generateContent?key={api_key}'
 
     cuerpo = json.dumps({
         'systemInstruction': {'parts': [{'text': INSTRUCCION_SISTEMA}]},
@@ -326,11 +472,10 @@ def generar_analisis(geomembrana, tipo='diagnostico', dias=7, horizonte=3):
         )
 
     es_prediccion = tipo == 'prediccion'
-    salida = _llamar_gemini(
+    salida, modelo = _llamar_ia(
         _construir_prompt(contexto, tipo, horizonte),
         esquema=ESQUEMA_PREDICCION if es_prediccion else None,
     )
-    modelo = getattr(settings, 'GEMINI_MODEL', 'gemini-3.5-flash-lite')
 
     confianza = salida.get('confianza')
     try:

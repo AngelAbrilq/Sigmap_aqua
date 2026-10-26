@@ -2,7 +2,7 @@
 {% load static %}
 
 {% comment %}
-  Analisis predictivo con Gemini.
+  Analisis predictivo con IA (DeepSeek principal, Gemini de respaldo).
 
   El analisis se genera bajo demanda y se persiste en la tabla analisis_ia con
   los datos de entrada, para que la recomendacion sea auditable. Un analisis
@@ -26,9 +26,9 @@
   {% if not ia_configurada %}
     <div class="sg-alerta sg-alerta--warn">
       <strong>La IA no está configurada.</strong>
-      Falta <code>GEMINI_API_KEY</code> en el archivo <code>.env</code>.
-      Consíguela gratis en <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>
-      y agrégala como <code>GEMINI_API_KEY=tu_clave</code>. El resto del sistema
+      Falta <code>DEEPSEEK_API_KEY</code> en el archivo <code>.env</code>.
+      Consíguela en <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com/api_keys</a>
+      y agrégala como <code>DEEPSEEK_API_KEY=tu_clave</code>. El resto del sistema
       funciona con normalidad sin esto.
     </div>
   {% endif %}

@@ -8,6 +8,7 @@ from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
+from django.test import override_settings
 from django.utils import timezone
 
 from apps.ia.models import AnalisisIA, Prediccion
@@ -38,6 +39,7 @@ RESPUESTA_PREDICCION = {
 }
 
 
+@override_settings(DEEPSEEK_API_KEY='clave-de-prueba', GEMINI_API_KEY='')
 class GenerarPrediccionesTest(BaseSigmap):
     """La IA produce proyecciones falsables, no frases vagas."""
 
@@ -46,14 +48,14 @@ class GenerarPrediccionesTest(BaseSigmap):
             self.enviar_lectura('SEN-PH', valor)
         self.enviar_lectura('SEN-OX', 6.4)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_persiste_una_prediccion_por_parametro(self, simulada):
         """Camino feliz: dos parámetros medibles, dos predicciones."""
         simulada.return_value = RESPUESTA_PREDICCION
         analisis = generar_analisis(self.piscina, tipo='prediccion', dias=7, horizonte=3)
         self.assertEqual(analisis.predicciones.count(), 2)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_la_fecha_objetivo_respeta_el_horizonte(self, simulada):
         """Un horizonte de 5 días apunta a dentro de 5 días."""
         simulada.return_value = RESPUESTA_PREDICCION
@@ -61,7 +63,7 @@ class GenerarPrediccionesTest(BaseSigmap):
         esperada = timezone.localdate() + timedelta(days=5)
         self.assertEqual(analisis.predicciones.first().fecha_objetivo, esperada)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_descarta_predicciones_de_parametros_sin_sensor(self, simulada):
         """
         Caso de error: el modelo proyecta algo que la piscina no mide.
@@ -80,7 +82,7 @@ class GenerarPrediccionesTest(BaseSigmap):
             'tipo_parametro__nombre_parametro', flat=True))
         self.assertEqual(nombres, {'pH', 'Oxígeno disuelto'})
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_corrige_un_intervalo_invertido(self, simulada):
         """Caso límite: el modelo devuelve min > max."""
         simulada.return_value = {
@@ -93,7 +95,7 @@ class GenerarPrediccionesTest(BaseSigmap):
         prediccion = analisis.predicciones.get()
         self.assertLess(prediccion.valor_min, prediccion.valor_max)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_reencuadra_un_esperado_fuera_de_su_intervalo(self, simulada):
         """
         Caso límite: el valor esperado cae fuera de su propio rango.
@@ -111,7 +113,7 @@ class GenerarPrediccionesTest(BaseSigmap):
         prediccion = analisis.predicciones.get()
         self.assertTrue(prediccion.valor_min <= prediccion.valor_esperado <= prediccion.valor_max)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_ignora_predicciones_con_valores_ilegibles(self, simulada):
         """Caso de error: el modelo devuelve texto donde iba un número."""
         simulada.return_value = {
@@ -123,7 +125,7 @@ class GenerarPrediccionesTest(BaseSigmap):
         analisis = generar_analisis(self.piscina, tipo='prediccion', horizonte=3)
         self.assertEqual(analisis.predicciones.count(), 0)
 
-    @patch('apps.ia.services._llamar_gemini')
+    @patch('apps.ia.services._llamar_deepseek')
     def test_un_diagnostico_no_genera_predicciones(self, simulada):
         """Solo el tipo 'prediccion' proyecta hacia adelante."""
         simulada.return_value = {k: v for k, v in RESPUESTA_PREDICCION.items()
