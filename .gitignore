@@ -24,3 +24,9 @@ backups_bd/
 
 # Cachés de build de herramientas externas
 .gradle/
+
+# App movil: se conserva en local pero no se versiona
+mobile/
+
+# Temporales de Code Runner (VS Code)
+tempCodeRunnerFile.*
