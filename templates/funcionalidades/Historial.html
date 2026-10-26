@@ -105,9 +105,17 @@
         <label>&nbsp;</label>
         <div class="sg-acciones">
           <button type="submit" class="sg-btn sg-btn--primario">Filtrar</button>
-          <a class="sg-btn sg-btn--suave"
+          <a class="sg-btn sg-btn--suave" title="Excel con resumen por parámetro y lecturas"
+             href="{% url 'monitoreo:historial_excel' %}?desde={{ desde }}&hasta={{ hasta }}&piscina={{ filtro_piscina }}&parametro={{ filtro_parametro }}&estado={{ filtro_estado }}">
+            Exportar Excel
+          </a>
+          <a class="sg-btn sg-btn--suave" title="Informe PDF listo para imprimir"
+             href="{% url 'monitoreo:historial_pdf' %}?desde={{ desde }}&hasta={{ hasta }}&piscina={{ filtro_piscina }}&parametro={{ filtro_parametro }}&estado={{ filtro_estado }}">
+            Exportar PDF
+          </a>
+          <a class="sg-btn sg-btn--suave sg-btn--sm" title="Texto plano separado por punto y coma"
              href="{% url 'monitoreo:historial_csv' %}?desde={{ desde }}&hasta={{ hasta }}&piscina={{ filtro_piscina }}&parametro={{ filtro_parametro }}&estado={{ filtro_estado }}">
-            Exportar CSV
+            CSV
           </a>
         </div>
       </div>

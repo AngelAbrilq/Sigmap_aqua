@@ -25,7 +25,7 @@ class LecturaEntradaSerializer(serializers.Serializer):
         dispositivo = self.context['dispositivo']
 
         try:
-            sensor = Sensor.objects.select_related('tipo_parametro', 'geomembrana').get(
+            sensor = Sensor.objects.select_related('tipo_parametro', 'geomembrana', 'geomembrana__etapa_actual').get(
                 codigo_hardware=valor
             )
         except Sensor.DoesNotExist:

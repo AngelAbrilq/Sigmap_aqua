@@ -42,7 +42,7 @@ class SensorForm(forms.ModelForm):
             'rango_medicion_max': forms.NumberInput(attrs={'class': 'gm-form-input', 'step': '0.0001'}),
             'precision_valor': forms.NumberInput(attrs={'class': 'gm-form-input', 'step': '0.0001'}),
             'intervalo_lectura_segundos': forms.NumberInput(attrs={
-                'class': 'gm-form-input', 'min': '10', 'placeholder': '300'}),
+                'class': 'gm-form-input', 'min': '2', 'placeholder': '300'}),
             'ultima_calibracion': forms.DateInput(attrs={'class': 'gm-form-input', 'type': 'date'},
                                                   format='%Y-%m-%d'),
             'proxima_calibracion': forms.DateInput(attrs={'class': 'gm-form-input', 'type': 'date'},
@@ -118,9 +118,9 @@ class SensorForm(forms.ModelForm):
                                f'No cubre el rango normal de {tipo.nombre_parametro} '
                                f'(hasta {tipo.rango_normal_max}).')
 
-        if intervalo is not None and intervalo < 10:
+        if intervalo is not None and intervalo < 2:
             self.add_error('intervalo_lectura_segundos',
-                           'Un intervalo menor a 10 s satura la base de datos.')
+                           'El intervalo mínimo es 2 s (modo pruebas); en operación normal use 30 s o más.')
 
         return datos
 

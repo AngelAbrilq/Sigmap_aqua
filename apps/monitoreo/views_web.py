@@ -23,7 +23,10 @@ from django.views.decorators.http import require_http_methods
 from apps.piscinas.models import Geomembrana
 from apps.usuarios.permissions import puede_editar_modulo, puede_ver_modulo, resolver_dashboard
 
+from . import exportacion
 from .forms import SensorForm
+from .rangos import rangos_efectivos
+from .simulacion import es_parametro, tarjeta_oxigeno_simulada
 from .models import Lectura, Sensor, TipoParametro
 
 logger = logging.getLogger(__name__)
@@ -228,6 +231,26 @@ def _sensores_con_errores(request, form, modal, seleccionado=None):
 # ======================================================================
 # MONITOREO EN TIEMPO REAL
 # ======================================================================
+# Lecturas por sensor que se envian al grafico en vivo (2 min a 2 s por lote).
+PUNTOS_SERIE_VIVO = 60
+REFRESCO_MIN_S = 2
+REFRESCO_MAX_S = 15
+
+
+def _intervalo_refresco(geomembrana):
+    """
+    Cada cuanto refresca el tablero: el intervalo de lectura mas corto de los
+    sensores activos, acotado a [2, 15] s. Si el nodo envia cada 2 s, el
+    tablero tambien; si envia cada 5 min, no tiene sentido consultar cada 2 s.
+    """
+    if geomembrana is None:
+        return REFRESCO_MAX_S
+    from django.db.models import Min
+    minimo = geomembrana.sensores.filter(estado='activo').aggregate(
+        m=Min('intervalo_lectura_segundos'))['m'] or REFRESCO_MAX_S
+    return max(REFRESCO_MIN_S, min(REFRESCO_MAX_S, int(minimo)))
+
+
 @requiere_lectura('monitoreo')
 def monitoreo(request):
     """
@@ -250,52 +273,64 @@ def monitoreo(request):
         'piscinas': piscinas,
         'seleccionada': seleccionada,
         'tarjetas': _estado_sensores(seleccionada) if seleccionada else [],
-        'intervalo_refresco': 15,
+        'intervalo_refresco': _intervalo_refresco(seleccionada),
+        'puntos_serie': PUNTOS_SERIE_VIVO,
     })
 
 
-def _estado_sensores(geomembrana):
+def _estado_sensores(geomembrana, puntos_serie=0):
     """
-    Ultima lectura de cada sensor activo de una piscina.
+    Ultima lectura (y opcionalmente la serie reciente) de cada sensor activo.
 
-    Una consulta por sensor seria N+1. En su lugar se traen las lecturas
-    recientes de la piscina en UNA consulta y se reduce en memoria, quedandose
-    con la primera de cada sensor (el orden por defecto ya es descendente).
+    Antes se traian TODAS las lecturas de los ultimos 2 dias y se reducian en
+    memoria: con el nodo enviando cada 2 s eso son cientos de miles de filas por
+    refresco. Ahora se hace una consulta acotada por sensor que usa el indice
+    (sensor, -timestamp_lectura): con 3-4 sensores son 3-4 lecturas de indice,
+    mucho mas barato que el escaneo anterior.
 
     :param geomembrana: piscinas.Geomembrana
-    :return: list de dicts listos para el template
+    :param puntos_serie: cuantas lecturas recientes incluir por sensor (0 = ninguna)
+    :return: list de dicts listos para el template / JSON
     """
     sensores_activos = list(
         geomembrana.sensores.filter(estado='activo').select_related('tipo_parametro')
     )
-    if not sensores_activos:
-        return []
-
-    corte = timezone.now() - timedelta(days=2)
-    recientes = (
-        Lectura.objects
-        .filter(sensor__in=sensores_activos, timestamp_lectura__gte=corte)
-        .select_related('sensor', 'tipo_parametro')
-    )
-
-    ultima_por_sensor = {}
-    for lectura in recientes:
-        ultima_por_sensor.setdefault(lectura.sensor_id, lectura)
-
     tarjetas = []
     for sensor in sensores_activos:
-        lectura = ultima_por_sensor.get(sensor.id)
+        limite = max(1, puntos_serie)
+        recientes = list(
+            Lectura.objects
+            .filter(sensor=sensor)
+            .order_by('-timestamp_lectura')
+            .values('valor_medida', 'estado_lectura', 'timestamp_lectura')[:limite]
+        )
+        lectura = recientes[0] if recientes else None
         tipo = sensor.tipo_parametro
+        rangos = rangos_efectivos(tipo, geomembrana.etapa_actual)
         tarjetas.append({
             'sensor': sensor,
             'parametro': tipo.nombre_parametro,
             'unidad': tipo.unidad_medida,
-            'valor': lectura.valor_medida if lectura else None,
-            'estado': lectura.estado_lectura if lectura else 'sin_datos',
-            'momento': lectura.timestamp_lectura if lectura else None,
-            'rango_min': tipo.rango_normal_min,
-            'rango_max': tipo.rango_normal_max,
+            'valor': lectura['valor_medida'] if lectura else None,
+            'estado': lectura['estado_lectura'] if lectura else 'sin_datos',
+            'momento': lectura['timestamp_lectura'] if lectura else None,
+            'rango_min': rangos.normal_min,
+            'rango_max': rangos.normal_max,
+            'rango_fuente': rangos.fuente,
+            'serie': [
+                {'t': r['timestamp_lectura'].isoformat(), 'v': float(r['valor_medida'])}
+                for r in reversed(recientes)
+            ] if puntos_serie else [],
         })
+
+    # Oxigeno de prueba mientras se instala el sensor real (ver simulacion.py).
+    tipo_oxigeno = next(
+        (t for t in TipoParametro.objects.all() if es_parametro(t.nombre_parametro, 'oxi')),
+        None,
+    )
+    simulada = tarjeta_oxigeno_simulada(geomembrana, tarjetas, tipo_oxigeno)
+    if simulada:
+        tarjetas.append(simulada)
     return tarjetas
 
 
@@ -309,7 +344,7 @@ def api_estado(request, pk):
     :param pk: id de la geomembrana
     """
     geomembrana = get_object_or_404(Geomembrana, pk=pk)
-    tarjetas = _estado_sensores(geomembrana)
+    tarjetas = _estado_sensores(geomembrana, puntos_serie=PUNTOS_SERIE_VIVO)
 
     return JsonResponse({
         'success': True,
@@ -328,6 +363,11 @@ def api_estado(request, pk):
                 'valor': float(t['valor']) if t['valor'] is not None else None,
                 'estado': t['estado'],
                 'momento': t['momento'].isoformat() if t['momento'] else None,
+                'rango_min': float(t['rango_min']) if t['rango_min'] is not None else None,
+                'rango_max': float(t['rango_max']) if t['rango_max'] is not None else None,
+                'rango_fuente': t['rango_fuente'],
+                'serie': t['serie'],
+                'simulado': t.get('simulado', False),
             } for t in tarjetas],
         },
     })
@@ -402,6 +442,34 @@ def historial_csv(request):
 
     logger.info('Export CSV de historial por %s', request.user.email)
     return respuesta
+
+
+def _descarga(contenido, tipo, extension):
+    """Respuesta de descarga con nombre fechado: historial_AAAAMMDD_HHMM.ext"""
+    respuesta = HttpResponse(contenido, content_type=tipo)
+    marca = timezone.localtime().strftime('%Y%m%d_%H%M')
+    respuesta['Content-Disposition'] = f'attachment; filename="historial_{marca}.{extension}"'
+    return respuesta
+
+
+@requiere_lectura('historial')
+def historial_excel(request):
+    """Exporta el historial filtrado a Excel: hojas Resumen y Lecturas."""
+    filtros, queryset = _filtrar_lecturas(request)
+    ctx = exportacion.construir_contexto(filtros, queryset, request.user, MAX_FILAS_EXPORT)
+    logger.info('Export Excel de historial por %s (%s filas)', request.user.email, len(ctx.lecturas))
+    return _descarga(
+        exportacion.generar_excel(ctx),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'xlsx')
+
+
+@requiere_lectura('historial')
+def historial_pdf(request):
+    """Exporta el historial filtrado a un informe PDF."""
+    filtros, queryset = _filtrar_lecturas(request)
+    ctx = exportacion.construir_contexto(filtros, queryset, request.user, exportacion.MAX_FILAS_PDF)
+    logger.info('Export PDF de historial por %s (%s filas)', request.user.email, len(ctx.lecturas))
+    return _descarga(exportacion.generar_pdf(ctx), 'application/pdf', 'pdf')
 
 
 def _filtrar_lecturas(request):

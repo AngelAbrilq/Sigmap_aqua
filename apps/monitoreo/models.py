@@ -29,15 +29,15 @@ class TipoParametro(models.Model):
     def __str__(self):
         return f'{self.nombre_parametro} ({self.unidad_medida})'
 
-    def clasificar(self, valor):
-        """Devuelve 'normal', 'riesgo' o 'critico' segun el valor medido."""
-        if self.rango_normal_min is not None and self.rango_normal_max is not None:
-            if self.rango_normal_min <= valor <= self.rango_normal_max:
-                return 'normal'
-        if self.rango_riesgo_min is not None and self.rango_riesgo_max is not None:
-            if self.rango_riesgo_min <= valor <= self.rango_riesgo_max:
-                return 'riesgo'
-        return 'critico'
+    def clasificar(self, valor, etapa=None):
+        """
+        Devuelve 'normal', 'riesgo' o 'critico' segun el valor medido.
+
+        :param valor: Decimal medido
+        :param etapa: EtapaProduccion opcional; si define el rango, manda ese
+        """
+        from .rangos import clasificar_valor, rangos_efectivos
+        return clasificar_valor(valor, rangos_efectivos(self, etapa))
 
 
 class Sensor(models.Model):

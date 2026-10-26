@@ -386,3 +386,75 @@ textarea.gm-form-input { resize: vertical; min-height: 68px; }
   .sg-acciones .sg-btn { flex: 1; }
   .notif-menu { width: calc(100vw - 32px); right: -8px; }
 }
+
+/* ===== Camara de la geomembrana (monitoreo en tiempo real) ===== */
+.sg-camara {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  border-radius: var(--sg-radio);
+  background: #0f172a;
+}
+
+/* Camara compacta a la izquierda y tarjetas 2x2 a la derecha. */
+.sg-mon-cabecera {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+.sg-mon-cabecera .sg-camara { align-self: start; }
+.sg-mon-cabecera .sg-camara-capa { padding: 8px 10px; }
+.sg-mon-cabecera .sg-camara-etiqueta { font-size: 10px; padding: 3px 7px; gap: 5px; }
+.sg-mon-cabecera .sg-camara-texto { font-size: 10px; }
+.sg-mon-cabecera .sg-fila-kpi {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+}
+@media (max-width: 1000px) {
+  .sg-mon-cabecera { grid-template-columns: 1fr; }
+  .sg-mon-cabecera .sg-camara { max-width: 320px; }
+}
+@media (max-width: 600px) {
+  .sg-mon-cabecera .sg-fila-kpi { grid-template-columns: 1fr; }
+}
+.sg-camara-imagen {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: saturate(.85);
+}
+.sg-camara-capa {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(15,23,42,.55) 0%, rgba(15,23,42,0) 30%,
+                                      rgba(15,23,42,0) 65%, rgba(15,23,42,.65) 100%);
+  color: #fff;
+}
+.sg-camara-fila {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; flex-wrap: wrap;
+}
+.sg-camara-etiqueta {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(15,23,42,.6);
+  font-size: 12px; font-weight: 700; letter-spacing: .04em;
+}
+.sg-camara-etiqueta--aviso { background: rgba(245,158,11,.9); color: #111827; }
+.sg-camara-punto {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--sg-off-bg);
+}
+.sg-camara-texto {
+  font-size: 12.5px; text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 720px) {
+  .sg-camara { aspect-ratio: 16 / 10; }
+  .sg-camara-capa { padding: 10px; }
+  .sg-camara-etiqueta { font-size: 10.5px; padding: 3px 8px; }
+  .sg-camara-texto { font-size: 10.5px; }
+}

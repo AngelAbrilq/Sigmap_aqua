@@ -7,6 +7,7 @@ una recomendacion concreta y ejecutable en campo. La aptitud NO usa IA: es una
 regla deterministica y auditable (apta = ningun parametro en estado critico).
 """
 from .models import Lectura, TipoParametro
+from .rangos import clasificar_valor, rangos_efectivos
 
 # Recomendaciones por parametro y direccion del desvio (alto/bajo respecto al
 # rango optimo). La clave se busca por coincidencia en el nombre del parametro.
@@ -38,11 +39,11 @@ RECOMENDACIONES = {
 }
 
 
-def _direccion(valor, tipo):
-    """Indica si el valor quedo por 'alto' o 'bajo' del rango optimo."""
-    if tipo.rango_normal_max is not None and valor > tipo.rango_normal_max:
+def _direccion(valor, rangos):
+    """Indica si el valor quedo por 'alto' o 'bajo' del rango optimo vigente."""
+    if rangos.normal_max is not None and valor > rangos.normal_max:
         return 'alto'
-    if tipo.rango_normal_min is not None and valor < tipo.rango_normal_min:
+    if rangos.normal_min is not None and valor < rangos.normal_min:
         return 'bajo'
     return None
 
@@ -87,7 +88,8 @@ def evaluar_aptitud(geomembrana):
             sin_datos.append(tipo.nombre_parametro)
             continue
 
-        estado = tipo.clasificar(ultima.valor_medida)
+        rangos = rangos_efectivos(tipo, geomembrana.etapa_actual)
+        estado = clasificar_valor(ultima.valor_medida, rangos)
         if estado == 'normal':
             continue
 
@@ -96,7 +98,7 @@ def evaluar_aptitud(geomembrana):
         else:
             hay_riesgo = True
 
-        direccion = _direccion(ultima.valor_medida, tipo)
+        direccion = _direccion(ultima.valor_medida, rangos)
         motivos.append({
             'parametro': tipo.nombre_parametro,
             'valor': ultima.valor_medida,

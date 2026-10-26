@@ -105,12 +105,16 @@ def construir_mensaje(lectura):
     :param lectura: monitoreo.Lectura fuera de rango
     :return: str con el mensaje
     """
+    from apps.monitoreo.rangos import rangos_efectivos
+
     tipo = lectura.tipo_parametro
+    rangos = rangos_efectivos(tipo, lectura.geomembrana.etapa_actual)
     etiqueta = 'crítico' if lectura.estado_lectura == 'critico' else 'en riesgo'
+    fuente = '' if rangos.fuente == 'general' else f' etapa {rangos.fuente}'
     return (
         f'{tipo.nombre_parametro} {etiqueta} en {lectura.geomembrana.nombre_piscina}: '
         f'{lectura.valor_medida} {tipo.unidad_medida} '
-        f'(rango normal: {tipo.rango_normal_min} – {tipo.rango_normal_max})'
+        f'(rango óptimo{fuente}: {rangos.normal_min} – {rangos.normal_max})'
     )
 
 

@@ -190,7 +190,7 @@ class IngestaLecturasView(BaseVistaDispositivo):
                 duplicadas += 1
                 continue
 
-            clasificacion = tipo.clasificar(valor)
+            clasificacion = tipo.clasificar(valor, sensor.geomembrana.etapa_actual)
 
             persistidas.append(Lectura(
                 sensor=sensor,

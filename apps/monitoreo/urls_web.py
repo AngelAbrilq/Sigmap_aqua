@@ -24,6 +24,8 @@ urlpatterns = [
     # Historial
     path('historial/', views.historial, name='historial'),
     path('historial/csv/', views.historial_csv, name='historial_csv'),
+    path('historial/excel/', views.historial_excel, name='historial_excel'),
+    path('historial/pdf/', views.historial_pdf, name='historial_pdf'),
 
     # Configuraciones: umbrales de los parametros medibles
     path('configuraciones/', views.configuraciones, name='configuraciones'),

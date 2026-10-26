@@ -56,6 +56,31 @@
       </div>
 
       <div class="sg-card-body">
+        <div class="sg-mon-cabecera">
+        {% comment %}
+          Camara de la geomembrana. Aun no hay camara instalada: se muestra la
+          imagen de referencia del modulo Geomembranas y se avisa que no es una
+          transmision en vivo. Cuando exista el stream, se cambia la imagen por
+          el video o el MJPEG de la camara.
+        {% endcomment %}
+        <section class="sg-camara" aria-label="Cámara de {{ seleccionada.nombre_piscina }}">
+          <img class="sg-camara-imagen" src="{% static 'img/geomembrana_ref.jpg' %}"
+               alt="Imagen de referencia de una geomembrana piscícola" loading="lazy">
+          <div class="sg-camara-capa">
+            <div class="sg-camara-fila">
+              <span class="sg-camara-etiqueta">
+                <span class="sg-camara-punto" aria-hidden="true"></span>
+                CAM-01 · {{ seleccionada.codigo_identificacion }}
+              </span>
+              <span class="sg-camara-etiqueta sg-camara-etiqueta--aviso">Sin cámara instalada</span>
+            </div>
+            <div class="sg-camara-fila">
+              <span class="sg-camara-texto">Imagen de referencia · no es video en vivo</span>
+              <span class="sg-camara-texto" id="camaraReloj" aria-hidden="true"></span>
+            </div>
+          </div>
+        </section>
+
         <div class="sg-fila-kpi" id="gridSensores">
           {% for t in tarjetas %}
             <div class="sg-kpi" data-sensor="{{ t.sensor.codigo_hardware }}">
@@ -63,13 +88,13 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
               </div>
               <div class="sg-kpi-info">
-                <span class="sg-kpi-label">{{ t.parametro }}</span>
+                <span class="sg-kpi-label">{{ t.parametro }}{% if t.simulado %} <span class="sg-chip sg-chip--sin_datos" title="Valor ficticio de prueba: el sensor de oxígeno aún no está instalado. No se guarda ni genera alertas." style="font-size:10px;padding:1px 7px;">Simulado</span>{% endif %}</span>
                 <span class="sg-kpi-valor" data-campo="valor">
                   {% if t.valor is not None %}{{ t.valor }} <small class="sg-kpi-unidad">{{ t.unidad }}</small>{% else %}—{% endif %}
                 </span>
                 <span class="sg-kpi-sub" data-campo="meta">
                   {% if t.momento %}
-                    {{ t.momento|timesince }} · rango {{ t.rango_min }}–{{ t.rango_max }}
+                    {{ t.momento|timesince }} · óptimo {{ t.rango_min|floatformat:"-2" }}–{{ t.rango_max|floatformat:"-2" }}{% if t.rango_fuente != 'general' %} ({{ t.rango_fuente }}){% endif %}
                   {% else %}
                     Sin lecturas recientes
                   {% endif %}
@@ -88,6 +113,30 @@
             </div>
           {% endfor %}
         </div>
+        </div>
+
+        {% if tarjetas %}
+          <div class="sg-vivo" style="margin-top:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+              <h3 style="margin:0;font-size:15px;">Tendencia en vivo</h3>
+              <small style="color:#6b7280;">Últimas {{ puntos_serie }} lecturas por sensor · franja verde = rango óptimo</small>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:12px;">
+              {% for t in tarjetas %}
+                <div class="sg-card" style="padding:12px;margin:0;">
+                  <div style="display:flex;justify-content:space-between;font-size:13px;">
+                    <strong>{{ t.parametro }}{% if t.simulado %} <span class="sg-chip sg-chip--sin_datos" title="Valor ficticio de prueba: el sensor de oxígeno aún no está instalado. No se guarda ni genera alertas." style="font-size:10px;padding:1px 7px;">Simulado</span>{% endif %}</strong>
+                    <span data-vivo-valor="{{ t.sensor.codigo_hardware }}" style="color:#374151;">—</span>
+                  </div>
+                  <div style="position:relative;height:170px;">
+                    <canvas data-vivo-grafico="{{ t.sensor.codigo_hardware }}"
+                            aria-label="Gráfico en vivo de {{ t.parametro }}" role="img"></canvas>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
 
         {% if tarjetas %}
           <div class="sg-tabla-wrap" style="margin-top:20px;">
@@ -99,7 +148,7 @@
               <tbody>
                 {% for t in tarjetas %}
                   <tr data-sensor-fila="{{ t.sensor.codigo_hardware }}">
-                    <td><strong>{{ t.sensor.codigo_hardware }}</strong><br><small style="color:#9ca3af;">{{ t.sensor.nombre_sensor }}</small></td>
+                    <td><strong>{{ t.sensor.codigo_hardware }}</strong><br><small style="color:#9ca3af;">{{ t.sensor.nombre_sensor }}{% if t.simulado %} · datos simulados{% endif %}</small></td>
                     <td>{{ t.parametro }}</td>
                     <td class="num" data-campo="tabla-valor">{% if t.valor is not None %}{{ t.valor }} {{ t.unidad }}{% else %}—{% endif %}</td>
                     <td><span class="sg-chip sg-chip--{{ t.estado }}" data-campo="tabla-estado">
@@ -128,12 +177,11 @@
 {% block extra_js %}
 <script>
   /**
-   * Refresco del tablero sin recargar la pagina.
+   * Refresco del tablero sin recargar la pagina + grafico en vivo por sensor.
    *
-   * Consulta el endpoint JSON del servidor y repinta solo los valores. Si la
-   * peticion falla (servidor caido, wifi del SENA), lo indica y sigue
-   * intentando: no deja el tablero mostrando datos viejos como si fueran
-   * actuales.
+   * Consulta el endpoint JSON cada `data-intervalo` segundos (2 s en modo
+   * pruebas). Usa setTimeout encadenado en vez de setInterval para que, si el
+   * servidor tarda, nunca se acumulen peticiones solapadas.
    */
   document.addEventListener('DOMContentLoaded', () => {
     const modulo = document.querySelector('.sg-modulo');
@@ -145,6 +193,8 @@
     const indicador  = document.getElementById('estadoRefresco');
     const semaforo   = document.getElementById('semaforoPiscina');
     const btnAlertas = document.getElementById('btnAlertasPiscina');
+    const COLOR_ESTADO = { normal: '#16a34a', riesgo: '#d97706', critico: '#dc2626' };
+    const graficos = {};
 
     /**
      * Formatea la antigüedad de una lectura en texto corto.
@@ -153,18 +203,68 @@
      */
     const hace = (iso) => {
       if (!iso) return 'Sin lecturas recientes';
-      const segundos = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-      if (segundos < 60) return 'hace instantes';
+      const segundos = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+      if (segundos < 60) return `hace ${segundos} s`;
       if (segundos < 3600) return `hace ${Math.floor(segundos / 60)} min`;
       if (segundos < 86400) return `hace ${Math.floor(segundos / 3600)} h`;
       return `hace ${Math.floor(segundos / 86400)} d`;
     };
 
-    /** Consulta el estado actual y repinta las tarjetas y la tabla. */
+    /**
+     * Crea o actualiza el grafico de linea de un sensor.
+     * @param {object} sensor - item de data.sensores del endpoint
+     */
+    const pintarGrafico = (sensor) => {
+      const canvas = document.querySelector(`[data-vivo-grafico="${sensor.codigo}"]`);
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const puntos = (sensor.serie || []).map((p) => ({ x: new Date(p.t), y: p.v }));
+      const color = COLOR_ESTADO[sensor.estado] || '#2563eb';
+      const banda = (valor) => puntos.map((p) => ({ x: p.x, y: valor }));
+      const conRango = sensor.rango_min !== null && sensor.rango_max !== null;
+
+      const datasets = [
+        { label: sensor.parametro, data: puntos, borderColor: color, backgroundColor: color,
+          borderWidth: 2, pointRadius: 2, tension: 0.25, order: 0 },
+      ];
+      if (conRango) {
+        datasets.push(
+          { label: 'Mín. óptimo', data: banda(sensor.rango_min), borderColor: 'rgba(22,163,74,.35)',
+            borderWidth: 1, pointRadius: 0, fill: false, order: 2 },
+          { label: 'Máx. óptimo', data: banda(sensor.rango_max), borderColor: 'rgba(22,163,74,.35)',
+            backgroundColor: 'rgba(22,163,74,.08)', borderWidth: 1, pointRadius: 0, fill: '-1', order: 1 },
+        );
+      }
+
+      if (graficos[sensor.codigo]) {
+        const g = graficos[sensor.codigo];
+        g.data.datasets = datasets;
+        g.update('none');
+        return;
+      }
+      graficos[sensor.codigo] = new Chart(canvas, {
+        type: 'line',
+        data: { datasets },
+        options: {
+          animation: false,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false },
+                     tooltip: { callbacks: { label: (c) => `${c.parsed.y} ${sensor.unidad}` } } },
+          scales: {
+            x: { type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } },
+                 ticks: { maxTicksLimit: 5 } },
+            y: { title: { display: true, text: sensor.unidad } },
+          },
+        },
+      });
+    };
+
+    /** Consulta el estado actual y repinta tarjetas, tabla y graficos. */
     const refrescar = async () => {
       try {
         const respuesta = await fetch(URL_ESTADO, {
           headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          cache: 'no-store',
         });
         if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
 
@@ -172,46 +272,53 @@
         if (!success) throw new Error('Respuesta sin éxito');
 
         data.sensores.forEach((sensor) => {
-          // Actualizar tarjeta KPI
+          const texto = sensor.valor !== null ? `${sensor.valor} ${sensor.unidad}` : '—';
+
           const tarjeta = document.querySelector(`[data-sensor="${sensor.codigo}"]`);
           if (tarjeta) {
             const valor = tarjeta.querySelector('[data-campo="valor"]');
             const meta  = tarjeta.querySelector('[data-campo="meta"]');
             const icono = tarjeta.querySelector('.sg-kpi-icono');
-
             if (valor) {
               valor.innerHTML = sensor.valor !== null
                 ? `${sensor.valor} <small class="sg-kpi-unidad">${sensor.unidad}</small>`
                 : '—';
             }
-            if (meta) meta.textContent = hace(sensor.momento);
+            if (meta) {
+              const etapa = sensor.rango_fuente && sensor.rango_fuente !== 'general' ? ` (${sensor.rango_fuente})` : '';
+              const rango = sensor.rango_min !== null ? ` · óptimo ${sensor.rango_min}–${sensor.rango_max}${etapa}` : '';
+              const simulado = sensor.simulado ? ' · simulado' : '';
+              meta.textContent = `${hace(sensor.momento)}${rango}${simulado}`;
+            }
             if (icono) {
               const clase = { normal: 'ok', riesgo: 'warn', critico: 'crit' }[sensor.estado] || '';
               icono.className = 'sg-kpi-icono' + (clase ? ` sg-kpi-icono--${clase}` : '');
             }
           }
 
-          // Actualizar fila en tabla
           const fila = document.querySelector(`[data-sensor-fila="${sensor.codigo}"]`);
           if (fila) {
             const tVal = fila.querySelector('[data-campo="tabla-valor"]');
             const tEstado = fila.querySelector('[data-campo="tabla-estado"]');
             const tMom = fila.querySelector('[data-campo="tabla-momento"]');
-            if (tVal) {
-              tVal.textContent = sensor.valor !== null ? `${sensor.valor} ${sensor.unidad}` : '—';
-            }
+            if (tVal) tVal.textContent = texto;
             if (tEstado) {
               tEstado.className = `sg-chip sg-chip--${sensor.estado}`;
-              tEstado.textContent = sensor.estado === 'sin_datos' ? 'Sin datos' : (sensor.estado.charAt(0).toUpperCase() + sensor.estado.slice(1));
+              tEstado.textContent = sensor.estado === 'sin_datos'
+                ? 'Sin datos'
+                : sensor.estado.charAt(0).toUpperCase() + sensor.estado.slice(1);
             }
             if (tMom && sensor.momento) {
-              const fecha = new Date(sensor.momento);
-              tMom.textContent = fecha.toLocaleString('es-CO', {
+              tMom.textContent = new Date(sensor.momento).toLocaleString('es-CO', {
                 day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
               });
             }
           }
+
+          const vivo = document.querySelector(`[data-vivo-valor="${sensor.codigo}"]`);
+          if (vivo) vivo.textContent = `${texto} · ${hace(sensor.momento)}`;
+          pintarGrafico(sensor);
         });
 
         if (semaforo) {
@@ -223,7 +330,7 @@
         }
         if (indicador) {
           indicador.className = 'sg-chip sg-chip--info';
-          indicador.textContent = `Actualizado ${new Date().toLocaleTimeString('es-CO')}`;
+          indicador.textContent = `En vivo · cada ${INTERVALO / 1000} s · ${new Date().toLocaleTimeString('es-CO')}`;
         }
       } catch (error) {
         if (indicador) {
@@ -231,10 +338,20 @@
           indicador.textContent = 'Sin conexión con el servidor';
         }
         console.warn('[SIGMAP] Refresco fallido:', error.message);
+      } finally {
+        setTimeout(refrescar, INTERVALO);
       }
     };
 
-    setInterval(refrescar, INTERVALO);
+    refrescar();
+
+    // Reloj de la vista de camara (estilo CCTV).
+    const reloj = document.getElementById('camaraReloj');
+    if (reloj) {
+      const tic = () => { reloj.textContent = new Date().toLocaleString('es-CO', { hour12: false }); };
+      tic();
+      setInterval(tic, 1000);
+    }
   });
 </script>
 {% endblock %}
