@@ -23,6 +23,14 @@
  *   GPIO35 turbidez TS-300B      divisor 10k/10k obligatorio (sale hasta 4,5 V)
  *   GPIO33 oxigeno SEN0237-A     salida 0-3 V, directa al pin (aun sin cablear)
  *
+ * CALIBRACION DESDE EL MONITOR SERIE (115200, "Both NL & CR"), sin reprogramar:
+ *   AYUDA            lista de comandos
+ *   VER              voltajes crudos y calibracion vigente
+ *   CAL TUR          sonda de turbidez en agua LIMPIA: fija el punto 0 NTU
+ *   CAL PH 6.86      sonda de pH en buffer 6.86 (luego CAL PH 4.01)
+ *   RESET CAL        vuelve a la calibracion de fabrica
+ *   La calibracion queda en la memoria NVS del ESP32 y sobrevive a reinicios.
+ *
  * LIBRERIAS: ArduinoJson 7.x, OneWire, DallasTemperature.
  * PARTICION: elige en Arduino IDE una particion con SPIFFS/LittleFS
  *   (Tools -> Partition Scheme -> "Default 4MB with spiffs").
@@ -36,17 +44,18 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <time.h>
+#include <Preferences.h>
 #include "secrets.h"  
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
 // ---------------------------------------------------------------------------
-static const char* FIRMWARE_VERSION = "1.3.0-sigmap";  // max 20 caracteres (columna firmware_version)
+static const char* FIRMWARE_VERSION = "1.5.0-calibrado";  // max 20 caracteres (columna firmware_version)
 // Intervalo entre lotes. Arranca en 30 s y lo ajusta el SOFTWARE en cada
 // respuesta (campo data.intervalo_segundos, RF011): sin reprogramar el ESP32.
-static const uint32_t INTERVALO_INICIAL_S = 30;
-static const uint32_t INTERVALO_MIN_S     = 10;
+static const uint32_t INTERVALO_INICIAL_S = 5;   // el software lo ajusta en la 1.a respuesta
+static const uint32_t INTERVALO_MIN_S     = 2;   // modo pruebas
 static const uint32_t INTERVALO_MAX_S     = 3600;
 static uint32_t intervaloS = INTERVALO_INICIAL_S;
 static const uint32_t TIMEOUT_WIFI_MS = 20000;
@@ -90,8 +99,10 @@ struct SensorCfg {
 // Se obtiene con dos buffers. Ver docs/HARDWARE_SENSORES.md, seccion 8.
 //   pendiente  = (pH1 - pH2) / (V1 - V2)
 //   intercepto = pH1 - pendiente * V1
-static const float PH_M = -5.70f;   // calibracion vigente (sketch de prueba)
-static const float PH_B = 21.34f;
+static const float PH_M_FABRICA = -5.70f;   // valores por defecto (sketch de prueba)
+static const float PH_B_FABRICA = 21.34f;
+static float phM = PH_M_FABRICA;             // vigentes: se cargan de NVS en setup()
+static float phB = PH_B_FABRICA;
 
 // --- Calibracion del oxigeno disuelto (SEN0237-A) ---------------------------
 // Voltaje medido con la membrana humeda al aire (100 % de saturacion) y la
@@ -110,13 +121,26 @@ static const float OXI_SATURACION[41] = {
 };
 
 // --- Curva de turbidez TS-300B ---------------------------------------------
-// Relacion inversa: agua limpia ~4,2 V, agua turbia < 2,5 V.
-static const float TURB_V_AGUA_LIMPIA = 4.20f;
-static const float TURB_NTU_MAX       = 3000.0f;
+// Relacion inversa: agua limpia ~4,2 V, agua turbia < 2,5 V (curva DFRobot,
+// valida de 2,5 a 4,2 V). Cada modulo y cada divisor dan un voltaje distinto
+// en agua limpia, asi que la lectura se ESCALA con el voltaje medido en agua
+// limpia (CAL TUR): V_corregido = V * 4,2 / turbVLimpia. Al ser un cociente,
+// tambien cancela el error del factor del divisor.
+static const float TURB_V_CURVA_LIMPIA = 4.20f;
+static const float TURB_V_CURVA_SUCIA  = 2.50f;
+static const float TURB_NTU_MAX        = 3000.0f;
+static float turbVLimpia = TURB_V_CURVA_LIMPIA;  // se carga de NVS en setup()
+
+// Voltaje maximo util del ADC del ESP32 con atenuacion 11 dB. Por encima, la
+// lectura satura: agua limpia y agua sucia darian lo mismo.
+static const uint16_t ADC_SATURACION_MV = 3050;
+static uint16_t ultimoMvPin = 0;                 // diagnostico del monitor serie
+
+static Preferences prefs;                        // NVS "sigmap"
 
 static SensorCfg SENSORES[] = {
   //  codigo         tipo           gpio  divisor  activo
-  { "SEN-001-TEM", TEMP_DS18B20,    32,   1.0f,   true },
+  { "SEN-001-TEM", TEMP_DS18B20,    32,   1.0f,   false },  // TEMPORAL: cables prestados a la pantalla TFT; volver a true al reconectar
   { "SEN-001-PH",  PH_LINEAL,       34,   1.5f,   true },
   { "SEN-001-OXI", OXIGENO_MGL,     33,   1.0f,   false },  // activar al cablear la sonda
   { "SEN-001-TUR", TURBIDEZ_NTU,    35,   2.0f,   true  },  // divisor 10k/10k
@@ -207,6 +231,7 @@ static float leerVoltaje(uint8_t gpio, float factorDivisor) {
     muestras[j + 1] = v;
   }
   const float mV_pin = muestras[MUESTRAS_ADC / 2];
+  ultimoMvPin = (uint16_t)mV_pin;
   return (mV_pin * factorDivisor) / 1000.0f;
 }
 
@@ -232,15 +257,19 @@ static float oxigenoMgL(float voltios, float tempC) {
 /**
  * @brief Convierte el voltaje del TS-300B a NTU con la curva del fabricante.
  *
- * Por encima de TURB_V_AGUA_LIMPIA la curva deja de tener sentido fisico y se
- * reporta 0 NTU: el agua esta tan limpia como el sensor puede distinguir.
+ * El voltaje se normaliza con el de agua limpia calibrado (CAL TUR), de modo
+ * que ese punto vale 0 NTU. Por encima se reporta 0 NTU; por debajo de 2,5 V
+ * normalizados, 3000 NTU (limite de la curva).
  *
  * @param voltios Voltaje real del sensor (ya sin el divisor).
  * @return Turbidez en NTU.
  */
 static float turbidezNTU(float voltios) {
-  if (voltios >= TURB_V_AGUA_LIMPIA) return 0.0f;
-  const float ntu = -1120.4f * voltios * voltios + 5742.3f * voltios - 4353.8f;
+  if (turbVLimpia <= 0.1f) return NAN;
+  const float v = voltios * (TURB_V_CURVA_LIMPIA / turbVLimpia);   // normalizado a la curva
+  if (v >= TURB_V_CURVA_LIMPIA) return 0.0f;
+  if (v <= TURB_V_CURVA_SUCIA)  return TURB_NTU_MAX;
+  const float ntu = -1120.4f * v * v + 5742.3f * v - 4353.8f;
   return constrain(ntu, 0.0f, TURB_NTU_MAX);
 }
 
@@ -259,7 +288,7 @@ static float leerSensor(const SensorCfg& s) {
       return t;
     }
     case PH_LINEAL:
-      return constrain(PH_M * leerVoltaje(s.gpio, s.factor_divisor) + PH_B, 0.0f, 14.0f);
+      return constrain(phM * leerVoltaje(s.gpio, s.factor_divisor) + phB, 0.0f, 14.0f);
     case OXIGENO_MGL:
       return oxigenoMgL(leerVoltaje(s.gpio, s.factor_divisor), temperaturaActual);
     case TURBIDEZ_NTU:
@@ -292,8 +321,8 @@ static String construirCuerpo() {
   uint8_t incluidas = 0;
   Serial.println("\n------------------------------------------------------------");
   Serial.printf(" Lote %s\n", ts.length() ? ts.c_str() : "(sin hora NTP)");
-  Serial.println(" SENSOR       |     VALOR      | CODIGO");
-  Serial.println("--------------+----------------+-----------------");
+  Serial.println(" SENSOR       |     VALOR      | mV pin | CODIGO");
+  Serial.println("--------------+----------------+--------+-----------------");
   for (size_t i = 0; i < N_SENSORES; i++) {
     const SensorCfg& s = SENSORES[i];
     if (!s.activo) continue;
@@ -301,7 +330,12 @@ static String construirCuerpo() {
     if (isnan(valor)) { Serial.printf("[ADC] %s sin lectura, se omite.\n", s.codigo_hardware); continue; }
     const char* nombre; const char* unidad;
     etiquetaSensor(s.tipo, nombre, unidad);
-    Serial.printf(" %-12s | %8.2f %-5s | %s\n", nombre, valor, unidad, s.codigo_hardware);
+    if (s.tipo == TEMP_DS18B20) {
+      Serial.printf(" %-12s | %8.2f %-5s |    --  | %s\n", nombre, valor, unidad, s.codigo_hardware);
+    } else {
+      Serial.printf(" %-12s | %8.2f %-5s | %6u | %s%s\n", nombre, valor, unidad, ultimoMvPin,
+                    s.codigo_hardware, ultimoMvPin >= ADC_SATURACION_MV ? "  [!] ADC SATURADO: revisa el divisor" : "");
+    }
     JsonObject l = arr.add<JsonObject>();
     l["codigo_hardware"] = s.codigo_hardware;
     l["valor"] = roundf(valor * 100.0f) / 100.0f;
@@ -410,20 +444,126 @@ static void vaciarCola() {
 }
 
 // ---------------------------------------------------------------------------
+// Calibracion por monitor serie (persistida en NVS)
+// ---------------------------------------------------------------------------
+/** Busca el primer sensor activo de un tipo; nullptr si no hay. */
+static const SensorCfg* sensorDeTipo(TipoSensor tipo) {
+  for (size_t i = 0; i < N_SENSORES; i++) {
+    if (SENSORES[i].tipo == tipo && SENSORES[i].activo) return &SENSORES[i];
+  }
+  return nullptr;
+}
+
+/** Promedio de varias lecturas de voltaje (ya con divisor) para calibrar. */
+static float voltajeEstable(const SensorCfg& s) {
+  float suma = 0.0f;
+  for (uint8_t i = 0; i < 10; i++) { suma += leerVoltaje(s.gpio, s.factor_divisor); delay(50); }
+  return suma / 10.0f;
+}
+
+/** Carga la calibracion guardada; si no hay, deja los valores de fabrica. */
+static void cargarCalibracion() {
+  prefs.begin("sigmap", true);
+  turbVLimpia = prefs.getFloat("turb_v0", TURB_V_CURVA_LIMPIA);
+  phM = prefs.getFloat("ph_m", PH_M_FABRICA);
+  phB = prefs.getFloat("ph_b", PH_B_FABRICA);
+  prefs.end();
+}
+
+static void mostrarCalibracion() {
+  Serial.println("\n[CAL] ---- Calibracion vigente ----");
+  Serial.printf("[CAL] Turbidez: agua limpia = %.3f V (0 NTU)\n", turbVLimpia);
+  Serial.printf("[CAL] pH: pH = %.4f * V + %.4f\n", phM, phB);
+  for (size_t i = 0; i < N_SENSORES; i++) {
+    const SensorCfg& s = SENSORES[i];
+    if (!s.activo || s.tipo == TEMP_DS18B20) continue;
+    const float v = leerVoltaje(s.gpio, s.factor_divisor);
+    Serial.printf("[CAL] %-12s pin %u mV -> sensor %.3f V%s\n", s.codigo_hardware, ultimoMvPin, v,
+                  ultimoMvPin >= ADC_SATURACION_MV ? "  [!] SATURADO" : "");
+  }
+}
+
+/** CAL TUR: fija el voltaje de agua limpia como 0 NTU. */
+static void calibrarTurbidez() {
+  const SensorCfg* s = sensorDeTipo(TURBIDEZ_NTU);
+  if (!s) { Serial.println("[CAL] No hay sensor de turbidez activo."); return; }
+  const float v = voltajeEstable(*s);
+  if (ultimoMvPin >= ADC_SATURACION_MV) {
+    Serial.println("[CAL] ERROR: el ADC esta saturado en agua limpia. Cambia el divisor (10k/20k) y repite.");
+    return;
+  }
+  if (v < 1.0f) { Serial.println("[CAL] ERROR: voltaje muy bajo; la sonda esta en el agua y alimentada a 5 V?"); return; }
+  turbVLimpia = v;
+  prefs.begin("sigmap", false); prefs.putFloat("turb_v0", v); prefs.end();
+  Serial.printf("[CAL] OK turbidez: agua limpia = %.3f V queda como 0 NTU.\n", v);
+}
+
+/** CAL PH <referencia>: guarda un punto; con dos puntos recalcula la recta. */
+static void calibrarPh(float referencia) {
+  const SensorCfg* s = sensorDeTipo(PH_LINEAL);
+  if (!s) { Serial.println("[CAL] No hay sensor de pH activo."); return; }
+  if (referencia < 1.0f || referencia > 13.0f) { Serial.println("[CAL] Uso: CAL PH 6.86  o  CAL PH 4.01"); return; }
+  const float v = voltajeEstable(*s);
+  prefs.begin("sigmap", false);
+  const float refAnterior = prefs.getFloat("ph_r1", NAN);
+  const float vAnterior   = prefs.getFloat("ph_v1", NAN);
+  prefs.putFloat("ph_r1", referencia);
+  prefs.putFloat("ph_v1", v);
+  Serial.printf("[CAL] Punto pH %.2f = %.4f V guardado.\n", referencia, v);
+  if (!isnan(refAnterior) && fabsf(refAnterior - referencia) > 1.0f && fabsf(vAnterior - v) > 0.05f) {
+    phM = (refAnterior - referencia) / (vAnterior - v);
+    phB = referencia - phM * v;
+    prefs.putFloat("ph_m", phM);
+    prefs.putFloat("ph_b", phB);
+    Serial.printf("[CAL] OK pH: pH = %.4f * V + %.4f (puntos %.2f y %.2f)\n", phM, phB, refAnterior, referencia);
+  } else {
+    Serial.println("[CAL] Lava la sonda, ponla en el otro buffer y repite con su valor.");
+  }
+  prefs.end();
+}
+
+static void resetCalibracion() {
+  prefs.begin("sigmap", false); prefs.clear(); prefs.end();
+  turbVLimpia = TURB_V_CURVA_LIMPIA; phM = PH_M_FABRICA; phB = PH_B_FABRICA;
+  Serial.println("[CAL] Calibracion de fabrica restaurada.");
+}
+
+/** Lee comandos del monitor serie sin bloquear el ciclo de envio. */
+static void atenderSerie() {
+  static String linea;
+  while (Serial.available()) {
+    const char c = (char)Serial.read();
+    if (c != '\n' && c != '\r') { if (linea.length() < 40) linea += c; continue; }
+    linea.trim(); linea.toUpperCase();
+    if (linea.length() == 0) continue;
+    if (linea == "VER") mostrarCalibracion();
+    else if (linea == "CAL TUR") calibrarTurbidez();
+    else if (linea.startsWith("CAL PH")) calibrarPh(linea.substring(6).toFloat());
+    else if (linea == "RESET CAL") resetCalibracion();
+    else Serial.println("[CAL] Comandos: VER | CAL TUR | CAL PH 6.86 | CAL PH 4.01 | RESET CAL");
+    linea = "";
+  }
+}
+
+// ---------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200); delay(300);
   pinMode(PIN_LED_ESTADO, OUTPUT);
   ds18.begin();
-  ds18.setResolution(12);            // 0,0625 C; tarda ~750 ms por lectura
+  ds18.setResolution(11);            // 0,125 C; ~375 ms (cabe en ciclos de 2 s)
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
   if (!LittleFS.begin(true)) Serial.println("[FS] LittleFS no monto; el modo offline no guardara.");
+  cargarCalibracion();
   // ds18.begin();
   Serial.printf("\n=== SIGMAP-AQUA nodo v%s | intervalo %lu s | modo offline ===\n", FIRMWARE_VERSION, (unsigned long)intervaloS);
+  mostrarCalibracion();
+  Serial.println("[CAL] Escribe AYUDA en el monitor serie para calibrar.");
   if (conectarWiFi()) sincronizarHora();
 }
 
 void loop() {
+  atenderSerie();
   static uint32_t ultimo = 0;
   const uint32_t ahora = millis();
   if (ultimo == 0 || (ahora - ultimo) >= intervaloS * 1000UL) {
@@ -443,5 +583,5 @@ void loop() {
     digitalWrite(PIN_LED_ESTADO, LOW);
     ultimo = ahora;
   }
-  delay(200);
+  delay(20);;
 }
