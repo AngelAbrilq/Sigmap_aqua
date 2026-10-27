@@ -59,9 +59,10 @@
         {% endif %}
       </div>
       <form class="ia-agent__form" data-agent-form autocomplete="off">
+        {% csrf_token %}
         <label for="iaAgentInput" class="ia-sr-only">Pregunta al asistente</label>
-        <input type="text" id="iaAgentInput" class="ia-agent__input" maxlength="120"
-               placeholder="Pregunta por pH, turbidez, temperatura…">
+        <input type="text" id="iaAgentInput" class="ia-agent__input" maxlength="500"
+               placeholder="Pregúntame lo que sea del sistema…">
         <button type="submit" class="ia-agent__send" aria-label="Enviar consulta">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" aria-hidden="true">
             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -83,4 +84,4 @@
     <span class="ia-agent__badge" data-agent-badge hidden></span>
   </button>
 </div>
-<script src="{% static 'js/ia_agente.js' %}?v=3" defer></script>
+<script src="{% static 'js/ia_agente.js' %}?v=5" defer></script>

@@ -262,3 +262,32 @@ class Prediccion(models.Model):
                 'lecturas_evaluadas', 'fecha_evaluacion',
             ])
         return self.estado
+
+
+class ConsultaIA(models.Model):
+    """
+    Pregunta libre hecha al asistente IA flotante y su respuesta.
+
+    Se guarda para dos cosas: poder descargar el informe en Excel despues de
+    verlo en el chat, y dejar constancia de que se pregunto y sobre que datos
+    respondio el modelo (el contexto queda congelado en `contexto`).
+    """
+    usuario = models.ForeignKey(
+        'usuarios.Usuario', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='consultas_ia', verbose_name='Usuario',
+    )
+    pregunta = models.TextField('Pregunta')
+    respuesta = models.JSONField('Respuesta estructurada', default=dict)
+    contexto = models.JSONField('Datos del sistema enviados', default=dict)
+    modelo_usado = models.CharField('Modelo', max_length=60, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'consultas_ia'
+        verbose_name = 'Consulta al asistente IA'
+        verbose_name_plural = 'Consultas al asistente IA'
+        ordering = ['-fecha_creacion']
+        indexes = [models.Index(fields=['usuario', '-fecha_creacion'], name='idx_consulta_usuario_fecha')]
+
+    def __str__(self):
+        return f'{self.pregunta[:60]} ({self.fecha_creacion:%d/%m/%Y %H:%M})'

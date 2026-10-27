@@ -9,7 +9,11 @@
  * - Es global: base.html lo incluye en todas las páginas. Dentro de /ai/ lee
  *   los atributos data-ia-* de la página (datos en vivo); en el resto usa el
  *   resumen JSON #iaAgenteDatos que entrega apps.ia.context_processors.
- * - No llama endpoints nuevos.
+ * - Las preguntas escritas y los chips se envían a la IA real (DeepSeek, con
+ *   Gemini de respaldo) por POST a GLOBAL.url_preguntar; el backend le pasa
+ *   los datos actuales del sistema. La respuesta trae hallazgos, tablas,
+ *   recomendaciones y un botón para descargarla en Excel. Si la IA no está
+ *   configurada o falla, el agente responde con sus reglas locales.
  * - El chat se conserva en sessionStorage mientras navegas el módulo y se
  *   puede limpiar con el botón de la cabecera.
  */
@@ -29,6 +33,17 @@
     teaserDurationMs: 6500,
     storageKey: 'sigmap_ia_chat_v1',
     maxStoredMessages: 60,
+    askTimeoutMs: 100000,     // DeepSeek puede razonar antes de responder
+    previewRows: 6,           // filas de cada tabla visibles en el chat
+  });
+
+  /** Pregunta que se envía a la IA cuando se usa un chip. */
+  const INTENT_PROMPTS = Object.freeze({
+    resumen: 'Dame un resumen del estado actual de todas las piscinas activas: estado del agua, últimas lecturas y lo más importante a vigilar.',
+    anomalias: 'Muéstrame las anomalías actuales de todas las piscinas activas: parámetro, valor, rango óptimo y gravedad.',
+    recomendacion: '¿Qué debo hacer hoy en cada piscina según los datos actuales? Dame acciones concretas de campo.',
+    pendientes: 'Muéstrame las predicciones pendientes y vencidas, con su intervalo previsto y qué tan probable es salir de rango.',
+    alertas: 'Lista las alertas activas por piscina con su severidad, el valor que las disparó y qué hacer con cada una.',
   });
 
   /** Expresiones disponibles del robot. */
@@ -639,6 +654,18 @@
         return msgs;
       }
 
+      case 'piscinas': {
+        const pools = Array.isArray(GLOBAL.piscinas) ? GLOBAL.piscinas : [];
+        if (!pools.length) return [{ tone: 'info', text: 'No hay piscinas registradas todavía.', link: { href: '/geomembranas/', label: 'Ir a Geomembranas →' } }];
+        const active = pools.filter((p) => p.activa);
+        const list = active.map((p) => `**${p.nombre}** (${p.codigo})${p.apta ? '' : ' · no apta'}`).join(', ');
+        return [{
+          tone: 'info',
+          text: `Hay **${active.length}** piscina(s) activa(s) de ${pools.length} registradas: ${list || 'ninguna activa'}.`,
+          link: { href: '/geomembranas/', label: 'Ver geomembranas →' },
+        }];
+      }
+
       case 'saludo':
         return [{ tone: 'info', text: '¡Hola! 👋 Pregúntame por **pH**, **turbidez**, **temperatura** u **oxígeno**, o usa los botones rápidos.' }];
 
@@ -662,6 +689,7 @@
     if (paramKey) return { intent: 'parametro', paramKey };
     if (/^(hola|buenas|hey|saludos)/.test(q)) return { intent: 'saludo' };
     if (/gracias|genial|perfecto/.test(q)) return { intent: 'gracias' };
+    if (/piscina|estanque|geomembrana/.test(q)) return { intent: 'piscinas' };
     if (/resumen|estado|general|como va/.test(q)) return { intent: 'resumen' };
     if (/alertas|sensor|alarma/.test(q)) return { intent: 'alertas' };
     if (/anomal|alerta|riesgo|problema/.test(q)) return { intent: 'anomalias' };
@@ -672,6 +700,93 @@
 
   /** Divide "**negrita**" en segmentos seguros (sin innerHTML). */
   const toSegments = (text) => text.split(/\*\*/).map((part, i) => ({ text: part, bold: i % 2 === 1 })).filter((s) => s.text);
+
+  /** Crea un elemento con clase y texto (nunca innerHTML con datos). */
+  const el = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  };
+
+  /** Tono del mensaje según el hallazgo más grave. */
+  const toneFromFindings = (findings) => {
+    const levels = (findings || []).map((f) => f.gravedad);
+    if (levels.includes('alta')) return 'alerta';
+    if (levels.includes('media')) return 'aviso';
+    return findings && findings.length ? 'ok' : 'info';
+  };
+
+  /**
+   * Parte enriquecida de una respuesta de la IA: hallazgos, tablas,
+   * recomendaciones, enlaces y descarga en Excel.
+   * @param {{findings?:Array, tables?:Array, recommendations?:Array, links?:Array, excel?:string, model?:string}} rich
+   * @returns {HTMLElement}
+   */
+  function buildRich(rich) {
+    const box = el('div', 'ia-msg__rich');
+
+    if (rich.findings && rich.findings.length) {
+      const list = el('ul', 'ia-msg__findings');
+      rich.findings.forEach((f) => {
+        const item = el('li', `ia-finding ia-finding--${['alta', 'media', 'baja'].includes(f.gravedad) ? f.gravedad : 'media'}`);
+        const where = [f.piscina, f.parametro].filter(Boolean).join(' · ');
+        if (where) item.append(el('strong', null, `${where}: `));
+        item.append(document.createTextNode(f.descripcion || ''));
+        list.append(item);
+      });
+      box.append(list);
+    }
+
+    (rich.tables || []).forEach((table) => {
+      const wrap = el('div', 'ia-msg__table-wrap');
+      wrap.append(el('p', 'ia-msg__table-title', table.titulo));
+      const grid = el('table', 'ia-msg__table');
+      const headRow = el('tr');
+      (table.columnas || []).forEach((col) => headRow.append(el('th', null, col)));
+      const head = el('thead');
+      head.append(headRow);
+      grid.append(head);
+      const body = el('tbody');
+      (table.filas || []).slice(0, CONFIG.previewRows).forEach((row) => {
+        const tr = el('tr');
+        row.forEach((cell) => tr.append(el('td', null, cell)));
+        body.append(tr);
+      });
+      grid.append(body);
+      wrap.append(grid);
+      const extra = (table.filas || []).length - CONFIG.previewRows;
+      if (extra > 0) wrap.append(el('p', 'ia-msg__note', `+${extra} fila(s) más en el Excel`));
+      box.append(wrap);
+    });
+
+    if (rich.recommendations && rich.recommendations.length) {
+      box.append(el('p', 'ia-msg__section', 'Recomendaciones'));
+      const list = el('ul', 'ia-msg__recs');
+      rich.recommendations.forEach((rec) => list.append(el('li', null, rec)));
+      box.append(list);
+    }
+
+    const actions = el('div', 'ia-msg__actions');
+    const excel = safeHref(rich.excel);
+    if (excel) {
+      const download = el('a', 'ia-msg__download', '⬇ Descargar Excel');
+      download.href = excel;
+      download.setAttribute('download', '');
+      actions.append(download);
+    }
+    (rich.links || []).forEach((link) => {
+      const href = safeHref(link.url);
+      if (!href) return;
+      const a = el('a', 'ia-msg__chip-link', link.etiqueta || 'Abrir');
+      a.href = href;
+      actions.append(a);
+    });
+    if (actions.children.length) box.append(actions);
+    if (rich.notice) box.append(el('p', 'ia-msg__note', rich.notice));
+    if (rich.model) box.append(el('p', 'ia-msg__note', `Respondido por ${rich.model} con los datos actuales del sistema.`));
+    return box;
+  }
 
   /* ======================================================================
      Agente
@@ -697,7 +812,7 @@
       clear: agent.querySelector('[data-agent-clear]'),
       close: agent.querySelector('[data-agent-close]'),
       form: agent.querySelector('[data-agent-form]'),
-      input: agent.querySelector('[data-agent-form] input'),
+      input: agent.querySelector('[data-agent-form] input[type="text"]'),
       controls: agent.querySelectorAll('[data-agent-intent], .ia-agent__send, [data-agent-clear]'),
     };
 
@@ -816,6 +931,7 @@
         linkNode.textContent = msg.link.label || 'Abrir';
       }
       const finish = () => {
+        if (msg.rich) bubble.append(buildRich(msg.rich));
         if (linkNode) bubble.append(linkNode);
         scrollToEnd();
         resolve();
@@ -914,6 +1030,118 @@
       respond(intent, paramKey);
     };
 
+    // ---- Preguntas a la IA real -------------------------------------------
+    const remoteEnabled = Boolean(safeHref(GLOBAL.url_preguntar) && GLOBAL.ia_disponible);
+
+    const csrfToken = () => {
+      const field = ui.form && ui.form.querySelector('[name="csrfmiddlewaretoken"]');
+      return field ? field.value : '';
+    };
+
+    /**
+     * Envía la pregunta al backend.
+     * @param {string} question
+     * @returns {Promise<Object>} data de la respuesta
+     */
+    const fetchAnswer = async (question) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), CONFIG.askTimeoutMs);
+      try {
+        const response = await fetch(GLOBAL.url_preguntar, {
+          method: 'POST',
+          credentials: 'same-origin',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ pregunta: question }),
+        });
+        let payload = null;
+        try { payload = await response.json(); } catch (error) { payload = null; }
+        if (!response.ok || !payload || !payload.success) {
+          const fallback = response.status >= 500 ? 'el servidor tuvo un problema.' : `error ${response.status}.`;
+          const failure = new Error((payload && payload.message) || fallback);
+          failure.status = response.status;
+          throw failure;
+        }
+        return payload.data;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          const timeout = new Error('La IA tardó demasiado en responder.');
+          timeout.status = 504;
+          throw timeout;
+        }
+        throw error;
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
+    /** Convierte la respuesta del backend en un mensaje del chat. */
+    const toRemoteMessage = (answer) => ({
+      tone: toneFromFindings(answer.hallazgos),
+      tag: 'IA · datos del sistema',
+      text: answer.respuesta || '',
+      rich: {
+        findings: answer.hallazgos || [],
+        tables: answer.tablas || [],
+        recommendations: answer.recomendaciones || [],
+        links: answer.enlaces || [],
+        excel: answer.url_excel,
+        model: answer.modelo,
+        notice: answer.aviso || '',
+      },
+    });
+
+    /**
+     * Pregunta a la IA; si falla, responde con las reglas locales.
+     * @param {string} question - texto que se envía a la IA
+     * @param {string} intent - intención local de respaldo
+     * @param {string} [paramKey]
+     */
+    const respondRemote = async (question, intent, paramKey) => {
+      setBusy(true);
+      everyRobot((r) => r.setFace(FACE.THINK));
+      const steps = ['Revisando piscinas y sensores…', 'Leyendo alertas y reportes…', 'Consultando a la IA…', 'Armando la respuesta…'];
+      let step = 0;
+      setStatus(steps[0]);
+      const ticker = setInterval(() => { step = Math.min(step + 1, steps.length - 1); setStatus(steps[step]); }, 2500);
+      const dots = showTyping();
+      let messages;
+      try {
+        messages = [toRemoteMessage(await fetchAnswer(question))];
+      } catch (error) {
+        console.warn('[Agente IA] La IA no respondió:', error.message);
+        const userError = [400, 401, 403, 429].includes(error.status);
+        const canFallback = !userError && intent !== 'ayuda';
+        let text = error.message;
+        if (!userError) {
+          text = canFallback
+            ? `No pude consultar la IA: ${error.message} Te respondo con lo que tengo a mano:`
+            : `No pude consultar la IA: ${error.message} Inténtalo de nuevo en un momento.`;
+        }
+        messages = [{ tone: 'aviso', text }];
+        if (canFallback) {
+          try { messages.push(...buildMessages(intent, collectModuleData(), paramKey)); } catch (e) { /* sin datos locales */ }
+        }
+      } finally {
+        clearInterval(ticker);
+        dots.remove();
+      }
+      return speak(messages);
+    };
+
+    const askRemote = (label, intent, paramKey, question) => {
+      if (busy) return;
+      renderUserMessage(label);
+      history.push({ role: 'user', text: label });
+      showWelcome(false);
+      robots.header && robots.header.hop();
+      respondRemote(question || label, intent, paramKey);
+    };
+
     // ---- Limpiar chat ---------------------------------------------------
     const clearChat = async () => {
       if (busy) return;
@@ -1004,7 +1232,11 @@
     }
 
     agent.querySelectorAll('[data-agent-intent]').forEach((chip) => {
-      chip.addEventListener('click', () => ask(chip.textContent.trim(), chip.dataset.agentIntent));
+      chip.addEventListener('click', () => {
+        const intent = chip.dataset.agentIntent;
+        if (remoteEnabled && INTENT_PROMPTS[intent]) askRemote(chip.textContent.trim(), intent, undefined, INTENT_PROMPTS[intent]);
+        else ask(chip.textContent.trim(), intent);
+      });
     });
 
     if (ui.form && ui.input) {
@@ -1014,7 +1246,8 @@
         if (!query || busy) return;
         ui.input.value = '';
         const { intent, paramKey } = resolveQuery(query);
-        ask(query, intent, paramKey);
+        if (remoteEnabled && !['saludo', 'gracias'].includes(intent)) askRemote(query, intent, paramKey);
+        else ask(query, intent, paramKey);
       });
     }
 
