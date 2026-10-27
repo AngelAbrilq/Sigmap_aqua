@@ -58,24 +58,28 @@
       <div class="sg-card-body">
         <div class="sg-mon-cabecera">
         {% comment %}
-          Camara de la geomembrana. Aun no hay camara instalada: se muestra la
-          imagen de referencia del modulo Geomembranas y se avisa que no es una
-          transmision en vivo. Cuando exista el stream, se cambia la imagen por
-          el video o el MJPEG de la camara.
+          Camara de la geomembrana. Aun no hay camara IP: se muestra en bucle un
+          video grabado del prototipo (static/video/geomembrana_cam.mp4) y se avisa
+          que no es transmision en vivo. muted + playsinline son obligatorios para
+          que el navegador permita el autoplay; si el video no carga se ve el
+          poster. Cuando exista la camara, se cambia el <source> por su stream.
         {% endcomment %}
         <section class="sg-camara" aria-label="Cámara de {{ seleccionada.nombre_piscina }}">
-          <img class="sg-camara-imagen" src="{% static 'img/geomembrana_ref.jpg' %}"
-               alt="Imagen de referencia de una geomembrana piscícola" loading="lazy">
+          <video class="sg-camara-imagen" autoplay muted loop playsinline preload="auto"
+                 poster="{% static 'video/geomembrana_cam_poster.jpg' %}"
+                 aria-label="Video del prototipo: estanque con peces y nodo ESP32">
+            <source src="{% static 'video/geomembrana_cam.mp4' %}" type="video/mp4">
+          </video>
           <div class="sg-camara-capa">
             <div class="sg-camara-fila">
               <span class="sg-camara-etiqueta">
                 <span class="sg-camara-punto" aria-hidden="true"></span>
                 CAM-01 · {{ seleccionada.codigo_identificacion }}
               </span>
-              <span class="sg-camara-etiqueta sg-camara-etiqueta--aviso">Sin cámara instalada</span>
+              <span class="sg-camara-etiqueta sg-camara-etiqueta--aviso">Video grabado</span>
             </div>
             <div class="sg-camara-fila">
-              <span class="sg-camara-texto">Imagen de referencia · no es video en vivo</span>
+              <span class="sg-camara-texto">Prototipo · no es transmisión en vivo</span>
               <span class="sg-camara-texto" id="camaraReloj" aria-hidden="true"></span>
             </div>
           </div>
