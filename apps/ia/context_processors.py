@@ -107,6 +107,21 @@ def _resumen_alertas():
     )
 
 
+def _resumen_piscinas():
+    """Piscinas registradas con su estado (respaldo local si la IA no responde)."""
+    from apps.piscinas.models import Geomembrana
+
+    return [
+        {
+            'nombre': g.nombre_piscina,
+            'codigo': g.codigo_identificacion,
+            'activa': g.estado == 'activo',
+            'apta': g.apta_para_produccion,
+        }
+        for g in Geomembrana.objects.order_by('nombre_piscina')[:30]
+    ]
+
+
 def agente_ia(request):
     """
     Contexto global del asistente IA.
@@ -133,10 +148,13 @@ def agente_ia(request):
         'en_modulo_ia': en_modulo,
         'url_modulo': reverse('ia:panel'),
         'url_alertas': reverse('alertas:listar'),
+        'url_preguntar': reverse('ia:asistente_preguntar'),
+        'ia_disponible': False,
         'analisis': None,
         'pendientes': [],
         'precision': {},
         'alertas': {'activas': 0, 'graves': 0},
+        'piscinas': [],
     }
 
     try:
@@ -148,6 +166,10 @@ def agente_ia(request):
             datos['url_analisis'] = f"{datos['url_modulo']}?seleccion={ultimo.pk}"
         datos['pendientes'], datos['precision'] = _resumen_predicciones(Prediccion)
         datos['alertas'] = _resumen_alertas()
+        datos['piscinas'] = _resumen_piscinas()
+
+        from .services import ia_configurada
+        datos['ia_disponible'] = ia_configurada()
     except Exception:  # noqa: BLE001 - el asistente nunca debe tumbar una página
         logger.exception('No se pudo armar el contexto del asistente IA')
 

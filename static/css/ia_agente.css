@@ -512,3 +512,55 @@
 }
 
 .ia-msg__link:hover { color: #fff; filter: brightness(1.08); }
+
+/* ===== Respuestas de la IA con datos del sistema ===== */
+.ia-msg__rich { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.ia-msg__findings, .ia-msg__recs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.ia-finding {
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  border-radius: 8px;
+  border-left: 3px solid var(--ia-warn);
+  background: #fffbeb;
+}
+.ia-finding--alta { border-left-color: var(--ia-danger); background: #fef2f2; }
+.ia-finding--baja { border-left-color: var(--ia-ok); background: #f0fdf4; }
+.ia-msg__recs li { position: relative; padding-left: 14px; font-size: 12px; line-height: 1.45; }
+.ia-msg__recs li::before { content: '•'; position: absolute; left: 3px; color: var(--ia-ocean); font-weight: 800; }
+.ia-msg__section, .ia-msg__table-title {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--ia-ocean);
+}
+.ia-msg__table-wrap { overflow-x: auto; }
+.ia-msg__table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+.ia-msg__table th {
+  padding: 5px 6px;
+  text-align: left;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--ia-ocean);
+}
+.ia-msg__table td { padding: 4px 6px; border-bottom: 1px solid var(--ia-line); white-space: nowrap; }
+.ia-msg__table tbody tr:nth-child(even) td { background: var(--ia-surface-soft); }
+.ia-msg__note { margin: 2px 0 0; font-size: 11px; color: var(--ia-muted); }
+.ia-msg__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.ia-msg__download, .ia-msg__chip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 999px;
+}
+.ia-msg__download { color: #fff; background: #15803d; }
+.ia-msg__download:hover { color: #fff; filter: brightness(1.08); }
+.ia-msg__chip-link { color: var(--ia-ocean); background: #fff; border: 1px solid var(--ia-line); }
+.ia-msg__chip-link:hover { border-color: var(--ia-cyan); }
+.ia-msg__download:focus-visible, .ia-msg__chip-link:focus-visible { outline: 3px solid var(--ia-cyan); outline-offset: 2px; }

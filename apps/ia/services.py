@@ -289,12 +289,13 @@ def ia_configurada():
     return bool(proveedores_configurados())
 
 
-def _llamar_ia(prompt, esquema=None):
+def _llamar_ia(prompt, esquema=None, instruccion=None):
     """
     Envia el prompt al proveedor principal y, si falla, al de respaldo.
 
     :param prompt: texto de la peticion
     :param esquema: esquema JSON a exigir (por defecto ESQUEMA_RESPUESTA)
+    :param instruccion: mensaje de sistema (por defecto INSTRUCCION_SISTEMA)
     :return: tuple (dict con la respuesta, str con el modelo que respondio)
     :raises ErrorIA: si no hay proveedores configurados o todos fallan
     """
@@ -309,14 +310,14 @@ def _llamar_ia(prompt, esquema=None):
     ultimo_error = None
     for proveedor in proveedores:
         try:
-            return llamadas[proveedor](prompt, esquema), _modelo_de(proveedor)
+            return llamadas[proveedor](prompt, esquema, instruccion), _modelo_de(proveedor)
         except ErrorIA as error:
             logger.warning('Proveedor de IA %s falló: %s', proveedor, error)
             ultimo_error = error
     raise ultimo_error
 
 
-def _llamar_deepseek(prompt, esquema=None):
+def _llamar_deepseek(prompt, esquema=None, instruccion=None):
     """
     Envia el prompt a DeepSeek (API compatible con OpenAI) en modo JSON.
 
@@ -335,7 +336,7 @@ def _llamar_deepseek(prompt, esquema=None):
 
     url_base = getattr(settings, 'DEEPSEEK_BASE_URL', 'https://api.deepseek.com').rstrip('/')
     sistema = (
-        f'{INSTRUCCION_SISTEMA}\n\n'
+        f'{instruccion or INSTRUCCION_SISTEMA}\n\n'
         'Responde SOLO con un objeto JSON válido que cumpla este esquema '
         '(los tipos están en mayúsculas: STRING, NUMBER, ARRAY, OBJECT):\n'
         f'{json.dumps(esquema or ESQUEMA_RESPUESTA, ensure_ascii=False)}'
@@ -394,7 +395,7 @@ def _llamar_deepseek(prompt, esquema=None):
         raise ErrorIA('DeepSeek devolvió una respuesta que no se pudo interpretar.') from exc
 
 
-def _llamar_gemini(prompt, esquema=None):
+def _llamar_gemini(prompt, esquema=None, instruccion=None):
     """
     Envia el prompt a Gemini (respaldo) y devuelve la respuesta ya parseada.
 
@@ -411,7 +412,7 @@ def _llamar_gemini(prompt, esquema=None):
     url = f'{URL_GEMINI}/{modelo}:generateContent?key={api_key}'
 
     cuerpo = json.dumps({
-        'systemInstruction': {'parts': [{'text': INSTRUCCION_SISTEMA}]},
+        'systemInstruction': {'parts': [{'text': instruccion or INSTRUCCION_SISTEMA}]},
         'contents': [{'role': 'user', 'parts': [{'text': prompt}]}],
         'generationConfig': {
             'temperature': 0.2,          # analisis tecnico: poca creatividad

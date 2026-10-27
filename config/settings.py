@@ -278,6 +278,14 @@ LOGGING = {
         },
     },
     'handlers': {
+        'archivo_ia': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'ia.log',
+            'maxBytes': 2 * 1024 * 1024,
+            'backupCount': 3,
+            'formatter': 'detallado',
+            'encoding': 'utf-8',
+        },
         'consola': {
             'class': 'logging.StreamHandler',
             'formatter': 'detallado',
@@ -299,6 +307,12 @@ LOGGING = {
         },
         'apps.auditoria': {
             'handlers': ['consola'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # Errores del asistente y de los analisis de IA quedan en logs/ia.log
+        'apps.ia': {
+            'handlers': ['consola', 'archivo_ia'],
             'level': 'INFO',
             'propagate': False,
         },
