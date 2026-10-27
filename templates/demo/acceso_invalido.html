@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% include "demo/_head.html" %}
+  <title>QR no válido · SIGMAP-AQUA</title>
+</head>
+<body class="dq dq-acceso dq-acceso--invalido" data-dq="invalido"
+      style="--rol: #f59e0b; --rol2: #fbbf24;">
+  <div class="dq-burbujas" data-burbujas aria-hidden="true"></div>
+
+  <main class="dq-acceso__card">
+    <div class="dq-acceso__robot" data-robot aria-hidden="true"></div>
+    <p class="dq-eyebrow">SIGMAP-AQUA · Acceso con QR</p>
+    <h1>{{ mensaje }}</h1>
+    <p>
+      {% if motivo == 'expirado' %}Pídele al instructor que proyecte los códigos de nuevo.
+      {% elif motivo == 'revocado' %}Los códigos se renovaron. Escanea los que están en pantalla.
+      {% else %}Escanea uno de los códigos de la presentación o entra con tu cuenta.{% endif %}
+    </p>
+    <a class="dq-btn" href="{% url 'usuarios:login' %}">Ir al inicio de sesión</a>
+  </main>
+
+  {% include "demo/_scripts.html" %}
+</body>
+</html>

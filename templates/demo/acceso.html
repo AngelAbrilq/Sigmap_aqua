@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% include "demo/_head.html" %}
+  <title>Acceso como {{ rol.titulo }} · SIGMAP-AQUA</title>
+</head>
+{% comment %}
+  Lo que ve quien escanea el QR. El GET no inicia sesión: la animación
+  verifica y envía el POST al mismo enlace (ver apps/demo/views.acceso).
+{% endcomment %}
+<body class="dq dq-acceso" data-dq="acceso" data-rol="{{ rol.slug }}"
+      style="--rol: {{ rol.color }}; --rol2: {{ rol.color2 }};">
+  <div class="dq-burbujas" data-burbujas aria-hidden="true"></div>
+
+  <main class="dq-acceso__card">
+    <div class="dq-acceso__robot" data-robot aria-hidden="true"></div>
+    <p class="dq-eyebrow">SIGMAP-AQUA · Acceso con QR</p>
+    <h1 class="dq-acceso__hola">Hola, <span>{{ usuario.nombre_completo|default:usuario.email }}</span></h1>
+    <span class="dq-rol-chip">{{ rol.icono }} {{ rol.titulo }}</span>
+
+    <ul class="dq-checks" data-checks aria-live="polite">
+      <li>Firma criptográfica verificada</li>
+      <li>Rol: {{ rol.titulo }} · {{ rol.lema|lower }}</li>
+      <li>Sesión de demostración de {{ minutos_sesion }} min</li>
+    </ul>
+
+    <div class="dq-progreso" aria-hidden="true"><span data-progreso></span></div>
+
+    <form method="post" data-form>
+      <button type="submit" class="dq-btn">Entrar ahora</button>
+    </form>
+
+    <p class="dq-nota">Sin contraseñas: este acceso va firmado por el servidor y vence solo.</p>
+  </main>
+
+  {% include "demo/_scripts.html" %}
+</body>
+</html>

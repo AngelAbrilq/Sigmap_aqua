@@ -137,6 +137,18 @@
       </svg>
       <span>Eventos del sistema</span>
     </a>
+
+    {% if demo_qr_activo %}
+    <!-- Presentación con QR (solo visible con DEMO_QR_ACTIVO=True) -->
+    <a href="{% url 'demo:presentacion' %}" class="nav-item" target="_blank" rel="noopener">
+      <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>
+      </svg>
+      <span>Presentación QR</span>
+    </a>
+    {% endif %}
     {% endif %}
 
     {% if rol_usuario == 'Instructor Lider' or rol_usuario == 'Operario' %}

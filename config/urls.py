@@ -27,6 +27,7 @@ urlpatterns = [
     path('', include('apps.monitoreo.urls_web')),   # sensores, monitoreo, historial, configuraciones
     path('', include('apps.reportes.urls')),        # graficas-reportes, comparacion-periodos
     path('eventos/', include('apps.auditoria.urls')),  # RF018: registro de eventos (auditoria)
+    path('demo/', include('apps.demo.urls')),          # acceso por QR para la sustentación
 
     # API consumida por los nodos ESP32 en campo (token de dispositivo)
     path('api/v1/', include('apps.monitoreo.urls')),

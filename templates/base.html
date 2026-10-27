@@ -24,7 +24,10 @@
 
   {# Cada pagina hija agrega su CSS especifico con: block extra_css ... endblock #}
   {# Asistente IA flotante: global para quien tenga acceso al módulo de IA #}
-  {% if agente_ia %}<link rel="stylesheet" href="{% static 'css/ia_agente.css' %}?v=3">{% endif %}
+  {% if agente_ia %}
+    <link rel="stylesheet" href="{% static 'css/sigmap_robot.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/ia_agente.css' %}?v=4">
+  {% endif %}
 
   {% block extra_css %}{% endblock %}
 

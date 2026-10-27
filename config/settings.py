@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     'apps.reportes',
     'apps.ia',
     'apps.auditoria',
+    'apps.demo',
 ]
 
 MIDDLEWARE = [
@@ -142,6 +143,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.core.context_processors.usuario_context',
                 'apps.ia.context_processors.agente_ia',
+                'apps.demo.context_processors.demo_qr',
             ],
         },
     },
@@ -324,6 +326,18 @@ GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.5-flash-lite')
 # Oxigeno disuelto ficticio en el tablero en vivo mientras se instala el sensor
 # real. No se guarda en la BD ni genera alertas (apps/monitoreo/simulacion.py).
 MONITOREO_OXIGENO_SIMULADO = config('MONITOREO_OXIGENO_SIMULADO', default=True, cast=bool)
+
+# --- Acceso de demostración por QR (sustentación) --------------------------
+# Un QR por rol inicia sesión sin escribir contraseña. El QR lleva un token
+# firmado con la SECRET_KEY (no la contraseña) que vence en DEMO_QR_HORAS.
+# Para invalidar todos los QR impresos de inmediato: sube DEMO_QR_VERSION.
+# Mantenlo en False fuera de las presentaciones.
+DEMO_QR_ACTIVO = config('DEMO_QR_ACTIVO', default=False, cast=bool)
+DEMO_QR_HORAS = config('DEMO_QR_HORAS', default=24, cast=int)
+DEMO_QR_VERSION = config('DEMO_QR_VERSION', default=1, cast=int)
+DEMO_QR_SESION_MINUTOS = config('DEMO_QR_SESION_MINUTOS', default=120, cast=int)
+# URL pública (ej. la del túnel). Vacía = se toma de la petición.
+DEMO_QR_URL_BASE = config('DEMO_QR_URL_BASE', default='')
 
 # --- Seguridad en produccion (RNF003) -------------------------------------
 # Se activa sola cuando DEBUG=False. La capa HTTPS va detras de un flag aparte

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {% include "demo/_head.html" %}
+  <title>Presentación · SIGMAP-AQUA</title>
+</head>
+{% comment %}
+  Pantalla para proyectar en la sustentación. Un QR por rol, firmado en cada
+  carga; celebra en vivo cada ingreso (polling a demo:actividad).
+{% endcomment %}
+<body class="dq dq-pres" data-dq="presentacion">
+  <div class="dq-burbujas" data-burbujas aria-hidden="true"></div>
+  <canvas class="dq-confeti" data-confeti aria-hidden="true"></canvas>
+
+  <header class="dq-pres__top">
+    <div class="dq-marca">
+      <div class="dq-marca__robot" data-robot aria-hidden="true"></div>
+      <div>
+        <p class="dq-eyebrow">SIGMAP-AQUA · Monitoreo inteligente del agua</p>
+        <h1>Entra al sistema con <em>un solo escaneo</em></h1>
+      </div>
+    </div>
+    <div class="dq-pres__acciones">
+      <span class="dq-en-vivo" data-en-vivo>En vivo</span>
+      <span class="dq-reloj">Vigencia <strong data-reloj>—</strong></span>
+      <button type="button" class="dq-btn dq-btn--ghost" data-pantalla-completa>⛶ Pantalla completa</button>
+      <button type="button" class="dq-btn dq-btn--ghost" data-imprimir>🖨️ Imprimir</button>
+    </div>
+  </header>
+
+  <p class="dq-instruccion">📱 Abre la <strong>cámara</strong> de tu celular, apunta al rol que quieres probar y toca el enlace.</p>
+
+  <section class="dq-cards" aria-label="Códigos QR por rol">
+    {% for tarjeta in tarjetas %}
+      {% with rol=tarjeta.rol %}
+      <article class="dq-card {% if not tarjeta.usuario %}dq-card--vacia{% endif %}"
+               data-card="{{ rol.slug }}" style="--rol: {{ rol.color }}; --rol2: {{ rol.color2 }};">
+        <div class="dq-card__cabeza">
+          <span class="dq-card__icono" aria-hidden="true">{{ rol.icono }}</span>
+          <h2>{{ rol.titulo }}</h2>
+          <p class="dq-card__lema">{{ rol.lema }}</p>
+        </div>
+
+        <div class="dq-qr">
+          {% if tarjeta.usuario %}{{ tarjeta.qr|safe }}{% else %}Sin usuario activo para este rol{% endif %}
+        </div>
+
+        {% if tarjeta.usuario %}
+          <p class="dq-card__usuario">
+            <strong>{{ tarjeta.usuario.nombre_completo|default:tarjeta.usuario.email }}</strong>
+            {{ tarjeta.usuario.email }}
+          </p>
+        {% endif %}
+
+        <ul class="dq-capacidades">
+          {% for capacidad in rol.capacidades %}<li>{{ capacidad }}</li>{% endfor %}
+        </ul>
+
+        <div class="dq-card__pie">
+          <span class="dq-contador"><strong data-contador>0</strong>ingresos</span>
+          {% if tarjeta.enlace %}<span class="dq-card__enlace" title="{{ base }}">{{ base }}</span>{% endif %}
+        </div>
+      </article>
+      {% endwith %}
+    {% endfor %}
+  </section>
+
+  <p class="dq-pie">
+    🔒 Los QR no contienen contraseñas: llevan un token firmado por el servidor que vence a las
+    {{ expira|date:"H:i" }} del {{ expira|date:"d/m/Y" }}. Para anularlos antes, sube <code>DEMO_QR_VERSION</code> en el <code>.env</code>.
+  </p>
+
+  <div class="dq-toasts" data-toasts aria-live="polite"></div>
+
+  {{ datos_js|json_script:"dqDatos" }}
+  {% include "demo/_scripts.html" %}
+</body>
+</html>
