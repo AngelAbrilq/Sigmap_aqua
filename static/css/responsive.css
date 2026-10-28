@@ -1,0 +1,621 @@
+/* =========================================================================
+   SIGMAP-AQUA · Capa responsive global
+   Archivo: static/css/responsive.css
+
+   Se carga la ÚLTIMA en base.html (después del CSS de cada módulo), así que
+   ajusta el layout de TODO el sistema sin reescribir los estilos existentes.
+
+   Puntos de corte:
+     ≤ 1280px  escritorio chico / tablet horizontal
+     ≤ 1024px  tablet
+     ≤  767px  celular: la barra lateral pasa a menú deslizable (drawer)
+     ≤  480px  celular angosto
+   Complemento: static/js/responsive.js (menú, tablas como tarjetas).
+   ========================================================================= */
+
+:root {
+  --r-gutter: 32px;
+  --r-gutter-sm: 16px;
+  --r-touch: 44px;            /* tamaño mínimo táctil (WCAG 2.5.5) */
+  --r-drawer: min(300px, 86vw);
+  --r-safe-top: env(safe-area-inset-top, 0px);
+  --r-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --r-safe-left: env(safe-area-inset-left, 0px);
+  --r-safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* =========================================================================
+   0. Base a prueba de desbordes (todos los tamaños)
+   ========================================================================= */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+.main-wrapper,
+.dashboard-content {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Multimedia y gráficas nunca más anchas que su contenedor */
+.dashboard-content img,
+.dashboard-content video,
+.dashboard-content iframe,
+.dashboard-content svg:not(.rb),
+.dashboard-content canvas {
+  max-width: 100%;
+}
+
+.dashboard-content img,
+.dashboard-content video { height: auto; }
+
+.dashboard-content pre,
+.dashboard-content code { max-width: 100%; overflow-x: auto; }
+
+/* Textos largos (correos, códigos, URLs) se parten en vez de empujar.
+   break-word (no anywhere): solo corta palabras que no caben, sin partir
+   títulos normales como "geomembrana-s". */
+.dashboard-content :is(p, li, td, dd, span, strong, small, a, h1, h2, h3, h4, label) {
+  overflow-wrap: break-word;
+}
+
+/* Tablas: siempre deslizables dentro de su tarjeta, nunca la página */
+.sg-tabla-wrap,
+.r-tabla-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* Si el contenedor cae en una fila flex, ocupa el espacio que tenía la tabla */
+.r-tabla-scroll { flex: 1 1 auto; min-width: 0; }
+
+/* Botón de menú y fondo del drawer: ocultos en escritorio */
+.r-menu-btn,
+.r-menu-fondo { display: none; }
+
+/* =========================================================================
+   1. ≤ 1280px · escritorio chico y tablet horizontal
+   ========================================================================= */
+@media (max-width: 1280px) {
+  :root { --r-gutter: 24px; }
+
+  /* Hijos de grillas: pueden encogerse (evita que una columna empuje la página).
+     Solo desde 1280px hacia abajo: en escritorio el diseño queda intacto. */
+  :is(.sg-fila-kpi, .sg-split, .sg-split--ancho, .sg-form-grid, .sg-mon-cabecera,
+      .metrics-grid, .middle-grid, .bottom-grid, .kpi-grid,
+      .gm-kpi-row, .gm-main-layout, .gm-detail-top-row, .gm-detail-bottom-row, .gm-form-grid,
+      .alt-kpi-grid, .alt-main-grid, .alt-bottom-grid,
+      .cmp-cards-grid, .cmp-middle-grid, .cmp-bottom-grid, .cmp-chart-period-banners,
+      .gr-main-grid, .gr-bottom-grid, .gr-params-grid, .gr-filters-row,
+      .hist-stats-row, .monitoreo-params-grid, .monitoreo-middle-grid, .monitoreo-bottom-grid,
+      .cfg-grid-2x2, .cfg-form-row, .cfg-theme-row, .usr-form-grid, .usr-row-extra,
+      .info-details-grid, .ai-top-row, .ai-middle-row, .ai-bottom-row, .ai-status-grid,
+      .ai-anomaly-stats, .ia-layout, .ia-dos-col) > * {
+    min-width: 0;
+  }
+
+  .top-header { padding: 20px var(--r-gutter) 14px; }
+  .dashboard-content { padding: 0 var(--r-gutter) var(--r-gutter); gap: 20px; }
+
+  .sg-fila-kpi { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+}
+
+/* =========================================================================
+   2. ≤ 1024px · tablet
+   ========================================================================= */
+@media (max-width: 1024px) {
+  :root { --r-gutter: 20px; }
+
+  /* Encabezado: título y acciones conviven sin aplastarse */
+  .top-header { gap: 14px; align-items: flex-start; }
+  .header-title-group { flex: 1 1 auto; }
+  .header-title-group h1 { font-size: clamp(1.25rem, 2.6vw, 1.55rem); }
+  .header-title-group p { font-size: 0.82rem; line-height: 1.45; }
+  .header-right-group { gap: 8px; }
+
+  /* Grillas fijas de 3-5 columnas pasan a 2 */
+  :is(.metrics-grid, .kpi-grid, .gm-kpi-row, .alt-kpi-grid, .hist-stats-row,
+      .cmp-cards-grid, .monitoreo-params-grid, .gr-params-grid, .ai-status-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Diseños de dos columnas (lista + detalle) se apilan */
+  :is(.gm-main-layout, .alt-main-grid, .gr-main-grid, .cmp-middle-grid,
+      .monitoreo-middle-grid, .middle-grid, .ai-middle-row, .sg-split, .sg-split--ancho) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  /* Tablas con muchas columnas: texto más compacto */
+  .sg-tabla { font-size: 12.5px; }
+  .sg-tabla th, .sg-tabla td { padding: 10px 11px; }
+
+  /* Modales anchos ocupan casi toda la pantalla */
+  .sg-modal-caja { max-width: min(880px, calc(100vw - 32px)); }
+}
+
+/* Tablet vertical: KPIs de 2 en 2 (4 tarjetas = 2×2, sin una suelta) */
+@media (min-width: 768px) and (max-width: 900px) {
+  .sg-fila-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Tablet: la cámara del monitoreo usa todo el ancho en vez de quedar chica */
+@media (max-width: 1000px) {
+  .sg-mon-cabecera .sg-camara { max-width: none; }
+}
+
+/* =========================================================================
+   3. ≤ 767px · celular: menú deslizable + layout de una columna
+   ========================================================================= */
+@media (max-width: 767px) {
+  :root { --r-gutter: var(--r-gutter-sm); }
+
+  /* ---- 3.1 Barra lateral → drawer ----------------------------------------- */
+  .app-container,
+  .app-container.sidebar-fijado,
+  .app-container:has(.sidebar:hover),
+  .app-container:has(.sidebar:focus-within) {
+    padding-left: 0 !important;
+    flex-direction: row;
+  }
+
+  .sidebar ~ .main-wrapper,
+  .sidebar:hover ~ .main-wrapper,
+  .sidebar:focus-within ~ .main-wrapper,
+  .app-container.sidebar-fijado .sidebar ~ .main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  .sidebar,
+  .sidebar:hover,
+  .sidebar:focus-within,
+  .app-container.sidebar-fijado .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1100;
+    width: var(--r-drawer) !important;
+    height: 100vh;
+    height: 100dvh;
+    padding: calc(18px + var(--r-safe-top)) 14px calc(18px + var(--r-safe-bottom)) calc(14px + var(--r-safe-left));
+    transform: translateX(-105%);
+    visibility: hidden;
+    box-shadow: none;
+    transition: transform 0.28s cubic-bezier(.2, .8, .2, 1), visibility 0s linear 0.28s;
+  }
+
+  body.r-menu-abierto .sidebar {
+    transform: none;
+    visibility: visible;
+    box-shadow: 18px 0 48px -12px rgba(2, 12, 40, 0.55);
+    transition: transform 0.28s cubic-bezier(.2, .8, .2, 1), visibility 0s;
+  }
+
+  /* Dentro del drawer todo se ve expandido: logo, marca y textos del menú */
+  .sidebar .sidebar-logo { width: 64px; height: auto; }
+  .sidebar .sidebar-brand,
+  .sidebar .sidebar-subtitle { opacity: 1; max-height: 60px; white-space: normal; }
+  .sidebar .sidebar-nav { flex-direction: column; flex-wrap: nowrap; }
+  .sidebar .nav-item {
+    justify-content: flex-start;
+    min-height: var(--r-touch);
+    padding: 12px 14px;
+  }
+  .sidebar .nav-item span { opacity: 1; max-width: none; }
+  .sidebar .sidebar-pin-btn,
+  .sidebar .sidebar-resizer { display: none !important; }
+
+  .r-menu-fondo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1090;
+    background: rgba(4, 18, 40, 0.5);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  }
+
+  body.r-menu-abierto .r-menu-fondo {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s ease, visibility 0s;
+  }
+
+  body.r-menu-abierto { overflow: hidden; }
+
+  /* ---- 3.2 Encabezado de dos filas ---------------------------------------- */
+  .top-header {
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'menu titulo acciones'
+      'sub  sub    sub';
+    align-items: center;
+    gap: 4px 10px;
+    padding: calc(10px + var(--r-safe-top)) calc(var(--r-gutter) + var(--r-safe-right)) 10px calc(var(--r-gutter) + var(--r-safe-left));
+    background: rgba(248, 250, 252, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .r-menu-btn {
+    grid-area: menu;
+    display: grid;
+    place-items: center;
+    width: var(--r-touch);
+    height: var(--r-touch);
+    margin-left: -6px;
+    padding: 0;
+    color: #0f2a4a;
+    background: transparent;
+    border: 0;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  .r-menu-btn:active { background: rgba(15, 23, 42, 0.06); }
+  .r-menu-btn:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.45); outline-offset: 1px; }
+
+  /* El grupo del título se "desarma" para repartir h1 y p en la grilla */
+  .header-title-group { display: contents; }
+
+  .header-title-group h1 {
+    grid-area: titulo;
+    overflow: hidden;
+    font-size: 1.12rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .header-title-group p {
+    grid-area: sub;
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+
+  .header-right-group { grid-area: acciones; gap: 2px; }
+
+  /* Perfil: solo el avatar (nombre y rol viven en el menú desplegable) */
+  .topbar-user-info,
+  .topbar-user-chevron { display: none !important; }
+  .topbar-user-pill { padding: 4px; gap: 0; }
+
+  .topbar-icon-btn,
+  .header-btn {
+    width: 40px;
+    height: 40px;
+    display: inline-grid;
+    place-items: center;
+  }
+
+  /* Menús del encabezado: pegados al borde y con ancho de pantalla */
+  .notif-menu,
+  .user-dropdown-menu {
+    position: fixed !important;
+    top: calc(64px + var(--r-safe-top)) !important;
+    right: 10px !important;
+    left: 10px !important;
+    width: auto !important;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* ---- 3.3 Contenido ------------------------------------------------------ */
+  .dashboard-content {
+    padding: 14px calc(var(--r-gutter) + var(--r-safe-right)) calc(110px + var(--r-safe-bottom)) calc(var(--r-gutter) + var(--r-safe-left));
+    gap: 16px;
+  }
+
+  .footer-bar {
+    padding: 14px var(--r-gutter) calc(14px + var(--r-safe-bottom));
+    font-size: 11.5px;
+    text-align: center;
+  }
+
+  /* KPIs: dos por fila, compactos */
+  :is(.sg-fila-kpi, .metrics-grid, .kpi-grid, .gm-kpi-row, .alt-kpi-grid, .hist-stats-row,
+      .cmp-cards-grid, .monitoreo-params-grid, .gr-params-grid, .ai-status-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .sg-kpi,
+  .gm-kpi-card,
+  .metric-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px !important;
+    padding: 14px !important;
+  }
+
+  .sg-kpi-icono,
+  .gm-kpi-icon { width: 36px !important; height: 36px !important; }
+  .sg-kpi-valor,
+  .gm-kpi-value { font-size: 1.35rem !important; }
+  .sg-kpi-label,
+  .gm-kpi-label { font-size: 10.5px !important; }
+  .sg-kpi-sub,
+  .gm-kpi-sub { font-size: 11.5px !important; }
+
+  /* Todo lo demás de varias columnas → una columna */
+  :is(.middle-grid, .bottom-grid, .gm-main-layout, .gm-detail-top-row, .gm-detail-bottom-row,
+      .gm-form-grid, .alt-main-grid, .alt-bottom-grid, .cmp-middle-grid, .cmp-bottom-grid,
+      .cmp-chart-period-banners, .gr-main-grid, .gr-bottom-grid, .gr-filters-row,
+      .monitoreo-middle-grid, .monitoreo-bottom-grid, .cfg-grid-2x2, .cfg-form-row, .cfg-theme-row,
+      .usr-form-grid, .usr-row-extra, .info-details-grid, .ai-top-row, .ai-middle-row,
+      .ai-bottom-row, .ai-anomaly-stats, .sg-form-grid, .sg-mon-cabecera, .sg-split, .sg-split--ancho) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .sg-mon-cabecera .sg-camara { max-width: none; }
+
+  /* Asistente IA: un poco más pequeño para no tapar contenido */
+  .ia-agent { right: calc(12px + var(--r-safe-right)); bottom: calc(12px + var(--r-safe-bottom)); }
+  .ia-agent__trigger { width: 58px; height: 58px; }
+  body.r-menu-abierto .ia-agent { visibility: hidden; }
+  .ia-agent__panel {
+    width: calc(100vw - 24px - var(--r-safe-left) - var(--r-safe-right));
+    height: calc(100dvh - 96px - var(--r-safe-top) - var(--r-safe-bottom));
+    border-radius: 20px;
+  }
+
+  /* Tarjetas */
+  .sg-card { border-radius: 14px; }
+  .sg-card-head {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .sg-card-head h2 { font-size: 15px; }
+  .sg-card-body { padding: 16px; }
+
+  /* Filtros y formularios: un campo por fila, a todo el ancho */
+  .sg-filtros {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .sg-filtros > *,
+  .sg-filtros :is(select, input, .gm-form-input, .sg-btn) {
+    flex: none !important;   /* su flex-basis de fila se volvía altura al apilar */
+    width: 100%;
+    min-width: 0 !important;
+    max-width: none;
+  }
+
+  /* Filtros de los módulos con su propio CSS: también uno por fila */
+  :is(.alt-filter-bar, .cmp-filter-row, .hist-filters-row, .gr-filters-left, .gm-list-controls,
+      .table-header-controls, .chart-controls) {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  :is(.alt-filter-bar, .cmp-filter-row, .hist-filters-row, .gr-filters-left, .gm-list-controls,
+      .table-header-controls, .chart-controls) > * {
+    flex: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Barras "título + acciones": el botón baja si no cabe */
+  :is(.gm-header, .gm-list-header, .gm-detail-header, .gm-detail-title-row, .gm-aptitud-header,
+      .gr-header-bar, .gr-chart-header, .gr-reports-panel-header, .gr-correlation-header,
+      .cfg-header, .cfg-card-header, .alt-header, .usr-header, .cmp-header, .cmp-param-header,
+      .hist-header-bar, .hist-table-header, .hist-filters-title, .monitoreo-alert-header,
+      .header-top-bar, .sensor-title-header, .card-header, .ai-header, .notif-header,
+      .alt-pagination-row, .hist-pagination-controls, .alt-pagination-controls) {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    row-gap: 10px !important;
+  }
+
+  :is(.gm-header-actions, .gm-detail-actions, .cfg-header-actions, .alt-header-actions,
+      .usr-header-actions, .cmp-header-actions, .ai-header-actions, .header-actions,
+      .gm-recommendation-bar, .cfg-action-row, .usr-actions-row, .hist-table-actions) {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .gm-list-header h2,
+  .gm-list-header h3 { flex: 1 1 auto; min-width: 0; }
+
+  .sg-ia .sg-filtros { flex-direction: row; flex-wrap: wrap; }
+  .sg-ia .sg-filtros > * { width: auto; }
+
+  /* Campos: 16px evita el zoom automático de iOS al enfocar */
+  :is(input, select, textarea):not([type=checkbox]):not([type=radio]):not([type=range]) {
+    font-size: 16px !important;
+    min-height: var(--r-touch);
+    max-width: 100%;
+  }
+
+  /* Botones cómodos para el dedo */
+  .sg-btn,
+  .gm-btn-add,
+  .dashboard-content button:not(.r-menu-btn):not(.ia-chip-btn):not(.ia-agent__icon-btn) {
+    min-height: 40px;
+  }
+
+  .sg-acciones { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+  .sg-acciones .sg-btn { flex: 1 1 auto; justify-content: center; }
+
+  /* Pestañas deslizables en una sola fila */
+  .sg-tabs,
+  .gm-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sg-tabs::-webkit-scrollbar,
+  .gm-tabs::-webkit-scrollbar { display: none; }
+  .sg-tabs > *,
+  .gm-tabs > * { flex: none; white-space: nowrap; }
+
+  /* Paginación centrada y táctil */
+  .sg-paginacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sg-page { min-width: 40px; min-height: 40px; display: inline-grid; place-items: center; }
+
+  /* Modales como hoja inferior de pantalla completa */
+  .sg-modal { padding: 0 !important; align-items: flex-end !important; }
+  .sg-modal-caja,
+  .gm-modal {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 24px) !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding-bottom: var(--r-safe-bottom);
+    animation: r-hoja 0.3s cubic-bezier(.2, .9, .3, 1);
+  }
+
+  .sg-modal-pie {
+    position: sticky;
+    bottom: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #fff;
+    box-shadow: 0 -8px 16px -12px rgba(15, 23, 42, 0.25);
+  }
+
+  .sg-modal-pie .sg-btn { flex: 1 1 140px; justify-content: center; }
+
+  @keyframes r-hoja { from { transform: translateY(40px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+
+  /* ---- 3.4 Tablas como tarjetas (responsive.js agrega .r-tabla-cards) ---- */
+  .sg-tabla-wrap:has(.r-tabla-cards) { overflow: visible; border: 0; }
+
+  table.r-tabla-cards,
+  table.r-tabla-cards tbody { display: block; width: 100%; }
+  table.r-tabla-cards thead { display: none; }
+
+  table.r-tabla-cards tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 14px;
+    margin: 0 0 10px;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px -4px rgba(15, 23, 42, 0.12);
+  }
+
+  table.r-tabla-cards tr:hover { background: #fff; }
+
+  table.r-tabla-cards td {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 0 !important;
+    text-align: left !important;
+    border: 0 !important;
+    white-space: normal !important;
+  }
+
+  table.r-tabla-cards td::before {
+    content: attr(data-label);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+
+  /* Chips y botones conservan su tamaño natural dentro de la tarjeta */
+  table.r-tabla-cards td > :is(.sg-chip, .badge, span[class*='chip'], span[class*='badge']) { align-self: flex-start; }
+
+  table.r-tabla-cards td:empty,
+  table.r-tabla-cards td[data-label='']::before { display: none; }
+
+  /* Celdas largas (mensajes, descripciones, acciones) ocupan la fila entera */
+  table.r-tabla-cards td.r-celda-ancha { grid-column: 1 / -1; }
+  table.r-tabla-cards td.r-celda-acciones { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  table.r-tabla-cards td.r-celda-acciones::before { width: 100%; }
+  table.r-tabla-cards td.r-celda-acciones :is(.sg-btn, button, a) { flex: 1 1 auto; justify-content: center; }
+
+  table.r-tabla-cards td[colspan] { grid-column: 1 / -1; text-align: center !important; }
+  table.r-tabla-cards td[colspan]::before { display: none; }
+}
+
+/* =========================================================================
+   4. ≤ 480px · celular angosto
+   ========================================================================= */
+@media (max-width: 480px) {
+  :root { --r-gutter-sm: 12px; }
+
+  .header-title-group h1 { font-size: 1.02rem; }
+
+  /* Las notificaciones se quedan; la ayuda vive en el menú del perfil */
+  #ayudaSoporteBtn { display: none; }
+
+  .sg-kpi-valor,
+  .gm-kpi-value { font-size: 1.2rem !important; }
+}
+
+/* ≤ 359px · celulares muy angostos: tarjetas de tabla en una columna */
+@media (max-width: 359px) {
+  table.r-tabla-cards tr { grid-template-columns: minmax(0, 1fr); }
+  :is(.sg-fila-kpi, .metrics-grid, .kpi-grid, .gm-kpi-row, .alt-kpi-grid, .hist-stats-row,
+      .cmp-cards-grid, .monitoreo-params-grid, .gr-params-grid, .ai-status-grid) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* =========================================================================
+   5. Celular horizontal (poca altura)
+   ========================================================================= */
+@media (max-height: 480px) and (orientation: landscape) and (max-width: 1024px) {
+  .top-header { position: static; }
+  .sg-modal-caja { max-height: 100dvh !important; border-radius: 0 !important; }
+}
+
+/* =========================================================================
+   6. Accesibilidad
+   ========================================================================= */
+@media (hover: none) and (pointer: coarse) {
+  /* En pantallas táctiles el hover del sidebar no aplica */
+  .nav-item { min-height: var(--r-touch); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .r-menu-fondo,
+  .sg-modal-caja { transition: none !important; animation: none !important; }
+}
+
+@media print {
+  .r-menu-btn,
+  .r-menu-fondo,
+  .sidebar,
+  .ia-agent { display: none !important; }
+  .app-container { padding-left: 0 !important; }
+}

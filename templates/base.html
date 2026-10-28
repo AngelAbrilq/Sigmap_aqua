@@ -3,7 +3,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   {# Cada pagina hija personaliza el title con: block title ... endblock #}
   <title>{% block title %}SIGMAP-AQUA{% endblock %}</title>
@@ -30,6 +30,9 @@
   {% endif %}
 
   {% block extra_css %}{% endblock %}
+
+  {# Capa responsive global: va después del CSS de cada módulo para ajustarlo en celular y tablet #}
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=1">
 
   <!-- Chart.js disponible globalmente -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -496,6 +499,7 @@
 
   {% if agente_ia %}{% include "componentes/_agente_ia.html" %}{% endif %}
 
+  <script src="{% static 'js/responsive.js' %}?v=1" defer></script>
   {% block extra_js %}{% endblock %}
 
 </body>

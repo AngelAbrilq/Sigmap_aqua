@@ -1568,3 +1568,39 @@ button {
     padding: 1.25rem;
   }
 }
+
+/* ==========================================================================
+   Responsive del menú público (inicio y páginas de acceso)
+   Entre 992 y 1180 px los enlaces ya no caben junto al logo y el botón; en
+   celular antes desaparecían. Ahora bajan a una fila deslizable.
+   ========================================================================== */
+@media (max-width: 1180px) {
+  .navbar {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    padding: 0.75rem 0;
+  }
+
+  .nav-links {
+    display: flex !important;
+    order: 3;
+    flex: 1 0 100%;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.25rem 0 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links li { flex: none; }
+  .nav-link { white-space: nowrap; padding: 0.5rem 0.85rem; }
+}
+
+@media (max-width: 480px) {
+  .brand-logo-img { height: 46px; }
+  .btn-login { padding: 0.6rem 0.9rem; }
+  .btn-login span { font-size: 0.85rem; }
+}
