@@ -508,6 +508,17 @@
     return node;
   };
 
+  /** Respuesta completa en texto plano (para copiar y pegar en un informe). */
+  const plainAnswer = (text, rich) => {
+    const lines = [(text || '').replace(/\*\*/g, '')];
+    (rich.findings || []).forEach((f) => lines.push(`- [${f.gravedad}] ${[f.piscina, f.parametro].filter(Boolean).join(' · ')}: ${f.descripcion}`));
+    if ((rich.recommendations || []).length) {
+      lines.push('', 'Recomendaciones:');
+      rich.recommendations.forEach((rec) => lines.push(`- ${rec}`));
+    }
+    return lines.join('\n');
+  };
+
   /** Tono del mensaje según el hallazgo más grave. */
   const toneFromFindings = (findings) => {
     const levels = (findings || []).map((f) => f.gravedad);
@@ -519,10 +530,11 @@
   /**
    * Parte enriquecida de una respuesta de la IA: hallazgos, tablas,
    * recomendaciones, enlaces y descarga en Excel.
-   * @param {{findings?:Array, tables?:Array, recommendations?:Array, links?:Array, excel?:string, model?:string}} rich
+   * @param {{findings?:Array, tables?:Array, recommendations?:Array, links?:Array, excel?:string, model?:string, suggestions?:Array}} rich
+   * @param {string} [text] - texto principal, para el botón Copiar
    * @returns {HTMLElement}
    */
-  function buildRich(rich) {
+  function buildRich(rich, text) {
     const box = el('div', 'ia-msg__rich');
 
     if (rich.findings && rich.findings.length) {
@@ -569,11 +581,17 @@
     const actions = el('div', 'ia-msg__actions');
     const excel = safeHref(rich.excel);
     if (excel) {
-      const download = el('a', 'ia-msg__download', '⬇ Descargar Excel');
-      download.href = excel;
-      download.setAttribute('download', '');
+      // Botón (no <a download>): la descarga se hace con fetch para poder
+      // mostrar el error real en el chat si el servidor no genera el archivo.
+      const download = el('button', 'ia-msg__download', '⬇ Descargar Excel');
+      download.type = 'button';
+      download.dataset.iaDownload = excel;
       actions.append(download);
     }
+    const copy = el('button', 'ia-msg__chip-link', '📋 Copiar');
+    copy.type = 'button';
+    copy.dataset.iaCopy = plainAnswer(text, rich);
+    actions.append(copy);
     (rich.links || []).forEach((link) => {
       const href = safeHref(link.url);
       if (!href) return;
@@ -582,7 +600,19 @@
       actions.append(a);
     });
     if (actions.children.length) box.append(actions);
+    box.append(el('p', 'ia-msg__note ia-msg__dl-status'));
     if (rich.notice) box.append(el('p', 'ia-msg__note', rich.notice));
+    if (rich.suggestions && rich.suggestions.length) {
+      const wrap = el('div', 'ia-msg__suggest');
+      wrap.append(el('p', 'ia-msg__section', 'Puedes preguntarme'));
+      rich.suggestions.forEach((question) => {
+        const chip = el('button', 'ia-suggest-chip', question);
+        chip.type = 'button';
+        chip.dataset.iaSuggest = question;
+        wrap.append(chip);
+      });
+      box.append(wrap);
+    }
     if (rich.model) box.append(el('p', 'ia-msg__note', `Respondido por ${rich.model} con los datos actuales del sistema.`));
     return box;
   }
@@ -730,7 +760,7 @@
         linkNode.textContent = msg.link.label || 'Abrir';
       }
       const finish = () => {
-        if (msg.rich) bubble.append(buildRich(msg.rich));
+        if (msg.rich) bubble.append(buildRich(msg.rich, msg.text));
         if (linkNode) bubble.append(linkNode);
         scrollToEnd();
         resolve();
@@ -891,6 +921,7 @@
         excel: answer.url_excel,
         model: answer.modelo,
         notice: answer.aviso || '',
+        suggestions: answer.sugerencias || [],
       },
     });
 
@@ -940,6 +971,67 @@
       robots.header && robots.header.hop();
       respondRemote(question || label, intent, paramKey);
     };
+
+    /**
+     * Descarga el Excel con fetch: si el servidor responde error, lo muestra
+     * debajo del botón en vez de dejar al navegador con una descarga fallida.
+     * @param {HTMLButtonElement} button
+     */
+    const downloadExcel = async (button) => {
+      const href = safeHref(button.dataset.iaDownload);
+      const status = button.closest('.ia-msg__rich')?.querySelector('.ia-msg__dl-status');
+      if (!href || button.disabled) return;
+      const label = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Generando Excel…';
+      if (status) status.textContent = '';
+      try {
+        const response = await fetch(href, { credentials: 'same-origin' });
+        const type = response.headers.get('Content-Type') || '';
+        if (!response.ok || !type.includes('spreadsheetml')) {
+          let message = `No se pudo descargar (error ${response.status}).`;
+          try { message = (await response.json()).message || message; } catch (error) { /* respuesta no JSON */ }
+          throw new Error(message);
+        }
+        const blob = await response.blob();
+        const match = /filename="?([^";]+)"?/.exec(response.headers.get('Content-Disposition') || '');
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = match ? match[1] : 'asistente_ia.xlsx';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+        if (status) status.textContent = '✔ Excel descargado.';
+      } catch (error) {
+        console.warn('[Agente IA] Descarga fallida:', error.message);
+        if (status) status.textContent = `⚠ ${error.message}`;
+      } finally {
+        button.disabled = false;
+        button.textContent = label;
+      }
+    };
+
+    ui.log.addEventListener('click', async (event) => {
+      const suggestion = event.target.closest('[data-ia-suggest]');
+      if (suggestion) {
+        if (!busy) askRemote(suggestion.dataset.iaSuggest, 'ayuda');
+        return;
+      }
+      const copy = event.target.closest('[data-ia-copy]');
+      if (copy) {
+        try {
+          await navigator.clipboard.writeText(copy.dataset.iaCopy);
+          copy.textContent = '✔ Copiado';
+        } catch (error) {
+          copy.textContent = 'No se pudo copiar';
+        }
+        setTimeout(() => { copy.textContent = '📋 Copiar'; }, 1800);
+        return;
+      }
+      const download = event.target.closest('[data-ia-download]');
+      if (download) downloadExcel(download);
+    });
 
     // ---- Limpiar chat ---------------------------------------------------
     const clearChat = async () => {

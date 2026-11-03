@@ -214,3 +214,33 @@ class RobustezTest(BaseAsistente):
     def test_lista_todas_las_piscinas_registradas(self):
         ctx = construir_contexto_sistema()
         self.assertIn('GEO-TEST', [p['codigo'] for p in ctx['piscinas_registradas']])
+
+
+class ExcelRobustoTest(BaseAsistente):
+    """Texto raro de la IA no debe romper la descarga."""
+
+    @patch('apps.ia.asistente._llamar_ia', return_value=({
+        **SALIDA_IA,
+        'respuesta': 'Texto con control \x0b y \x07 raros',
+        'tablas': [{'titulo': 'Datos: [raros]?', 'columnas': ['=A', 'B'],
+                    'filas': [['=SUM(1,2)', 'x\x08y']]}],
+        'sugerencias': ['¿Y la turbidez?', '', 123],
+    }, 'deepseek-flash'))
+    def test_caracteres_de_control_y_formulas(self, llamada):
+        datos = _post(self.client, 'hola').json()['data']
+        self.assertEqual(datos['sugerencias'], ['¿Y la turbidez?'])
+        respuesta = self.client.get(datos['url_excel'])
+        self.assertEqual(respuesta.status_code, 200)
+        libro = load_workbook(BytesIO(respuesta.content))
+        hoja = libro[libro.sheetnames[2]]
+        self.assertEqual(hoja['A2'].value, '=SUM(1,2)')
+        self.assertEqual(hoja['A2'].data_type, 's')       # texto, no fórmula
+        self.assertEqual(hoja['B2'].value, 'xy')
+
+    @patch('apps.ia.asistente._llamar_ia', return_value=(SALIDA_IA, 'deepseek-flash'))
+    def test_fallo_al_generar_excel_es_json(self, llamada):
+        datos = _post(self.client, 'hola').json()['data']
+        with patch('apps.ia.views_asistente.generar_excel', side_effect=RuntimeError('boom')):
+            respuesta = self.client.get(datos['url_excel'])
+        self.assertEqual(respuesta.status_code, 500)
+        self.assertIn('logs/ia.log', respuesta.json()['message'])

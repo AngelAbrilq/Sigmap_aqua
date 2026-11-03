@@ -43,6 +43,8 @@ TURNOS_MEMORIA = 3                 # preguntas previas del usuario que se recuer
 VENTANA_MEMORIA = timedelta(minutes=30)
 MAX_FILAS_TABLA = 200
 MAX_TABLAS = 4
+# Caracteres de control que Excel no acepta (openpyxl lanza IllegalCharacterError).
+_CARACTERES_ILEGALES = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f]')
 
 # Modulos a los que la IA puede enlazar. Cualquier otra URL se descarta.
 MODULOS = {
@@ -78,7 +80,9 @@ INSTRUCCION_ASISTENTE = (
     'Máximo 4 tablas.\n'
     '7. "recomendaciones": acciones concretas de campo, solo si aplican.\n'
     '8. "enlaces": módulos útiles para la pregunta, usando EXACTAMENTE las URL de '
-    'DATOS_DEL_SISTEMA.modulos.'
+    'DATOS_DEL_SISTEMA.modulos.\n'
+    '9. "sugerencias": 2 o 3 preguntas cortas (máximo 60 caracteres) que el usuario '
+    'podría hacer a continuación para profundizar, basadas en lo que viste en los datos.'
 )
 
 ESQUEMA_ASISTENTE = {
@@ -111,6 +115,7 @@ ESQUEMA_ASISTENTE = {
             },
         },
         'recomendaciones': {'type': 'ARRAY', 'items': {'type': 'STRING'}},
+        'sugerencias': {'type': 'ARRAY', 'items': {'type': 'STRING'}},
         'enlaces': {
             'type': 'ARRAY',
             'items': {
@@ -120,7 +125,7 @@ ESQUEMA_ASISTENTE = {
             },
         },
     },
-    'required': ['respuesta', 'hallazgos', 'tablas', 'recomendaciones', 'enlaces'],
+    'required': ['respuesta', 'hallazgos', 'tablas', 'recomendaciones', 'sugerencias', 'enlaces'],
 }
 
 
@@ -425,12 +430,14 @@ def limpiar_respuesta(salida):
             enlaces.append({'url': e['url'],
                             'etiqueta': _texto(e.get('etiqueta'), 40) or MODULOS[e['url']]})
 
-    texto = str(salida.get('respuesta') or '').strip()[:1500]
+    texto = _CARACTERES_ILEGALES.sub('', str(salida.get('respuesta') or '')).strip()[:1500]
     return {
         'respuesta': texto or 'No obtuve una respuesta clara. Intenta reformular la pregunta.',
         'hallazgos': hallazgos,
         'tablas': tablas,
         'recomendaciones': [_texto(r, 300) for r in (salida.get('recomendaciones') or [])[:8] if r],
+        'sugerencias': [_texto(q, 90) for q in (salida.get('sugerencias') or [])[:3]
+                        if isinstance(q, str) and q.strip()],
         'enlaces': enlaces,
     }
 
@@ -487,6 +494,21 @@ def _numero_si_aplica(valor):
     return texto
 
 
+_SIN_VALOR = object()
+
+
+def _valor_celda(valor):
+    """
+    Deja un valor listo para openpyxl.
+
+    El texto de la IA puede traer caracteres de control que Excel no acepta
+    (openpyxl lanza IllegalCharacterError y la descarga fallaba). Se quitan.
+    """
+    if isinstance(valor, str):
+        return _CARACTERES_ILEGALES.sub('', valor)
+    return valor
+
+
 def generar_excel(consulta):
     """
     Informe Excel de una respuesta del asistente.
@@ -512,13 +534,22 @@ def generar_excel(consulta):
 
     def encabezado(hoja, fila, columnas):
         for col, texto in enumerate(columnas, 1):
-            celda = hoja.cell(fila, col, texto)
+            celda = poner(hoja, fila, col, texto)
             celda.font, celda.fill = cab_font, cab_fill
             celda.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
     def anchos(hoja, valores):
         for col, ancho in enumerate(valores, 1):
             hoja.column_dimensions[get_column_letter(col)].width = ancho
+
+    def poner(hoja, fila, col, valor=_SIN_VALOR):
+        """Escribe una celda segura (ver _valor_celda) y la devuelve."""
+        celda = hoja.cell(fila, col)
+        if valor is not _SIN_VALOR:
+            celda.value = _valor_celda(valor)
+            if isinstance(celda.value, str):
+                celda.data_type = 's'   # nunca formula, aunque empiece por "="
+        return celda
 
     libro = Workbook()
 
@@ -533,15 +564,15 @@ def generar_excel(consulta):
     fila = 4
     for etiqueta, valor in (('Pregunta', consulta.pregunta),
                             ('Respuesta', (r.get('respuesta') or '').replace('**', ''))):
-        hoja.cell(fila, 1, etiqueta).font = negrita
-        hoja.cell(fila, 2, valor).alignment = envolver
+        poner(hoja, fila, 1, etiqueta).font = negrita
+        poner(hoja, fila, 2, valor).alignment = envolver
         hoja.row_dimensions[fila].height = min(300, 15 * (1 + len(valor) // 90))
         fila += 1
     if r.get('recomendaciones'):
         fila += 1
-        hoja.cell(fila, 1, 'Recomendaciones').font = negrita
+        poner(hoja, fila, 1, 'Recomendaciones').font = negrita
         for rec in r['recomendaciones']:
-            hoja.cell(fila, 2, f'• {rec}').alignment = envolver
+            poner(hoja, fila, 2, f'• {rec}').alignment = envolver
             fila += 1
     anchos(hoja, (18, 100))
 
@@ -551,12 +582,12 @@ def generar_excel(consulta):
     for i, h in enumerate(r.get('hallazgos') or [], 2):
         valores = (h['piscina'], h['parametro'], h['gravedad'].capitalize(), h['descripcion'])
         for col, valor in enumerate(valores, 1):
-            hoja.cell(i, col, valor).alignment = envolver
+            poner(hoja, i, col, valor).alignment = envolver
         fondo, letra = gravedades.get(h['gravedad'], gravedades['media'])
-        hoja.cell(i, 3).fill = PatternFill('solid', fgColor=fondo)
-        hoja.cell(i, 3).font = Font(bold=True, color=letra)
+        poner(hoja, i, 3).fill = PatternFill('solid', fgColor=fondo)
+        poner(hoja, i, 3).font = Font(bold=True, color=letra)
     if not r.get('hallazgos'):
-        hoja.cell(2, 1, 'La IA no reportó hallazgos para esta pregunta.').font = tenue
+        poner(hoja, 2, 1, 'La IA no reportó hallazgos para esta pregunta.').font = tenue
     hoja.freeze_panes = 'A2'
     anchos(hoja, (24, 20, 12, 90))
 
@@ -571,7 +602,7 @@ def generar_excel(consulta):
         encabezado(hoja, 1, tabla['columnas'])
         for i, valores in enumerate(tabla['filas'], 2):
             for col, valor in enumerate(valores, 1):
-                hoja.cell(i, col, _numero_si_aplica(valor))
+                poner(hoja, i, col, _numero_si_aplica(valor))
         hoja.freeze_panes = 'A2'
         if tabla['filas']:
             hoja.auto_filter.ref = f'A1:{get_column_letter(len(tabla["columnas"]))}{len(tabla["filas"]) + 1}'
@@ -593,7 +624,7 @@ def generar_excel(consulta):
                        f'{minimo} – {maximo}' if minimo is not None else '',
                        s.get('estado_lectura'), s.get('momento'))
             for col, valor in enumerate(valores, 1):
-                hoja.cell(fila, col, valor)
+                poner(hoja, fila, col, valor)
             fila += 1
     hoja.freeze_panes = 'A3'
     anchos(hoja, (22, 12, 16, 18, 12, 12, 16, 12, 18))

@@ -26,7 +26,7 @@
   {# Asistente IA flotante: global para quien tenga acceso al módulo de IA #}
   {% if agente_ia %}
     <link rel="stylesheet" href="{% static 'css/sigmap_robot.css' %}?v=6">
-    <link rel="stylesheet" href="{% static 'css/ia_agente.css' %}?v=6">
+    <link rel="stylesheet" href="{% static 'css/ia_agente.css' %}?v=7">
   {% endif %}
 
   {% block extra_css %}{% endblock %}
@@ -34,12 +34,11 @@
   {# Capa responsive global: va después del CSS de cada módulo para ajustarlo en celular y tablet #}
   <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=1">
 
-  <!-- Chart.js disponible globalmente -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Adaptador de fechas: Chart.js no trae parser de tiempo propio y sin esto
-       cualquier grafica con eje temporal falla en silencio. -->
-  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <!-- Chart.js 4.4.0 + adaptador de fechas servidos desde el proyecto (no CDN):
+       si el CDN no carga, las graficas con eje de tiempo fallan y se congela
+       el tablero. El bundle del adaptador ya incluye date-fns. -->
+  <script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+  <script src="{% static 'vendor/chartjs/chartjs-adapter-date-fns.bundle.min.js' %}"></script>
 </head>
 <body>
 

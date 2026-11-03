@@ -564,3 +564,25 @@
 .ia-msg__chip-link { color: var(--ia-ocean); background: #fff; border: 1px solid var(--ia-line); }
 .ia-msg__chip-link:hover { border-color: var(--ia-cyan); }
 .ia-msg__download:focus-visible, .ia-msg__chip-link:focus-visible { outline: 3px solid var(--ia-cyan); outline-offset: 2px; }
+
+/* Botones de la respuesta (descargar, copiar) y preguntas sugeridas */
+button.ia-msg__download, button.ia-msg__chip-link { font-family: inherit; cursor: pointer; }
+button.ia-msg__download { border: 0; }
+button.ia-msg__download:disabled { opacity: .7; cursor: progress; }
+.ia-msg__dl-status:empty { display: none; }
+.ia-msg__suggest { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px; border-top: 1px dashed var(--ia-line); }
+.ia-msg__suggest .ia-msg__section { flex-basis: 100%; }
+.ia-suggest-chip {
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  color: var(--ia-deep);
+  cursor: pointer;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  border-radius: 999px;
+}
+.ia-suggest-chip:hover { background: #cffafe; border-color: var(--ia-cyan); }
+.ia-suggest-chip:focus-visible { outline: 3px solid var(--ia-cyan); outline-offset: 2px; }
+.ia-agent.is-busy .ia-suggest-chip { opacity: .55; pointer-events: none; }

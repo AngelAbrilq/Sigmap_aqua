@@ -29,9 +29,16 @@
  *   CAL TUR          sonda de turbidez en agua LIMPIA: fija el punto 0 NTU
  *   CAL PH 6.86      sonda de pH en buffer 6.86 (luego CAL PH 4.01)
  *   RESET CAL        vuelve a la calibracion de fabrica
+ *   PANTALLA         reinicia la pantalla TFT y redibuja el tablero
  *   La calibracion queda en la memoria NVS del ESP32 y sobrevive a reinicios.
  *
- * LIBRERIAS: ArduinoJson 7.x, OneWire, DallasTemperature.
+ * PANTALLA TFT 3.5" (pantalla_tft.h): animacion de encendido y tablero en
+ *   vivo con las mismas lecturas que se envian. Corre en el hilo principal:
+ *   pantallaEsperar() reemplaza a los delay(), asi la pantalla anima mientras
+ *   el nodo espera, sin retrasar el envio al software.
+ *
+ * LIBRERIAS: ArduinoJson 7.x, OneWire, DallasTemperature, TFT_eSPI (con el
+ *   User_Setup.h de firmware/pantalla_imagen copiado en la libreria).
  * PARTICION: elige en Arduino IDE una particion con SPIFFS/LittleFS
  *   (Tools -> Partition Scheme -> "Default 4MB with spiffs").
  *
@@ -49,12 +56,13 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include "pantalla_tft.h"
 
 // ---------------------------------------------------------------------------
 static const char* FIRMWARE_VERSION = "1.5.0-calibrado";  // max 20 caracteres (columna firmware_version)
 // Intervalo entre lotes. Arranca en 30 s y lo ajusta el SOFTWARE en cada
 // respuesta (campo data.intervalo_segundos, RF011): sin reprogramar el ESP32.
-static const uint32_t INTERVALO_INICIAL_S = 5;   // el software lo ajusta en la 1.a respuesta
+static const uint32_t INTERVALO_INICIAL_S = 7;   // el software lo ajusta en la 1.a respuesta
 static const uint32_t INTERVALO_MIN_S     = 2;   // modo pruebas
 static const uint32_t INTERVALO_MAX_S     = 3600;
 static uint32_t intervaloS = INTERVALO_INICIAL_S;
@@ -140,7 +148,7 @@ static Preferences prefs;                        // NVS "sigmap"
 
 static SensorCfg SENSORES[] = {
   //  codigo         tipo           gpio  divisor  activo
-  { "SEN-001-TEM", TEMP_DS18B20,    32,   1.0f,   false },  // TEMPORAL: cables prestados a la pantalla TFT; volver a true al reconectar
+  { "SEN-001-TEM", TEMP_DS18B20,    32,   1.0f,   true  },
   { "SEN-001-PH",  PH_LINEAL,       34,   1.5f,   true },
   { "SEN-001-OXI", OXIGENO_MGL,     33,   1.0f,   false },  // activar al cablear la sonda
   { "SEN-001-TUR", TURBIDEZ_NTU,    35,   2.0f,   true  },  // divisor 10k/10k
@@ -172,7 +180,7 @@ static bool conectarWiFi() {
       Serial.printf("\n[WIFI] Sin conexion (status=%d). Se trabajara offline.\n", WiFi.status());
       return false;
     }
-    delay(250); Serial.print('.');
+    pantallaEsperar(250); Serial.print('.');   // la pantalla sigue animando
   }
   Serial.printf("\n[WIFI] OK. IP=%s RSSI=%d dBm\n",
                 WiFi.localIP().toString().c_str(), WiFi.RSSI());
@@ -184,7 +192,7 @@ static void sincronizarHora() {
   const uint32_t inicio = millis();
   time_t ahora = 0;
   while ((ahora = time(nullptr)) < 1700000000 && millis() - inicio < 8000) {
-    delay(250);
+    pantallaEsperar(250);
   }
   horaLista = (ahora >= 1700000000);
   Serial.println(horaLista ? "[NTP] Hora sincronizada." :
@@ -281,8 +289,10 @@ static float turbidezNTU(float voltios) {
 static float leerSensor(const SensorCfg& s) {
   switch (s.tipo) {
     case TEMP_DS18B20: {
-      ds18.requestTemperatures();
+      // Sin bloqueo: lee la conversion pedida en el ciclo anterior y pide la
+      // siguiente. Antes se esperaban ~375 ms y la pantalla se congelaba.
       const float t = ds18.getTempCByIndex(0);
+      ds18.requestTemperatures();
       if (t == DEVICE_DISCONNECTED_C || t < -50.0f || t > 80.0f) return NAN;
       temperaturaActual = t;          // queda disponible para el oxigeno
       return t;
@@ -308,6 +318,41 @@ static void etiquetaSensor(TipoSensor tipo, const char*& nombre, const char*& un
   }
 }
 
+/** Valor tal como se envia al software: redondeado a 2 decimales. */
+static float valorEnviado(float valor) { return roundf(valor * 100.0f) / 100.0f; }
+
+/** Tarjeta de la pantalla que corresponde a cada tipo de sensor. */
+static bool canalPantalla(TipoSensor tipo, CanalPantalla& canal) {
+  switch (tipo) {
+    case TEMP_DS18B20: canal = PANT_TEMP; return true;
+    case PH_LINEAL:    canal = PANT_PH;   return true;
+    case TURBIDEZ_NTU: canal = PANT_TURB; return true;
+    default:           return false;     // el oxigeno aun no tiene tarjeta
+  }
+}
+
+/** Pasa a la pantalla el MISMO valor que viaja en el JSON (2 decimales). */
+static void mostrarEnPantalla(TipoSensor tipo, float valor) {
+  CanalPantalla canal;
+  if (canalPantalla(tipo, canal)) pantallaValor(canal, valorEnviado(valor));
+}
+
+static bool reenviandoCola = false;   // true mientras se reenvian lotes viejos
+
+/** Pasa a la pantalla el estado que el software le dio a cada lectura. */
+static void estadosDelServidor(JsonArray lecturas) {
+  if (reenviandoCola) return;          // un lote viejo no debe pisar el estado actual
+  for (JsonObject l : lecturas) {
+    const char* codigo = l["sensor"] | "";
+    for (size_t i = 0; i < N_SENSORES; i++) {
+      CanalPantalla canal;
+      if (strcmp(SENSORES[i].codigo_hardware, codigo) == 0 && canalPantalla(SENSORES[i].tipo, canal)) {
+        pantallaEstadoServidor(canal, l["estado_lectura"] | "");
+      }
+    }
+  }
+}
+
 /** Arma el cuerpo JSON del lote actual. Devuelve "" si no hubo lecturas. */
 static String construirCuerpo() {
   JsonDocument doc;
@@ -319,6 +364,7 @@ static String construirCuerpo() {
   // El DS18B20 va primero en la tabla a proposito: su temperatura alimenta la
   // compensacion del oxigeno disuelto que se calcula unas lineas mas abajo.
   uint8_t incluidas = 0;
+  pantallaInicioLote();
   Serial.println("\n------------------------------------------------------------");
   Serial.printf(" Lote %s\n", ts.length() ? ts.c_str() : "(sin hora NTP)");
   Serial.println(" SENSOR       |     VALOR      | mV pin | CODIGO");
@@ -336,14 +382,16 @@ static String construirCuerpo() {
       Serial.printf(" %-12s | %8.2f %-5s | %6u | %s%s\n", nombre, valor, unidad, ultimoMvPin,
                     s.codigo_hardware, ultimoMvPin >= ADC_SATURACION_MV ? "  [!] ADC SATURADO: revisa el divisor" : "");
     }
+    mostrarEnPantalla(s.tipo, valor);
     JsonObject l = arr.add<JsonObject>();
     l["codigo_hardware"] = s.codigo_hardware;
-    l["valor"] = roundf(valor * 100.0f) / 100.0f;
+    l["valor"] = valorEnviado(valor);
     l["secuencia"] = ++contadorSecuencia;
     if (ts.length()) l["timestamp"] = ts;   // clave para el dedup offline
     incluidas++;
   }
   Serial.println("------------------------------------------------------------");
+  pantallaPublicar();
   if (incluidas == 0) return String("");
   // Paquete JSON que viaja al software (se muestra para la sustentacion).
   Serial.println("[JSON] Paquete armado:");
@@ -380,6 +428,7 @@ static void aplicarRespuesta(int codigo, const String& cuerpo) {
   JsonObject data = resp["data"];
   Serial.printf("[SIGMAP-AQUA] %s registradas=%d criticas=%d alertas=%d\n", mensaje,
                 data["registradas"] | 0, data["criticas"] | 0, data["alertas_generadas"] | 0);
+  estadosDelServidor(data["lecturas"]);   // la pantalla usa el mismo estado que el software
   JsonArray rechazadas = data["rechazadas"];
   if (!rechazadas.isNull() && rechazadas.size() > 0) {
     Serial.print("[HTTP] Lecturas rechazadas: ");
@@ -426,6 +475,7 @@ static void vaciarCola() {
   if (!LittleFS.exists(COLA_PATH) || WiFi.status() != WL_CONNECTED) return;
   File f = LittleFS.open(COLA_PATH, "r");
   if (!f) return;
+  reenviandoCola = true;
   String pendientes = "";
   int enviados = 0, fallidos = 0;
   while (f.available()) {
@@ -438,6 +488,7 @@ static void vaciarCola() {
   // arrastra lo no leido aun si cortamos
   while (f.available()) { String l = f.readStringUntil('\n'); l.trim(); if (l.length()) pendientes += l + "\n"; }
   f.close();
+  reenviandoCola = false;
   if (pendientes.length() == 0) LittleFS.remove(COLA_PATH);
   else { File w = LittleFS.open(COLA_PATH, "w"); if (w) { w.print(pendientes); w.close(); } }
   if (enviados) Serial.printf("[COLA] Reenviados %d lote(s).\n", enviados);
@@ -461,19 +512,28 @@ static float voltajeEstable(const SensorCfg& s) {
   return suma / 10.0f;
 }
 
+static bool calTurbGuardada = false;   // true si turb_v0 esta en la NVS
+static bool calPhGuardada   = false;   // true si ph_m y ph_b estan en la NVS
+
 /** Carga la calibracion guardada; si no hay, deja los valores de fabrica. */
 static void cargarCalibracion() {
-  prefs.begin("sigmap", true);
-  turbVLimpia = prefs.getFloat("turb_v0", TURB_V_CURVA_LIMPIA);
-  phM = prefs.getFloat("ph_m", PH_M_FABRICA);
-  phB = prefs.getFloat("ph_b", PH_B_FABRICA);
-  prefs.end();
+  if (prefs.begin("sigmap", true)) {       // falla si nunca se ha calibrado nada
+    calTurbGuardada = prefs.isKey("turb_v0");
+    calPhGuardada   = prefs.isKey("ph_m") && prefs.isKey("ph_b");
+    turbVLimpia = prefs.getFloat("turb_v0", TURB_V_CURVA_LIMPIA);
+    phM = prefs.getFloat("ph_m", PH_M_FABRICA);
+    phB = prefs.getFloat("ph_b", PH_B_FABRICA);
+    prefs.end();
+  }
+  pantallaCalibracion(calPhGuardada, calTurbGuardada);
 }
 
 static void mostrarCalibracion() {
   Serial.println("\n[CAL] ---- Calibracion vigente ----");
-  Serial.printf("[CAL] Turbidez: agua limpia = %.3f V (0 NTU)\n", turbVLimpia);
-  Serial.printf("[CAL] pH: pH = %.4f * V + %.4f\n", phM, phB);
+  Serial.printf("[CAL] Turbidez: agua limpia = %.3f V (0 NTU)  [%s]\n", turbVLimpia,
+                calTurbGuardada ? "GUARDADA" : "DE FABRICA: falta CAL TUR");
+  Serial.printf("[CAL] pH: pH = %.4f * V + %.4f  [%s]\n", phM, phB,
+                calPhGuardada ? "GUARDADA" : "DE FABRICA: falta CAL PH 6.86 y CAL PH 4.01");
   for (size_t i = 0; i < N_SENSORES; i++) {
     const SensorCfg& s = SENSORES[i];
     if (!s.activo || s.tipo == TEMP_DS18B20) continue;
@@ -495,6 +555,8 @@ static void calibrarTurbidez() {
   if (v < 1.0f) { Serial.println("[CAL] ERROR: voltaje muy bajo; la sonda esta en el agua y alimentada a 5 V?"); return; }
   turbVLimpia = v;
   prefs.begin("sigmap", false); prefs.putFloat("turb_v0", v); prefs.end();
+  calTurbGuardada = true;
+  pantallaCalibracion(calPhGuardada, calTurbGuardada);
   Serial.printf("[CAL] OK turbidez: agua limpia = %.3f V queda como 0 NTU.\n", v);
 }
 
@@ -515,6 +577,8 @@ static void calibrarPh(float referencia) {
     phB = referencia - phM * v;
     prefs.putFloat("ph_m", phM);
     prefs.putFloat("ph_b", phB);
+    calPhGuardada = true;
+    pantallaCalibracion(calPhGuardada, calTurbGuardada);
     Serial.printf("[CAL] OK pH: pH = %.4f * V + %.4f (puntos %.2f y %.2f)\n", phM, phB, refAnterior, referencia);
   } else {
     Serial.println("[CAL] Lava la sonda, ponla en el otro buffer y repite con su valor.");
@@ -525,6 +589,8 @@ static void calibrarPh(float referencia) {
 static void resetCalibracion() {
   prefs.begin("sigmap", false); prefs.clear(); prefs.end();
   turbVLimpia = TURB_V_CURVA_LIMPIA; phM = PH_M_FABRICA; phB = PH_B_FABRICA;
+  calTurbGuardada = calPhGuardada = false;
+  pantallaCalibracion(false, false);
   Serial.println("[CAL] Calibracion de fabrica restaurada.");
 }
 
@@ -540,7 +606,8 @@ static void atenderSerie() {
     else if (linea == "CAL TUR") calibrarTurbidez();
     else if (linea.startsWith("CAL PH")) calibrarPh(linea.substring(6).toFloat());
     else if (linea == "RESET CAL") resetCalibracion();
-    else Serial.println("[CAL] Comandos: VER | CAL TUR | CAL PH 6.86 | CAL PH 4.01 | RESET CAL");
+    else if (linea == "PANTALLA") pantallaReiniciar();
+    else Serial.println("[CAL] Comandos: VER | CAL TUR | CAL PH 6.86 | CAL PH 4.01 | RESET CAL | PANTALLA");
     linea = "";
   }
 }
@@ -551,19 +618,27 @@ void setup() {
   pinMode(PIN_LED_ESTADO, OUTPUT);
   ds18.begin();
   ds18.setResolution(11);            // 0,125 C; ~375 ms (cabe en ciclos de 2 s)
+  ds18.setWaitForConversion(false);  // conversion en segundo plano (ver leerSensor)
+  ds18.requestTemperatures();        // primera conversion, lista para el primer lote
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
   if (!LittleFS.begin(true)) Serial.println("[FS] LittleFS no monto; el modo offline no guardara.");
   cargarCalibracion();
-  // ds18.begin();
+  // La pantalla arranca DESPUES de configurar los demas pines y ANTES del
+  // WiFi, en el hilo principal: el mismo orden que pantalla_imagen.ino.
+  pantallaIniciar();
   Serial.printf("\n=== SIGMAP-AQUA nodo v%s | intervalo %lu s | modo offline ===\n", FIRMWARE_VERSION, (unsigned long)intervaloS);
   mostrarCalibracion();
   Serial.println("[CAL] Escribe AYUDA en el monitor serie para calibrar.");
-  if (conectarWiFi()) sincronizarHora();
+  const bool wifiOk = conectarWiFi();
+  pantallaWifi(wifiOk);
+  if (wifiOk) sincronizarHora();
+  pantallaTerminarArranque(wifiOk);  // fin de la animacion y tablero en vivo
 }
 
 void loop() {
   atenderSerie();
+  pantallaDiagnostico();
   static uint32_t ultimo = 0;
   const uint32_t ahora = millis();
   if (ultimo == 0 || (ahora - ultimo) >= intervaloS * 1000UL) {
@@ -574,14 +649,20 @@ void loop() {
     String cuerpo = construirCuerpo();
     if (cuerpo.length() == 0) {
       Serial.println("[CICLO] Sin lecturas este ciclo.");
-    } else if (conectarWiFi() && enviarCuerpo(cuerpo)) {
-      vaciarCola();                 // en linea: manda lo de ahora y vacia lo pendiente
     } else {
-      guardarEnCola(cuerpo);        // offline: a la cola
+      const bool wifiOk = conectarWiFi();
+      pantallaWifi(wifiOk);
+      if (wifiOk && enviarCuerpo(cuerpo)) {
+        vaciarCola();               // en linea: manda lo de ahora y vacia lo pendiente
+        pantallaEnvio(PANT_ENVIADO);
+      } else {
+        guardarEnCola(cuerpo);      // offline: a la cola
+        pantallaEnvio(wifiOk ? PANT_SIN_SERVIDOR : PANT_SIN_WIFI);
+      }
     }
 
     digitalWrite(PIN_LED_ESTADO, LOW);
     ultimo = ahora;
   }
-  delay(20);;
+  pantallaEsperar(20);               // en vez de delay(): la pantalla anima mientras tanto
 }

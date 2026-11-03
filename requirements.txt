@@ -2,8 +2,10 @@ asgiref==3.12.1
 django-cors-headers==4.9.0
 Django==5.2.16
 djangorestframework==3.17.1
+djangorestframework_simplejwt==5.5.1
 openpyxl==3.1.5
 pillow==12.3.0
+PyJWT==2.13.0
 PyMySQL==1.2.0
 python-decouple==3.8
 reportlab==5.0.1

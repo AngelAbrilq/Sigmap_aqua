@@ -76,7 +76,7 @@
                 <span class="sg-camara-punto" aria-hidden="true"></span>
                 CAM-01 · {{ seleccionada.codigo_identificacion }}
               </span>
-              <span class="sg-camara-etiqueta sg-camara-etiqueta--aviso">Video grabado</span>
+              <span class="sg-camara-etiqueta sg-camara-etiqueta--aviso">Video: grabando</span>
             </div>
             <div class="sg-camara-fila">
               <span class="sg-camara-texto">Prototipo · no es transmisión en vivo</span>
@@ -322,7 +322,12 @@
 
           const vivo = document.querySelector(`[data-vivo-valor="${sensor.codigo}"]`);
           if (vivo) vivo.textContent = `${texto} · ${hace(sensor.momento)}`;
-          pintarGrafico(sensor);
+          // Un grafico que falla no debe congelar las demas tarjetas.
+          try {
+            pintarGrafico(sensor);
+          } catch (error) {
+            console.warn(`[SIGMAP] Grafico de ${sensor.codigo} no se pudo pintar:`, error.message);
+          }
         });
 
         if (semaforo) {

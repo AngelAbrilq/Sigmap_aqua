@@ -3,10 +3,10 @@ Deja la BD lista para recibir el nodo ESP32 real (SEN-001-*).
 
 - Rangos de medicion = limites fisicos del documento de requerimientos (RF007).
 - Oxigeno disuelto inactivo mientras la sonda no este cableada.
-- Intervalo de lectura 30 s (lo recibe el ESP32 en cada respuesta, RF011).
+- Intervalo de lectura 5 s (lo recibe el ESP32 en cada respuesta, RF011).
 - Reporta el dispositivo de esa geomembrana (sin mostrar el token).
 
-Uso: python firmware/tools/preparar_sustentacion.py [--intervalo 30]
+Uso: python firmware/tools/preparar_sustentacion.py [--intervalo 5]
 """
 import argparse
 import os
@@ -35,7 +35,7 @@ SENSORES_SIN_CABLEAR = {'SEN-001-OXI'}
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--intervalo', type=int, default=30)
+    parser.add_argument('--intervalo', type=int, default=5)
     parser.add_argument('--dispositivo', default='ESP32-P1',
                         help='Nodo que se vincula a la piscina de los sensores SEN-001-*')
     args = parser.parse_args()

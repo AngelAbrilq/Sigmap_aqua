@@ -100,8 +100,15 @@ def excel_view(request, pk):
     if consulta.usuario_id != request.user.pk and obtener_nombre_rol(request.user) != ROL_INSTRUCTOR:
         return _json(False, message='Consulta no encontrada.', status=404)
 
+    try:
+        contenido = generar_excel(consulta)
+    except Exception:  # noqa: BLE001 - se informa en JSON y queda el detalle en el log
+        logger.exception('Asistente IA: no se pudo generar el Excel de la consulta %s', consulta.pk)
+        return _json(False, message='No se pudo generar el Excel. El detalle quedó en logs/ia.log.',
+                     status=500)
+
     respuesta = HttpResponse(
-        generar_excel(consulta),
+        contenido,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
     marca = timezone.localtime(consulta.fecha_creacion).strftime('%Y%m%d_%H%M')
