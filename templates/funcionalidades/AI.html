@@ -249,7 +249,7 @@
                       <div class="ia-anomalia__cabeza">
                         <span class="ia-param-icono" aria-hidden="true">
                           {% with nombre=anomalia.parametro|lower %}
-                            {% if 'ph' in nombre %}pH{% elif 'temp' in nombre %}°C{% elif 'turb' in nombre %}NTU{% elif 'ox' in nombre %}O₂{% else %}{{ anomalia.parametro|slice:":2" }}{% endif %}
+                            {% if 'ph' in nombre %}pH{% elif 'temp' in nombre %}°C{% elif 'turb' in nombre %}NTU{% else %}{{ anomalia.parametro|slice:":2" }}{% endif %}
                           {% endwith %}
                         </span>
                         <strong>{{ anomalia.parametro }}</strong>

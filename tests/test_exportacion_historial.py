@@ -16,7 +16,7 @@ class ExportacionTest(BaseSigmap):
     def setUp(self):
         for valor in (7.1, 7.4, 9.5):          # 9.5 queda critico
             self.enviar_lectura('SEN-PH', valor)
-        self.enviar_lectura('SEN-OX', 6.2)
+        self.enviar_lectura('SEN-TEMP', 27.5)
         self.client.force_login(self.instructor)
 
     def _excel(self, consulta=''):
@@ -48,7 +48,7 @@ class ExportacionTest(BaseSigmap):
         _, libro = self._excel()
         textos = [c.value for fila in libro['Resumen'].iter_rows() for c in fila]
         self.assertIn('pH', textos)
-        self.assertIn('Oxígeno disuelto', textos)
+        self.assertIn('Temperatura', textos)
 
     def test_pdf_se_genera(self):
         respuesta = self.client.get('/historial/pdf/')

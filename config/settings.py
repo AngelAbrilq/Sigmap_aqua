@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from datetime import timedelta
 from pathlib import Path
 from decouple import Config, RepositoryEnv, UndefinedValueError, config
 from django.core.exceptions import ImproperlyConfigured
@@ -102,9 +101,6 @@ INSTALLED_APPS = [
 
     # Terceros
     'rest_framework',
-    # Lista negra de refresh tokens: sin esto, "cerrar sesion" en la app movil
-    # solo borraria el token del telefono y quien lo hubiera copiado seguiria entrando.
-    'rest_framework_simplejwt.token_blacklist',
 
     # Apps
     'apps.core',
@@ -115,8 +111,6 @@ INSTALLED_APPS = [
     'apps.reportes',
     'apps.ia',
     'apps.auditoria',
-    'apps.api_movil',
-    'apps.demo',
 ]
 
 MIDDLEWARE = [
@@ -148,7 +142,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'apps.core.context_processors.usuario_context',
                 'apps.ia.context_processors.agente_ia',
-                'apps.demo.context_processors.demo_qr',
             ],
         },
     },
@@ -231,8 +224,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # por token de Dispositivo. Los defaults de abajo aplican al resto de la API.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # App movil: Authorization: Bearer <access>
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -246,36 +237,8 @@ REST_FRAMEWORK = {
     # Todos los errores salen como {success, data, message}, igual que los
     # exitos: el firmware lee una sola forma de respuesta.
     'EXCEPTION_HANDLER': 'apps.monitoreo.excepciones.manejador_errores',
-
-    # Listados paginados por defecto. La tabla de lecturas crece sin limite:
-    # un GET sin paginar la traeria entera al celular.
-    'DEFAULT_PAGINATION_CLASS': 'apps.api_movil.paginacion.PaginacionMovil',
-    'PAGE_SIZE': 20,
-
-    # El login es el unico endpoint publico: sin limite seria un oraculo de
-    # fuerza bruta contra las contrasenas del equipo.
-    'DEFAULT_THROTTLE_RATES': {'login': '8/min'},
 }
 
-
-# --- JSON Web Tokens para la app movil ------------------------------------
-# Los nodos ESP32 siguen con su token de dispositivo permanente: no hacen
-# login ni pueden refrescar nada. Las personas si.
-SIMPLE_JWT = {
-    # Corto a proposito: si un access token se filtra, caduca en 15 minutos.
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-
-    # Cada refresco emite un token nuevo e invalida el anterior, para que uno
-    # robado sirva una sola vez.
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-
-    'UPDATE_LAST_LOGIN': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-}
 
 # ---------------------------------------------------------------------------
 # Recuperacion de contrasena (RF025 / HU 025)
@@ -372,22 +335,6 @@ DEEPSEEK_BASE_URL = config('DEEPSEEK_BASE_URL', default='https://api.deepseek.co
 # Respaldo. Clave gratis en https://aistudio.google.com/apikey
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.5-flash-lite')
-
-# Oxigeno disuelto ficticio en el tablero en vivo mientras se instala el sensor
-# real. No se guarda en la BD ni genera alertas (apps/monitoreo/simulacion.py).
-MONITOREO_OXIGENO_SIMULADO = config('MONITOREO_OXIGENO_SIMULADO', default=True, cast=bool)
-
-# --- Acceso de demostración por QR (sustentación) --------------------------
-# Un QR por rol inicia sesión sin escribir contraseña. El QR lleva un token
-# firmado con la SECRET_KEY (no la contraseña) que vence en DEMO_QR_HORAS.
-# Para invalidar todos los QR impresos de inmediato: sube DEMO_QR_VERSION.
-# Mantenlo en False fuera de las presentaciones.
-DEMO_QR_ACTIVO = config('DEMO_QR_ACTIVO', default=False, cast=bool)
-DEMO_QR_HORAS = config('DEMO_QR_HORAS', default=24, cast=int)
-DEMO_QR_VERSION = config('DEMO_QR_VERSION', default=1, cast=int)
-DEMO_QR_SESION_MINUTOS = config('DEMO_QR_SESION_MINUTOS', default=120, cast=int)
-# URL pública (ej. la del túnel). Vacía = se toma de la petición.
-DEMO_QR_URL_BASE = config('DEMO_QR_URL_BASE', default='')
 
 # --- Seguridad en produccion (RNF003) -------------------------------------
 # Se activa sola cuando DEBUG=False. La capa HTTPS va detras de un flag aparte

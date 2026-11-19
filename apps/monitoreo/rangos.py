@@ -19,7 +19,6 @@ from decimal import Decimal
 CAMPOS_ETAPA = {
     'ph': ('rango_ph_min', 'rango_ph_max'),
     'temperatura': ('rango_temperatura_min', 'rango_temperatura_max'),
-    'oxigeno': ('rango_oxigeno_min', 'rango_oxigeno_max'),
     'turbidez': ('rango_turbidez_min', 'rango_turbidez_max'),
 }
 
@@ -38,14 +37,12 @@ def _clave_parametro(nombre):
     """
     Normaliza el nombre del parametro a una clave de CAMPOS_ETAPA.
 
-    :param nombre: TipoParametro.nombre_parametro (ej. 'Oxígeno disuelto')
-    :return: 'ph' | 'temperatura' | 'oxigeno' | 'turbidez' | None
+    :param nombre: TipoParametro.nombre_parametro (ej. 'Turbidez')
+    :return: 'ph' | 'temperatura' | 'turbidez' | None
     """
     texto = unicodedata.normalize('NFKD', nombre or '').encode('ascii', 'ignore').decode().lower().strip()
     if 'turb' in texto:
         return 'turbidez'
-    if 'oxi' in texto:
-        return 'oxigeno'
     if 'temp' in texto:
         return 'temperatura'
     if texto == 'ph' or texto.startswith('ph '):
@@ -58,7 +55,7 @@ def _envolvente_riesgo(tipo):
     Rango de riesgo global tratado como envolvente del normal.
 
     Tolera datos viejos donde el riesgo se cargo como una franja de un solo
-    lado (ej. oxigeno 2.5-4.0): se une con el normal para que nunca quede un
+    lado (ej. turbidez 50-100): se une con el normal para que nunca quede un
     valor que salte de normal a critico.
     """
     candidatos_min = [v for v in (tipo.rango_riesgo_min, tipo.rango_normal_min) if v is not None]
@@ -87,7 +84,7 @@ def rangos_efectivos(tipo, etapa=None):
             margen_alto = (env_max - tipo.rango_normal_max
                            if None not in (tipo.rango_normal_max, env_max) else Decimal('0'))
             riesgo_min = etapa_min - margen_bajo
-            if clave in ('turbidez', 'oxigeno') and riesgo_min < 0:
+            if clave == 'turbidez' and riesgo_min < 0:
                 riesgo_min = Decimal('0')
             return Rangos(etapa_min, etapa_max, riesgo_min, etapa_max + margen_alto,
                           etapa.nombre_etapa)

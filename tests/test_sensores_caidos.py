@@ -18,7 +18,7 @@ from .base import BaseSigmap
 
 
 class SensoresCaidosTest(BaseSigmap):
-    """La base crea 2 sensores activos (pH y O2) sin lecturas."""
+    """La base crea 2 sensores activos (pH y temperatura) sin lecturas."""
 
     def _lectura(self, sensor, tipo, valor, cuando=None):
         return Lectura.objects.create(
@@ -43,13 +43,13 @@ class SensoresCaidosTest(BaseSigmap):
     def test_lectura_reciente_no_dispara_alerta(self):
         self._lectura(self.sensor_ph, self.ph, 7.0)
         resultado = evaluar_sensores_caidos()
-        # Solo el de oxigeno (sin lecturas) queda caido.
+        # Solo el de temperatura (sin lecturas) queda caido.
         self.assertEqual(resultado['abiertas'], 1)
         self.assertFalse(
             Alerta.objects.filter(tipo_alerta='sensor', sensor=self.sensor_ph,
                                   estado='activa').exists())
         self.assertTrue(
-            Alerta.objects.filter(tipo_alerta='sensor', sensor=self.sensor_ox,
+            Alerta.objects.filter(tipo_alerta='sensor', sensor=self.sensor_temp,
                                   estado='activa').exists())
 
     def test_autocierre_cuando_vuelve_a_transmitir(self):

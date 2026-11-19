@@ -17,7 +17,7 @@ def tipo(nombre, n, r):
 class RangosEfectivosTests(SimpleTestCase):
     def setUp(self):
         self.temperatura = tipo('Temperatura', ('24', '30'), ('20', '32'))
-        self.oxigeno_legado = tipo('Oxigeno Disuelto', ('4', '8'), ('2.5', '4'))   # riesgo de un solo lado
+        self.amoniaco_legado = tipo('Amoniaco', ('0', '0.5'), ('0.5', '1'))   # riesgo de un solo lado
         self.turbidez = tipo('Turbidez', ('0', '50'), ('0', '100'))
         self.alevin = EtapaProduccion(nombre_etapa='Alevin', rango_temperatura_min=D('25'),
                                       rango_temperatura_max=D('30'), rango_turbidez_min=D('0'),
@@ -49,11 +49,11 @@ class RangosEfectivosTests(SimpleTestCase):
         self.assertEqual(clasificar_valor(D('200'), rangos), 'critico')
 
     def test_riesgo_legado_de_un_solo_lado_no_salta_a_critico(self):
-        # Dato legado: riesgo cargado solo por debajo del normal (2.5-4.0)
-        rangos = rangos_efectivos(self.oxigeno_legado)
-        self.assertEqual(clasificar_valor(D('3'), rangos), 'riesgo')
-        self.assertEqual(clasificar_valor(D('1'), rangos), 'critico')
+        # Dato legado: riesgo cargado solo por encima del normal (0.5-1.0)
+        rangos = rangos_efectivos(self.amoniaco_legado)
+        self.assertEqual(clasificar_valor(D('0.7'), rangos), 'riesgo')
+        self.assertEqual(clasificar_valor(D('2'), rangos), 'critico')
 
     def test_etapa_sin_rango_del_parametro_cae_al_general(self):
-        rangos = rangos_efectivos(self.oxigeno_legado, self.alevin)
+        rangos = rangos_efectivos(self.amoniaco_legado, self.alevin)
         self.assertEqual(rangos.fuente, 'general')

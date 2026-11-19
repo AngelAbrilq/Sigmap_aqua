@@ -48,11 +48,11 @@ class BaseSigmap(TestCase):
             rango_normal_min=Decimal('6.5'), rango_normal_max=Decimal('8.5'),
             rango_riesgo_min=Decimal('6.0'), rango_riesgo_max=Decimal('9.0'),
             rango_critico_min=Decimal('0'), rango_critico_max=Decimal('14'))
-        cls.oxigeno = TipoParametro.objects.create(
-            nombre_parametro='Oxígeno disuelto', unidad_medida='mg/L',
-            rango_normal_min=Decimal('5.0'), rango_normal_max=Decimal('9.0'),
-            rango_riesgo_min=Decimal('4.0'), rango_riesgo_max=Decimal('11.0'),
-            rango_critico_min=Decimal('0'), rango_critico_max=Decimal('20'))
+        cls.temperatura = TipoParametro.objects.create(
+            nombre_parametro='Temperatura', unidad_medida='°C',
+            rango_normal_min=Decimal('24.0'), rango_normal_max=Decimal('30.0'),
+            rango_riesgo_min=Decimal('20.0'), rango_riesgo_max=Decimal('32.0'),
+            rango_critico_min=Decimal('0'), rango_critico_max=Decimal('50'))
 
         # --- Piscina operativa ---
         cls.piscina = Geomembrana.objects.create(
@@ -69,10 +69,10 @@ class BaseSigmap(TestCase):
             geomembrana=cls.piscina, tipo_parametro=cls.ph,
             rango_medicion_min=Decimal('0'), rango_medicion_max=Decimal('14'),
             intervalo_lectura_segundos=300, estado='activo')
-        cls.sensor_ox = Sensor.objects.create(
-            nombre_sensor='Sonda O2', codigo_hardware='SEN-OX',
-            geomembrana=cls.piscina, tipo_parametro=cls.oxigeno,
-            rango_medicion_min=Decimal('0'), rango_medicion_max=Decimal('20'),
+        cls.sensor_temp = Sensor.objects.create(
+            nombre_sensor='Sonda temperatura', codigo_hardware='SEN-TEMP',
+            geomembrana=cls.piscina, tipo_parametro=cls.temperatura,
+            rango_medicion_min=Decimal('0'), rango_medicion_max=Decimal('50'),
             intervalo_lectura_segundos=300, estado='activo')
 
         cls.dispositivo = Dispositivo.objects.create(

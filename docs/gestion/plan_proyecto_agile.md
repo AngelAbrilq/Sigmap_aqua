@@ -4,15 +4,15 @@
 |---|---|---|---|
 | **NOMBRE DEL PROYECTO** | SIGMAP-AQUA (BioAqua System) | **FECHA DE INICIO** | 28/07/2026 |
 | **ADMINISTRADOR DEL PROYECTO** | Angel Nicolas Abril Quimbaya | **FECHA DE FINALIZACIÓN** | 19/12/2026 |
-| **PROGRESO GENERAL** | **53 %** (100 de 187 puntos de historia completados · corte 15/10/2026) | | |
+| **PROGRESO GENERAL** | **53 %** (92 de 174 puntos de historia completados · corte 15/10/2026) | | |
 
 **RESULTADO DEL PROYECTO**
 
-Sistema automatizado de monitoreo de la calidad del agua (pH, oxígeno disuelto, temperatura y turbidez) en geomembranas piscícolas: nodos ESP32 envían lecturas a una plataforma web Django + MySQL que clasifica el estado del agua, genera alertas, guarda el historial, produce gráficas y reportes, y apoya la toma de decisiones con IA; incluye app móvil Flutter.
+Sistema automatizado de monitoreo de la calidad del agua (pH, temperatura y turbidez) en geomembranas piscícolas: nodos ESP32 envían lecturas a una plataforma web Django + MySQL que clasifica el estado del agua, genera alertas, guarda el historial, produce gráficas y reportes, y apoya la toma de decisiones con IA.
 
 **DECLARACIÓN SOBRE EL ALCANCE**
 
-Incluye: captura y envío de datos desde el ESP32 con respaldo sin conexión; recepción, validación y almacenamiento de mediciones; gestión de geomembranas, dispositivos, sensores, calibraciones, rangos y usuarios con control por roles (Administrador, Operario piscícola, Aprendiz); evaluación del estado del agua, alertas y aptitud para producción; panel en tiempo real, historial, gráficas, comparación de periodos, eventos y reportes PDF/Excel; análisis con IA y app móvil. Excluye: control automático de equipos (aireadores, bombas) — las recomendaciones de la IA son solo informativas.
+Incluye: captura y envío de datos desde el ESP32 con respaldo sin conexión; recepción, validación y almacenamiento de mediciones; gestión de geomembranas, dispositivos, sensores, calibraciones, rangos y usuarios con control por roles (Administrador, Operario piscícola, Aprendiz); evaluación del estado del agua, alertas y aptitud para producción; panel en tiempo real, historial, gráficas, comparación de periodos, eventos y reportes PDF/Excel; análisis con IA. Excluye: control automático de equipos (aireadores, bombas) — las recomendaciones de la IA son solo informativas.
 
 ---
 
@@ -59,9 +59,7 @@ Incluye: captura y envío de datos desde el ESP32 con respaldo sin conexión; re
 | No | Refresco configurable del panel | Frontend web | Jhonny Yunda | 1 | 20/10/2026 | 26/10/2026 | 7 | Sin iniciar | Hoy fijo en 15 s |
 | No | Tareas programadas: sensores caídos y predicciones | Infra / Seguridad | Juan José Gracia | 2 | 20/10/2026 | 26/10/2026 | 7 | Sin iniciar | cron / Programador de tareas |
 | No | HU 025 · Recuperación de contraseña | Infra / Seguridad | Angel Abril | 3 | 20/10/2026 | 26/10/2026 | 7 | Sin iniciar | Requiere SMTP en .env |
-| **Sí** | **SPRINT 6 · Aplicación móvil y reportes (M6)** | | **Jhonny Yunda** | **31** | **27/10/2026** | **16/11/2026** | **21** | **En curso** | **1/5 tareas completadas** |
-| No | App Flutter: login JWT, monitoreo, historial, alertas y predicciones | App móvil | Jhonny Yunda | 8 | 27/10/2026 | 05/11/2026 | 10 | Completado | Adelantada; consume /api/v1/movil/ |
-| No | Notificaciones push y APK release | App móvil | Jhonny Yunda | 5 | 03/11/2026 | 16/11/2026 | 14 | Sin iniciar | Pruebas en dispositivo real |
+| **Sí** | **SPRINT 6 · Reportes y notificaciones (M6)** | | **Jhonny Yunda** | **18** | **27/10/2026** | **16/11/2026** | **21** | **En curso** | **0/3 tareas completadas** |
 | No | HU 021 · Reportes en PDF y Excel | Backend | Juan José Gracia | 5 | 27/10/2026 | 09/11/2026 | 14 | En curso | Hoy solo CSV |
 | No | Notificaciones externas para alertas críticas | Backend | Juan José Gracia | 5 | 03/11/2026 | 16/11/2026 | 14 | Sin iniciar | Push, correo o WhatsApp |
 | Sí | HU 006 · Gestión de calibraciones de sensores | Backend | Yesman Ortega | 8 | 27/10/2026 | 09/11/2026 | 14 | Sin iniciar | Requisito nuevo de la v8; no existe el módulo |
@@ -83,14 +81,14 @@ Incluye: captura y envío de datos desde el ESP32 con respaldo sin conexión; re
 
 | ESTADO | TAREAS | PUNTOS |
 |---|---|---|
-| Sin iniciar | 14 | 50 |
+| Sin iniciar | 13 | 45 |
 | En curso | 7 | 32 |
-| Completado | 26 | 100 |
+| Completado | 25 | 92 |
 | Necesita revisión | 0 | 0 |
 | Aprobado | 0 | 0 |
 | Atrasado | 1 | 5 |
 | En espera | 0 | 0 |
-| **Total** | **48** | **187** |
+| **Total** | **46** | **174** |
 
 
 ## Resumen de pendientes (corte 15/10/2026)
@@ -103,11 +101,11 @@ Solo sprints con tareas en curso, sin iniciar o atrasadas. El detalle de cada ta
 | **Sí** | **SPRINT 2 · Gestión de geomembranas, sensores y rangos (M2)** | | **Juan José Gracia** | **5** | **01/09/2026** | **02/11/2026** | **63** | **En curso** | **1 pendiente(s)** |
 | **No** | **SPRINT 3 · Ingesta de lecturas, firmware y simulador (M3)** | | **Angel Abril** | **13** | **06/09/2026** | **02/11/2026** | **58** | **En curso** | **3 pendiente(s)** |
 | **No** | **SPRINT 5 · Dashboard web (M5)** | | **Jhonny Yunda** | **12** | **06/10/2026** | **31/10/2026** | **26** | **En curso** | **5 pendiente(s)** |
-| **Sí** | **SPRINT 6 · Aplicación móvil y reportes (M6)** | | **Jhonny Yunda** | **23** | **27/10/2026** | **16/11/2026** | **21** | **En curso** | **4 pendiente(s)** |
+| **Sí** | **SPRINT 6 · Reportes y notificaciones (M6)** | | **Jhonny Yunda** | **18** | **27/10/2026** | **16/11/2026** | **21** | **En curso** | **3 pendiente(s)** |
 | **Sí** | **SPRINT 7 · Integración, despliegue y pruebas (M7)** | | **Angel Abril** | **16** | **17/11/2026** | **30/11/2026** | **14** | **Sin iniciar** | **4 pendiente(s)** |
 | **No** | **SPRINT 8 · Documentación y sustentación (M8)** | | **Equipo** | **10** | **01/12/2026** | **19/12/2026** | **19** | **Sin iniciar** | **4 pendiente(s)** |
 
-**Total pendiente: 22 tareas · 87 puntos de historia.**
+**Total pendiente: 21 tareas · 82 puntos de historia.**
 
 ## Referencias desplegables
 

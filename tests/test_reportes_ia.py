@@ -23,7 +23,7 @@ class AgregacionesTest(BaseSigmap):
         for valor in (7.0, 7.1, 7.2, 6.9, 7.3):
             self.enviar_lectura('SEN-PH', valor)
         self.enviar_lectura('SEN-PH', 9.5)
-        self.enviar_lectura('SEN-OX', 2.0)
+        self.enviar_lectura('SEN-TEMP', 15.0)
         self.hoy = timezone.localdate()
 
     def test_el_resumen_cuenta_todas_las_lecturas(self):
@@ -143,8 +143,8 @@ class MonitoreoTiempoRealTest(BaseSigmap):
         """Caso limite: no se inventa un cero que parezca una medicion real."""
         respuesta = self.client.get(f'/monitoreo/api/{self.piscina.pk}/estado/')
         sensores = {s['codigo']: s for s in respuesta.json()['data']['sensores']}
-        self.assertIsNone(sensores['SEN-OX']['valor'])
-        self.assertEqual(sensores['SEN-OX']['estado'], 'sin_datos')
+        self.assertIsNone(sensores['SEN-TEMP']['valor'])
+        self.assertEqual(sensores['SEN-TEMP']['estado'], 'sin_datos')
 
 
 @override_settings(DEEPSEEK_API_KEY='clave-de-prueba', GEMINI_API_KEY='')

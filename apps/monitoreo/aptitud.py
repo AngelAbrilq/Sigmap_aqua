@@ -18,15 +18,8 @@ RECOMENDACIONES = {
         'bajo': 'pH bajo: encala con cal agricola de forma gradual y verifica la '
                 'dureza y alcalinidad del agua.',
     },
-    'oxigeno': {
-        'bajo': 'Oxigeno bajo: enciende los aireadores, reduce alimentacion y '
-                'densidad, y retira materia organica acumulada.',
-        'alto': 'Oxigeno sobresaturado: reduce la aireacion en horas de sol para '
-                'evitar embolias gaseosas en los peces.',
-    },
     'temperatura': {
-        'alto': 'Temperatura alta: aumenta recambio o sombra y airea de noche; el '
-                'oxigeno disuelto cae cuando sube la temperatura.',
+        'alto': 'Temperatura alta: aumenta recambio o sombra y airea de noche.',
         'bajo': 'Temperatura baja: reduce la alimentacion (metabolismo lento) y '
                 'protege el estanque del viento.',
     },

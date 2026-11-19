@@ -12,7 +12,7 @@ from .base import BaseSigmap
 
 
 class AptitudTest(BaseSigmap):
-    """La base crea una piscina con sensores de pH (6.5-8.5) y O2 (5-9)."""
+    """La base crea una piscina con sensores de pH (6.5-8.5) y temperatura (24-30)."""
 
     def _lectura(self, sensor, tipo, valor):
         return Lectura.objects.create(
@@ -25,18 +25,18 @@ class AptitudTest(BaseSigmap):
         r = evaluar_aptitud(self.piscina)
         self.assertTrue(r['apta'])
         self.assertEqual(r['estado_general'], 'optimo')
-        self.assertEqual(len(r['sin_datos']), 2)   # pH y Oxigeno sin reportar
+        self.assertEqual(len(r['sin_datos']), 2)   # pH y temperatura sin reportar
 
     def test_todo_normal_es_apta(self):
         self._lectura(self.sensor_ph, self.ph, 7.2)
-        self._lectura(self.sensor_ox, self.oxigeno, 6.5)
+        self._lectura(self.sensor_temp, self.temperatura, 27.0)
         r = evaluar_aptitud(self.piscina)
         self.assertTrue(r['apta'])
         self.assertEqual(r['motivos'], [])
 
     def test_critico_la_vuelve_no_apta_con_recomendacion(self):
         self._lectura(self.sensor_ph, self.ph, 9.6)     # > riesgo_max(9.0) -> critico
-        self._lectura(self.sensor_ox, self.oxigeno, 6.5)
+        self._lectura(self.sensor_temp, self.temperatura, 27.0)
         r = evaluar_aptitud(self.piscina)
         self.assertFalse(r['apta'])
         self.assertEqual(r['estado_general'], 'critico')

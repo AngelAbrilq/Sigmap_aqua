@@ -34,8 +34,6 @@ class EtapaProduccion(models.Model):
     rango_temperatura_max = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     rango_ph_min = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     rango_ph_max = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    rango_oxigeno_min = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    rango_oxigeno_max = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     rango_turbidez_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     rango_turbidez_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 

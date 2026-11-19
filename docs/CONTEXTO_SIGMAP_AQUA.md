@@ -7,7 +7,7 @@
 
 ## 1. Qué es el proyecto
 
-Sistema automatizado de monitoreo de la calidad del agua en geomembranas (estanques) piscícolas. Nodos **ESP32** leen sensores (temperatura, pH, turbidez y, a futuro, oxígeno disuelto), envían los datos por WiFi a una **API Django**, se guardan en **MySQL**, se clasifica el estado del agua (óptimo / riesgo / crítico), se generan alertas, historial, gráficas, reportes y análisis con IA (DeepSeek, con Gemini de respaldo).
+Sistema automatizado de monitoreo de la calidad del agua en geomembranas (estanques) piscícolas. Nodos **ESP32** leen sensores (temperatura, pH y turbidez), envían los datos por WiFi a una **API Django**, se guardan en **MySQL**, se clasifica el estado del agua (óptimo / riesgo / crítico), se generan alertas, historial, gráficas, reportes y análisis con IA (DeepSeek, con Gemini de respaldo).
 
 - **Programa:** SENA – Tecnólogo en Análisis y Desarrollo de Software · Ficha **3230026**
 - **Centro:** Centro de Formación Agroindustrial – Regional Huila
@@ -20,7 +20,7 @@ Sistema automatizado de monitoreo de la calidad del agua en geomembranas (estanq
 |---|---|---|
 | Ángel Nicolás Abril Quimbaya | Líder / Backend API | Django, DRF, arquitectura, autenticación, despliegue |
 | Juan José Gracia Cocoma | Backend / Datos y alertas | Base de datos, motor de alertas, notificaciones, reportes |
-| Jhonny Stiven Yunda Guzmán | Backend / Frontend | Dashboard web y app móvil |
+| Jhonny Stiven Yunda Guzmán | Backend / Frontend | Dashboard web |
 | Yesman Ronaldo Ortega Ávila | Backend / Hardware | ESP32, sensores, maqueta y simulador |
 
 Roles del sistema: **Instructor Líder (admin)**, **Operario piscícola**, **Aprendiz** (solo consulta).
@@ -93,7 +93,6 @@ python firmware/tools/simular_nodo.py             # simula un ESP32 contra la AP
 | Temperatura DS18B20 | `SEN-001-TEM` | GPIO32 | Pull-up 4,7 kΩ a 3V3 | ✅ Funciona (≈ 24 °C) |
 | pH PH-4502C | `SEN-001-PH` | GPIO34 | Divisor ⚠ factor 1,5 (ingesta) vs 1,667 (calibración) | ⚠ Marca pH ≈ 3, falta calibrar |
 | Turbidez TS-300B | `SEN-001-TUR` | GPIO35 | Divisor 10k/10k (factor 2,0) | ⚠ Se queda en 3000 NTU |
-| Oxígeno SEN0237-A | `SEN-001-OXI` | GPIO33 | Directo | ⏳ Pendiente, `activo=false` |
 
 Firmware en `firmware/`: `bioaqua_handshake` (prueba de enlace), `bioaqua_calibracion` (banco de voltajes cada 2 s), `bioaqua_ingesta` (producción, v1.2.0, `INTERVALO_S = 150` en pruebas / 300 en campo, cola offline en LittleFS) y `tools/simular_nodo.py`.
 
@@ -134,7 +133,6 @@ Avance estimado: **RF ≈ 88 %**, **RNF ≈ 70 %**, plan Agile **53 %** (100 de 
 | M3 Ingesta + firmware + simulador | 6 – 19 sep | 🔄 |
 | M4 Alertas y notificaciones | 20 sep – 5 oct | ✅ (falta envío externo) |
 | M5 Dashboard web | 6 – 26 oct | 🔄 pulido (Jhonny subió mejoras de UI el 7-oct) |
-| M6 App móvil | 27 oct – 16 nov | 🔄 adelantada (falta push y APK) |
 | M7 Integración y pruebas | 17 – 30 nov | ⏳ |
 | M8 Documentación y sustentación | 1 – 19 dic | ⏳ |
 

@@ -33,7 +33,6 @@ USUARIOS_DEMO = [
 PARAMETROS_DEMO = [
     ('Temperatura',       'C',    (24, 30),    (20, 34)),
     ('pH',                'pH',   (6.5, 8.5),  (5.5, 9.5)),
-    ('Oxigeno disuelto',  'mg/L', (5.0, 9.0),  (3.0, 12.0)),
     ('Turbidez',          'NTU',  (0, 25),     (0, 45)),
 ]
 
@@ -115,8 +114,6 @@ class Command(BaseCommand):
                 'rango_temperatura_max': Decimal('30.00'),
                 'rango_ph_min': Decimal('6.50'),
                 'rango_ph_max': Decimal('8.50'),
-                'rango_oxigeno_min': Decimal('5.00'),
-                'rango_oxigeno_max': Decimal('9.00'),
             },
         )
         return etapa
@@ -246,14 +243,14 @@ class Command(BaseCommand):
             self.stdout.write('  Alertas: ya existian, no se regeneraron')
             return
 
-        sensor_oxigeno = next(
-            (s for s in sensores if s.tipo_parametro.nombre_parametro == 'Oxigeno disuelto'), None)
+        sensor_turbidez = next(
+            (s for s in sensores if s.tipo_parametro.nombre_parametro == 'Turbidez'), None)
         sensor_ph = next(
             (s for s in sensores if s.tipo_parametro.nombre_parametro == 'pH'), None)
 
         plantillas = [
-            (sensor_oxigeno, 'critico', 'critica', Decimal('3.8000'),
-             'Oxigeno disuelto por debajo del rango seguro. Revisar aireacion de inmediato.'),
+            (sensor_turbidez, 'critico', 'critica', Decimal('52.0000'),
+             'Turbidez por encima del rango seguro. Revisar solidos en suspension y recambio de agua.'),
             (sensor_ph, 'riesgo', 'media', Decimal('8.9000'),
              'pH por encima del rango normal. Verificar encalado y recambio de agua.'),
         ]

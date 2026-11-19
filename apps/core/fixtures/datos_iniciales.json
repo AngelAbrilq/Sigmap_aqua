@@ -73,19 +73,6 @@
       "importancia": "alta"
     },
     {
-      "id": 2,
-      "nombre_parametro": "Oxigeno Disuelto",
-      "unidad_medida": "mg/L",
-      "rango_normal_min": "4.0000",
-      "rango_normal_max": "8.0000",
-      "rango_riesgo_min": "2.5000",
-      "rango_riesgo_max": "4.0000",
-      "rango_critico_min": "0.0000",
-      "rango_critico_max": "2.5000",
-      "descripcion": "Concentracion de oxigeno disponible para los peces",
-      "importancia": "alta"
-    },
-    {
       "id": 3,
       "nombre_parametro": "Temperatura",
       "unidad_medida": "\u00b0C",
@@ -165,8 +152,6 @@
       "rango_temperatura_max": "30.00",
       "rango_ph_min": "6.50",
       "rango_ph_max": "7.50",
-      "rango_oxigeno_min": "5.00",
-      "rango_oxigeno_max": "8.00",
       "rango_turbidez_min": null,
       "rango_turbidez_max": null
     },
@@ -182,8 +167,6 @@
       "rango_temperatura_max": "30.00",
       "rango_ph_min": "6.80",
       "rango_ph_max": "7.80",
-      "rango_oxigeno_min": "4.50",
-      "rango_oxigeno_max": "8.50",
       "rango_turbidez_min": null,
       "rango_turbidez_max": null
     },
@@ -199,8 +182,6 @@
       "rango_temperatura_max": "30.00",
       "rango_ph_min": "6.50",
       "rango_ph_max": "7.80",
-      "rango_oxigeno_min": "4.00",
-      "rango_oxigeno_max": "8.00",
       "rango_turbidez_min": null,
       "rango_turbidez_max": null
     },
@@ -216,8 +197,6 @@
       "rango_temperatura_max": "28.00",
       "rango_ph_min": "6.50",
       "rango_ph_max": "7.50",
-      "rango_oxigeno_min": "5.00",
-      "rango_oxigeno_max": "9.00",
       "rango_turbidez_min": null,
       "rango_turbidez_max": null
     }
@@ -376,26 +355,6 @@
       "estado": "activo"
     },
     {
-      "id": 2,
-      "nombre_sensor": "Oxigeno Disuelto - Alevin A1",
-      "codigo_hardware": "HW-AL-001-OX",
-      "id_geomembrana": 1,
-      "id_tipo_parametro": 2,
-      "ubicacion_exacta": "Centro, 60cm profundidad",
-      "modelo_sensor": "AS-211",
-      "marca_sensor": "Hach",
-      "rango_medicion_min": "0.0000",
-      "rango_medicion_max": "20.0000",
-      "precision_valor": "0.1000",
-      "intervalo_lectura_segundos": 300,
-      "bateria_nivel_actual": 92,
-      "ultima_calibracion": "2026-04-05",
-      "proxima_calibracion": "2026-07-05",
-      "mac_address": "00:1A:2B:3C:4D:02",
-      "firmware_version": "1.8",
-      "estado": "activo"
-    },
-    {
       "id": 3,
       "nombre_sensor": "Temperatura - Alevin A1",
       "codigo_hardware": "HW-AL-001-TEMP",
@@ -456,26 +415,6 @@
       "estado": "activo"
     },
     {
-      "id": 6,
-      "nombre_sensor": "Oxigeno Disuelto - Levante L1",
-      "codigo_hardware": "HW-LV-001-OX",
-      "id_geomembrana": 3,
-      "id_tipo_parametro": 2,
-      "ubicacion_exacta": "Centro, 80cm profundidad",
-      "modelo_sensor": "AS-211",
-      "marca_sensor": "Hach",
-      "rango_medicion_min": "0.0000",
-      "rango_medicion_max": "20.0000",
-      "precision_valor": "0.1000",
-      "intervalo_lectura_segundos": 300,
-      "bateria_nivel_actual": 90,
-      "ultima_calibracion": "2026-04-06",
-      "proxima_calibracion": "2026-07-06",
-      "mac_address": "00:1A:2B:3C:4D:06",
-      "firmware_version": "1.8",
-      "estado": "activo"
-    },
-    {
       "id": 7,
       "nombre_sensor": "Temperatura - Levante L1",
       "codigo_hardware": "HW-LV-001-TEMP",
@@ -513,26 +452,6 @@
       "proxima_calibracion": "2026-06-28",
       "mac_address": "00:1A:2B:3C:4D:08",
       "firmware_version": "2.1",
-      "estado": "activo"
-    },
-    {
-      "id": 9,
-      "nombre_sensor": "Oxigeno Disuelto - Engorde E1",
-      "codigo_hardware": "HW-EG-001-OX",
-      "id_geomembrana": 5,
-      "id_tipo_parametro": 2,
-      "ubicacion_exacta": "Centro, 100cm profundidad",
-      "modelo_sensor": "AS-211",
-      "marca_sensor": "Hach",
-      "rango_medicion_min": "0.0000",
-      "rango_medicion_max": "20.0000",
-      "precision_valor": "0.1000",
-      "intervalo_lectura_segundos": 300,
-      "bateria_nivel_actual": 95,
-      "ultima_calibracion": "2026-04-03",
-      "proxima_calibracion": "2026-07-03",
-      "mac_address": "00:1A:2B:3C:4D:09",
-      "firmware_version": "1.8",
       "estado": "activo"
     },
     {

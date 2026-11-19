@@ -92,7 +92,7 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
               </div>
               <div class="sg-kpi-info">
-                <span class="sg-kpi-label">{{ t.parametro }}{% if t.simulado %} <span class="sg-chip sg-chip--sin_datos" title="Valor ficticio de prueba: el sensor de oxígeno aún no está instalado. No se guarda ni genera alertas." style="font-size:10px;padding:1px 7px;">Simulado</span>{% endif %}</span>
+                <span class="sg-kpi-label">{{ t.parametro }}</span>
                 <span class="sg-kpi-valor" data-campo="valor">
                   {% if t.valor is not None %}{{ t.valor }} <small class="sg-kpi-unidad">{{ t.unidad }}</small>{% else %}—{% endif %}
                 </span>
@@ -129,7 +129,7 @@
               {% for t in tarjetas %}
                 <div class="sg-card" style="padding:12px;margin:0;">
                   <div style="display:flex;justify-content:space-between;font-size:13px;">
-                    <strong>{{ t.parametro }}{% if t.simulado %} <span class="sg-chip sg-chip--sin_datos" title="Valor ficticio de prueba: el sensor de oxígeno aún no está instalado. No se guarda ni genera alertas." style="font-size:10px;padding:1px 7px;">Simulado</span>{% endif %}</strong>
+                    <strong>{{ t.parametro }}</strong>
                     <span data-vivo-valor="{{ t.sensor.codigo_hardware }}" style="color:#374151;">—</span>
                   </div>
                   <div style="position:relative;height:170px;">
@@ -152,7 +152,7 @@
               <tbody>
                 {% for t in tarjetas %}
                   <tr data-sensor-fila="{{ t.sensor.codigo_hardware }}">
-                    <td><strong>{{ t.sensor.codigo_hardware }}</strong><br><small style="color:#9ca3af;">{{ t.sensor.nombre_sensor }}{% if t.simulado %} · datos simulados{% endif %}</small></td>
+                    <td><strong>{{ t.sensor.codigo_hardware }}</strong><br><small style="color:#9ca3af;">{{ t.sensor.nombre_sensor }}</small></td>
                     <td>{{ t.parametro }}</td>
                     <td class="num" data-campo="tabla-valor">{% if t.valor is not None %}{{ t.valor }} {{ t.unidad }}{% else %}—{% endif %}</td>
                     <td><span class="sg-chip sg-chip--{{ t.estado }}" data-campo="tabla-estado">
@@ -291,8 +291,7 @@
             if (meta) {
               const etapa = sensor.rango_fuente && sensor.rango_fuente !== 'general' ? ` (${sensor.rango_fuente})` : '';
               const rango = sensor.rango_min !== null ? ` · óptimo ${sensor.rango_min}–${sensor.rango_max}${etapa}` : '';
-              const simulado = sensor.simulado ? ' · simulado' : '';
-              meta.textContent = `${hace(sensor.momento)}${rango}${simulado}`;
+              meta.textContent = `${hace(sensor.momento)}${rango}`;
             }
             if (icono) {
               const clase = { normal: 'ok', riesgo: 'warn', critico: 'crit' }[sensor.estado] || '';

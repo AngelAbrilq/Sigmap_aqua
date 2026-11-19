@@ -27,7 +27,7 @@ SALIDA_IA = {
     'hallazgos': [{'piscina': 'Estanque de Prueba', 'parametro': 'pH',
                    'descripcion': 'pH 9.5 fuera del rango 6.5-8.5', 'gravedad': 'alta'}],
     'tablas': [{'titulo': 'Últimas lecturas', 'columnas': ['Parámetro', 'Valor'],
-                'filas': [['pH', '9.5'], ['Oxígeno disuelto', '6.2']]}],
+                'filas': [['pH', '9.5'], ['Temperatura', '27.5']]}],
     'recomendaciones': ['Hacer recambio parcial de agua.'],
     'enlaces': [{'etiqueta': 'Ver alertas', 'url': '/alertas/'}],
 }
@@ -42,7 +42,7 @@ class BaseAsistente(BaseSigmap):
         cache.clear()
         for valor in (7.2, 9.5):
             self.enviar_lectura('SEN-PH', valor)
-        self.enviar_lectura('SEN-OX', 6.2)
+        self.enviar_lectura('SEN-TEMP', 27.5)
         self.client.force_login(self.instructor)
 
 

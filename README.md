@@ -1,6 +1,6 @@
 # SIGMAP-AQUA · BioAqua System
 
-Sistema de monitoreo en tiempo real de la calidad del agua en geomembranas piscícolas (tilapia). Un nodo **ESP32** lee temperatura, pH y turbidez (oxígeno disuelto pendiente), envía las lecturas por WiFi al software **Django**, que las valida, clasifica (normal / riesgo / crítico), guarda en **MySQL**, genera alertas y las muestra en el panel web.
+Sistema de monitoreo en tiempo real de la calidad del agua en geomembranas piscícolas (tilapia). Un nodo **ESP32** lee temperatura, pH y turbidez, envía las lecturas por WiFi al software **Django**, que las valida, clasifica (normal / riesgo / crítico), guarda en **MySQL**, genera alertas y las muestra en el panel web.
 
 SENA · Tecnólogo en Análisis y Desarrollo de Software · Ficha 3230026 · Centro de Formación Agroindustrial, Regional Huila.
 

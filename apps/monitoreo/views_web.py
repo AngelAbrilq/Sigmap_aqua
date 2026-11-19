@@ -26,7 +26,6 @@ from apps.usuarios.permissions import puede_editar_modulo, puede_ver_modulo, res
 from . import exportacion
 from .forms import SensorForm
 from .rangos import rangos_efectivos
-from .simulacion import es_parametro, tarjeta_oxigeno_simulada
 from .models import Lectura, Sensor, TipoParametro
 
 logger = logging.getLogger(__name__)
@@ -322,15 +321,6 @@ def _estado_sensores(geomembrana, puntos_serie=0):
                 for r in reversed(recientes)
             ] if puntos_serie else [],
         })
-
-    # Oxigeno de prueba mientras se instala el sensor real (ver simulacion.py).
-    tipo_oxigeno = next(
-        (t for t in TipoParametro.objects.all() if es_parametro(t.nombre_parametro, 'oxi')),
-        None,
-    )
-    simulada = tarjeta_oxigeno_simulada(geomembrana, tarjetas, tipo_oxigeno)
-    if simulada:
-        tarjetas.append(simulada)
     return tarjetas
 
 
@@ -367,7 +357,6 @@ def api_estado(request, pk):
                 'rango_max': float(t['rango_max']) if t['rango_max'] is not None else None,
                 'rango_fuente': t['rango_fuente'],
                 'serie': t['serie'],
-                'simulado': t.get('simulado', False),
             } for t in tarjetas],
         },
     })

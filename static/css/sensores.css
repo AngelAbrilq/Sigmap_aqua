@@ -490,7 +490,6 @@ body {
 
 .icon-temp { background-color: var(--blue-icon-bg); color: var(--blue-icon-color); }
 .icon-ph { background-color: var(--green-icon-bg); color: var(--green-icon-color); }
-.icon-o2 { background-color: #E0F2FE; color: #0284C7; }
 .icon-turbidez { background-color: var(--orange-icon-bg); color: var(--orange-icon-color); }
 .icon-conductividad { background-color: var(--purple-icon-bg); color: var(--purple-icon-color); }
 
@@ -615,7 +614,6 @@ body {
 
 .pond-pin.pin-temp { color: #1E64D4; top: 35%; right: 15%; }
 .pond-pin.pin-ph { color: #12B76A; top: 40%; left: 15%; }
-.pond-pin.pin-o2 { color: #0284C7; top: 60%; right: 32%; }
 .pond-pin.pin-turbidez { color: #F97316; top: 70%; right: 28%; border: 2px solid #EF4444; }
 .pond-pin.pin-conductividad { color: #9333EA; top: 20%; right: 42%; }
 

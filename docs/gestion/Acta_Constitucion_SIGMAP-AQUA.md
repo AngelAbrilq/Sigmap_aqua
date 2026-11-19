@@ -30,10 +30,10 @@ Sistema automatizado para el monitoreo de parámetros del agua en estanques pisc
 
 ### 2.1 Problema
 
-En el área piscícola del Centro de Formación La Angostura, el **pH**, el **oxígeno disuelto** y la **temperatura** del agua se miden de forma manual y esporádica. Esto provoca:
+En el área piscícola del Centro de Formación La Angostura, el **pH**, la **temperatura** y la **turbidez** del agua se miden de forma manual y esporádica. Esto provoca:
 
 - **Datos imprecisos**, porque cada medición depende de una persona.
-- **Detección tardía** de cambios bruscos, como la caída de oxígeno, que puede causar estrés, enfermedad o mortalidad de los peces.
+- **Detección tardía** de cambios bruscos, como un pico de temperatura o un desbalance de pH, que puede causar estrés, enfermedad o mortalidad de los peces.
 - **Ausencia de registro histórico**, que impide analizar tendencias o evaluar si las acciones correctivas funcionaron.
 - **Ausencia de alertas automáticas** cuando un parámetro sale de rango.
 - **Decisiones basadas en la experiencia** y no en datos sobre la aptitud de una piscina para siembra o permanencia de peces.
@@ -43,7 +43,7 @@ En el área piscícola del Centro de Formación La Angostura, el **pH**, el **ox
 | Dimensión | Aporte del proyecto |
 |---|---|
 | Productiva | Menos riesgo de mortalidad y mejor aprovechamiento de las unidades de cultivo. |
-| Tecnológica | Incorpora IoT (sensores + ESP32), una plataforma web y una app móvil en un proceso agroindustrial que hoy es manual. |
+| Tecnológica | Incorpora IoT (sensores + ESP32), una plataforma web en un proceso agroindustrial que hoy es manual. |
 | Formativa | Los aprendices aplican competencias de desarrollo, IoT y análisis de datos en un caso real. |
 | Ambiental | Supervisión continua del ecosistema acuático y bienestar animal. |
 | Decisional | Información confiable, histórica y en tiempo real para actuar a tiempo. |
@@ -54,7 +54,7 @@ En el área piscícola del Centro de Formación La Angostura, el **pH**, el **ox
 
 ### 3.1 Objetivo General
 
-Desarrollar e implantar, en **[________ meses]**, un sistema web y móvil que automatice al **100 %** el monitoreo de pH, oxígeno disuelto y temperatura en las piscinas del Centro de Formación La Angostura. El sistema debe capturar los datos en tiempo real, conservar su historial y generar alertas para reducir en un **70 %** el riesgo de mortalidad atribuible a condiciones inadecuadas del agua.
+Desarrollar e implantar, en **[________ meses]**, un sistema web que automatice al **100 %** el monitoreo de pH, temperatura y turbidez en las piscinas del Centro de Formación La Angostura. El sistema debe capturar los datos en tiempo real, conservar su historial y generar alertas para reducir en un **70 %** el riesgo de mortalidad atribuible a condiciones inadecuadas del agua.
 
 ### 3.2 Objetivos Específicos
 
@@ -64,7 +64,7 @@ Desarrollar e implantar, en **[________ meses]**, un sistema web y móvil que au
 | OE2 | Almacenar cada lectura con fecha, hora, parámetro, valor y piscina, sin pérdida de datos durante cortes de red (modo offline). | 0 lecturas perdidas o duplicadas en pruebas de desconexión y reconexión. | ________ |
 | OE3 | Generar alertas automáticas y clasificar el estado del agua (óptimo / riesgo / crítico). | Alerta visible en **[≤ 1 ciclo de lectura]** desde que se detecta el valor fuera de rango; 100 % de las alertas registradas en auditoría. | ________ |
 | OE4 | Entregar análisis histórico (gráficas, comparación de periodos, exportación) y evaluación de aptitud de cada piscina para producción. | Los 19 RF validados con pruebas automatizadas y aceptación del cliente. | ________ |
-| OE5 | Controlar el acceso con una matriz de roles (Administrador/Instructor, Operario, Aprendiz) en la web y en el móvil. | 0 accesos no autorizados en pruebas de seguridad por rol. | ________ |
+| OE5 | Controlar el acceso con una matriz de roles (Administrador/Instructor, Operario, Aprendiz) en la web. | 0 accesos no autorizados en pruebas de seguridad por rol. | ________ |
 
 ---
 
@@ -72,7 +72,7 @@ Desarrollar e implantar, en **[________ meses]**, un sistema web y móvil que au
 
 ### 4.1 In-Scope (Incluido)
 
-1. **Monitoreo en tiempo real:** lectura de sensores de pH, oxígeno disuelto y temperatura, con un panel que se actualiza automáticamente y muestra un semáforo de estado.
+1. **Monitoreo en tiempo real:** lectura de sensores de pH, temperatura y turbidez, con un panel que se actualiza automáticamente y muestra un semáforo de estado.
 2. **Registro y almacenamiento:** las mediciones se guardan en orden cronológico y organizadas por piscina (geomembrana).
 3. **Análisis de datos:** gráficas de comportamiento con banda de rango óptimo, comparación entre periodos y exportación a CSV.
 4. **Alertas inteligentes:** evaluación automática de cada lectura, apertura y cierre automático de alertas y notificación visual que permanece hasta que el usuario la reconoce.
@@ -104,8 +104,7 @@ Desarrollar e implantar, en **[________ meses]**, un sistema web y móvil que au
 | Backend | Python · Django (arquitectura MVT por apps) |
 | Base de datos | MySQL / MariaDB (`sigmap_agua`) |
 | Frontend web | HTML5, CSS3, JavaScript; diseño responsive |
-| Móvil | Flutter / Dart (Riverpod, go_router) que consume la API REST `/api/v1/movil/` con JWT |
-| Hardware / IoT | ESP32 + sensores electroquímicos de pH, OD y temperatura; firmware C/C++ con cola en LittleFS |
+| Hardware / IoT | ESP32 + sensores de pH, temperatura y turbidez; firmware C/C++ con cola en LittleFS |
 | Comunicación | HTTP/HTTPS (TLS), WiFi, intercambio en JSON |
 | IA (complementario) | Google Gemini para análisis y predicción de tendencias |
 | DevOps | Git / GitHub (Conventional Commits) · [Docker] · servidor [Ubuntu Server 22.04 LTS] |
@@ -129,7 +128,7 @@ Se derivan del documento de requerimientos (**RF001–RF019**):
 |---|---|---|
 | RNF001 | Rendimiento | Procesar y mostrar las lecturas sin retrasos significativos; consultas indexadas y sin N+1. |
 | RNF002 | Disponibilidad | Operativo durante toda la jornada del área piscícola. |
-| RNF003 | Seguridad | Autenticación obligatoria, RBAC validado en el servidor, contraseñas con hash, JWT, HTTPS y auditoría. |
+| RNF003 | Seguridad | Autenticación obligatoria, RBAC validado en el servidor, contraseñas con hash, HTTPS y auditoría. |
 | RNF004 | Usabilidad | Interfaz intuitiva para operarios sin formación técnica; código de color verde/amarillo/rojo. |
 | RNF005 | Escalabilidad | Agregar piscinas y sensores sin modificar el código. |
 | RNF006 | Mantenibilidad | Código modular con pruebas automatizadas. |
@@ -146,7 +145,7 @@ Se derivan del documento de requerimientos (**RF001–RF019**):
 | H3 | Diseño | Modelo entidad-relación, diccionario de datos, arquitectura IoT, guía visual | ________ |
 | H4 | Desarrollo núcleo web (M1–M5) | Backend Django + panel web con los RF001–RF019 | ________ |
 | H5 | Integración IoT | Firmware ESP32, ingesta de datos, modo offline y simulador de nodo | ________ |
-| H6 | Módulo móvil e IA | App Flutter + API JWT; predicciones con Gemini | ________ |
+| H6 | Módulo de IA | Predicciones con Gemini | ________ |
 | H7 | Pruebas y QA | Suite de pruebas automatizadas aprobada y pruebas de aceptación | ________ |
 | H8 | Instalación en campo | Cableado y calibración de sensores en las piscinas piloto | ________ |
 | H9 | Despliegue en producción | Servidor con HTTPS (certificado + proxy inverso) | ________ |
@@ -158,7 +157,7 @@ Se derivan del documento de requerimientos (**RF001–RF019**):
 
 | ID | Riesgo | Tipo | Prob. | Impacto | Respuesta / Mitigación |
 |---|---|---|---|---|---|
-| R1 | Deriva o descalibración de los sensores electroquímicos (pH y OD) en el agua, con lecturas erróneas | Técnico | Alta | Alto | Plan de calibración periódica, validación de rangos físicos en la ingesta y detección de sensor caído o anómalo. |
+| R1 | Deriva o descalibración de los sensores (pH y turbidez) en el agua, con lecturas erróneas | Técnico | Alta | Alto | Plan de calibración periódica, validación de rangos físicos en la ingesta y detección de sensor caído o anómalo. |
 | R2 | Pérdida de conectividad WiFi en la zona de piscinas | Operativo | Media | Alto | Cola local (LittleFS) con reenvío y deduplicación; alerta de nodo sin reporte. |
 | R3 | Daño del hardware por humedad, agua o condiciones climáticas | Operativo | Media | Alto | Carcasas IP65+, prensaestopas, repuestos críticos y pruebas previas al despliegue en campo. |
 | R4 | Falsas alertas por umbrales mal configurados que generan "fatiga de alertas" | Técnico / Negocio | Media | Medio | Rangos validados con el instructor del área, edición restringida al administrador y auditoría de cambios. |
@@ -174,10 +173,10 @@ El proyecto se considera **terminado y exitoso** cuando:
 
 1. Los **19 requerimientos funcionales** (RF001–RF019) y los **7 no funcionales** están implementados y aprobados en la prueba de aceptación del cliente.
 2. La suite de pruebas automatizadas se ejecuta **100 % en verde** contra MySQL.
-3. Las piscinas piloto transmiten lecturas reales de pH, OD y temperatura de forma continua durante **[7 días]** sin intervención manual.
+3. Las piscinas piloto transmiten lecturas reales de pH, temperatura y turbidez de forma continua durante **[7 días]** sin intervención manual.
 4. Las pruebas de desconexión no pierden ni duplican ninguna lectura.
 5. Toda lectura fuera de rango genera una alerta visible y auditada dentro del ciclo de lectura.
-6. Los tres roles (Administrador, Operario, Aprendiz) solo acceden a las funciones permitidas, en web y en móvil.
+6. Los tres roles (Administrador, Operario, Aprendiz) solo acceden a las funciones permitidas en la web.
 7. El sistema está desplegado con **HTTPS** y disponible durante la operación del área piscícola.
 8. Se entregan el manual de usuario, el manual técnico y el acta de cierre firmada por el patrocinador.
 

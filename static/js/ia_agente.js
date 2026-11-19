@@ -56,34 +56,10 @@
     ph: ['ph', 'acidez', 'acido'],
     turbidez: ['turbidez', 'turbio', 'ntu', 'solidos'],
     temperatura: ['temperatura', 'temp', 'calor', 'frio', 'termic'],
-    oxigeno: ['oxigeno', 'od', 'disuelto'],
-  });
-
-  /** Bienvenida guiada tras entrar con un QR de demostración (apps/demo). */
-  const TOUR_KEY = 'sigmap_demo_tour';
-  const TOUR = Object.freeze({
-    instructor: {
-      tag: 'Acceso por QR · Instructor Líder',
-      text: '¡Bienvenido! Entraste con **un escaneo y sin contraseña**: el QR lleva un token firmado por el servidor que vence solo. Como **Instructor Líder** tienes control total: validas los análisis de IA, gestionas usuarios, piscinas y sensores, y revisas la auditoría.',
-      link: 'module',
-      label: 'Ver el análisis predictivo →',
-    },
-    operario: {
-      tag: 'Acceso por QR · Operario',
-      text: '¡Bienvenido! Entraste con **un escaneo y sin contraseña**. Como **Operario** trabajas en campo: monitoreo del agua en tiempo real, alertas de los sensores y análisis con IA.',
-      link: 'alerts',
-      label: 'Revisar alertas →',
-    },
-    aprendiz: {
-      tag: 'Acceso por QR · Aprendiz',
-      text: '¡Bienvenido! Entraste con **un escaneo y sin contraseña**. Como **Aprendiz** estás en modo consulta: gráficas, historial y comparación de periodos, sin modificar datos.',
-      link: 'module',
-      label: 'Ver el análisis predictivo →',
-    },
   });
 
   const PARAM_LABELS = Object.freeze({
-    ph: 'pH', turbidez: 'Turbidez', temperatura: 'Temperatura', oxigeno: 'Oxígeno disuelto',
+    ph: 'pH', turbidez: 'Turbidez', temperatura: 'Temperatura',
   });
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -318,14 +294,6 @@
     };
 
     switch (intent) {
-      case 'tour': {
-        const guia = TOUR[paramKey];
-        const intro = guia
-          ? [{ tag: guia.tag, tone: 'ok', text: guia.text, link: { href: data.links[guia.link], label: guia.label } }]
-          : [];
-        return [...intro, ...buildIntentMessages('bienvenida', data)];
-      }
-
       case 'bienvenida': {
         if (!analysis) return [noAnalysis];
         const msgs = [{
@@ -466,7 +434,7 @@
       }
 
       case 'saludo':
-        return [{ tone: 'info', text: '¡Hola! 👋 Pregúntame por **pH**, **turbidez**, **temperatura** u **oxígeno**, o usa los botones rápidos.' }];
+        return [{ tone: 'info', text: '¡Hola! 👋 Pregúntame por **pH**, **turbidez** o **temperatura**, o usa los botones rápidos.' }];
 
       case 'gracias':
         return [{ tone: 'ok', text: '¡Con gusto! Sigo vigilando el agua de tus piscinas. 🐟' }];
@@ -474,7 +442,7 @@
       default:
         return [{
           tone: 'info',
-          text: 'Puedo hablarte de **pH**, **turbidez**, **temperatura** u **oxígeno**, darte un **resumen**, las **anomalías**, la **recomendación de hoy**, las **pendientes** o las **alertas activas**.',
+          text: 'Puedo hablarte de **pH**, **turbidez** o **temperatura**, darte un **resumen**, las **anomalías**, la **recomendación de hoy**, las **pendientes** o las **alertas activas**.',
         }];
     }
   }
@@ -703,7 +671,7 @@
 
     if (ui.welcomeText) {
       if (!data.analysis) {
-        ui.welcomeText.textContent = 'Vigilo pH, temperatura, turbidez y oxígeno de tus piscinas. ¿Qué quieres saber?';
+        ui.welcomeText.textContent = 'Vigilo pH, temperatura y turbidez de tus piscinas. ¿Qué quieres saber?';
       } else if (data.inModule) {
         ui.welcomeText.textContent = `Estoy viendo ${data.analysis.pool}. Riesgo ${data.analysis.risk || 'sin dato'}. ¿Qué quieres saber?`;
       } else {
@@ -1069,14 +1037,6 @@
       showWelcome(true);
     }
 
-    // ---- Tour tras entrar por QR de demostración ---------------------------
-    let tourSlug = '';
-    try {
-      tourSlug = sessionStorage.getItem(TOUR_KEY) || '';
-      if (tourSlug) sessionStorage.removeItem(TOUR_KEY);
-    } catch (error) { /* almacenamiento bloqueado: sin tour */ }
-    if (TOUR[tourSlug]) greetIntent = 'tour';
-
     // ---- Abrir / cerrar ---------------------------------------------------
     let greeted = false;
     const open = () => {
@@ -1089,7 +1049,7 @@
       everyRobot((r) => r.wave());
       if (!greeted && greetIntent) {
         greeted = true;
-        setTimeout(() => respond(greetIntent, greetIntent === 'tour' ? tourSlug : undefined), reducedMotion ? 0 : 500);
+        setTimeout(() => respond(greetIntent), reducedMotion ? 0 : 500);
       }
       greeted = true;
       setTimeout(() => ui.input && ui.input.focus({ preventScroll: true }), 320);
@@ -1185,12 +1145,6 @@
       }, { passive: true });
       document.addEventListener('mouseleave', () => everyRobot((r) => r.resetLook()));
       wake();
-    }
-
-    // Recién llegado por QR: el asistente se presenta solo.
-    if (greetIntent === 'tour') {
-      setTimeout(open, reducedMotion ? 0 : 1300);
-      return;
     }
 
     // El globo de aviso aparece una sola vez por sesión del navegador.

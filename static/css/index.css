@@ -471,10 +471,10 @@ button {
   100% { transform: scale(1.8); opacity: 0; }
 }
 
-/* Grilla de Métricas 4x4 */
+/* Grilla de Métricas (3 parámetros) */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.65rem;
   margin-bottom: 1.25rem;
 }
@@ -516,11 +516,6 @@ button {
 .metric-icon-wrap.icon-ph {
   background-color: #dcfce7;
   color: #16a34a;
-}
-
-.metric-icon-wrap.icon-o2 {
-  background-color: #e0f2fe;
-  color: #0369a1;
 }
 
 .metric-icon-wrap.icon-turb {
@@ -1525,6 +1520,10 @@ button {
 
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metrics-grid .metric-item:last-child {
+    grid-column: 1 / -1;
   }
 
   .workflow-steps-grid {

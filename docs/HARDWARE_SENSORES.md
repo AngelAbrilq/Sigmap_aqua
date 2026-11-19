@@ -25,7 +25,6 @@ Esa separación tiene tres consecuencias prácticas:
 | Temperatura | DS18B20 (sonda inox) | °C | −10 a 85 | 24 – 30 | ✅ Activo |
 | pH | PH-4502C + sonda BNC | pH | 0 a 14 | 6,5 – 8,5 | ✅ Activo |
 | Turbidez | TS-300B | NTU | 0 a 3000 | 0 – 25 | ✅ Activo |
-| Oxígeno disuelto | DFRobot SEN0237-A | mg/L | 0 a 20 | 5,0 – 9,0 | ⏳ Pendiente (sonda sin cablear) |
 
 Los rangos óptimos no están en el firmware: viven en la tabla `tipos_parametros` y se editan desde el módulo de configuraciones.
 
@@ -38,7 +37,6 @@ Los rangos óptimos no están en el firmware: viven en la tabla `tipos_parametro
 | Temperatura DS18B20 | `SEN-001-TEM` | GPIO32 | Pull-up 4,7 kΩ DATA → 3V3 | — | 3V3 | ✅ Lee bien (≈ 24 °C) |
 | pH PH-4502C | `SEN-001-PH` | GPIO34 | Divisor ⚠ por confirmar | 1,5 en ingesta / 1,667 en calibración | 5 V (VIN) | ⚠ Marca pH ≈ 3 (sonda 3,23 V) |
 | Turbidez TS-300B | `SEN-001-TUR` | GPIO35 | Divisor 10 kΩ / 10 kΩ | 2,0 | 5 V (VIN) | ⚠ Se queda en 3000 NTU (sonda 1,03 V) |
-| Oxígeno SEN0237-A | `SEN-001-OXI` | GPIO33 | Directo | 1,0 | 5 V | ⏳ `activo = false` |
 
 Problemas abiertos, en orden:
 
@@ -59,12 +57,11 @@ Problemas abiertos, en orden:
 |---|---|
 | RFH-01 | El nodo mide los parámetros del agua con las sondas sumergidas en la geomembrana. |
 | RFH-02 | Convierte cada señal a su unidad de ingeniería aplicando la calibración de esa sonda. |
-| RFH-03 | Compensa la lectura de oxígeno disuelto con la temperatura medida en el mismo ciclo. |
-| RFH-04 | Agrupa las mediciones en un lote JSON y lo envía por HTTP POST a `/api/v1/lecturas/`. |
-| RFH-05 | Se autentica con un token de dispositivo revocable, generado por el servidor. |
-| RFH-06 | Si no hay red, guarda el lote en la flash (LittleFS) y lo reenvía al reconectar (RF019). |
-| RFH-07 | Omite del lote el sensor que no responde, sin interrumpir el envío de los demás. |
-| RFH-08 | Enciende el LED de la placa (GPIO2) mientras mide y envía cada lote. |
+| RFH-03 | Agrupa las mediciones en un lote JSON y lo envía por HTTP POST a `/api/v1/lecturas/`. |
+| RFH-04 | Se autentica con un token de dispositivo revocable, generado por el servidor. |
+| RFH-05 | Si no hay red, guarda el lote en la flash (LittleFS) y lo reenvía al reconectar (RF019). |
+| RFH-06 | Omite del lote el sensor que no responde, sin interrumpir el envío de los demás. |
+| RFH-07 | Enciende el LED de la placa (GPIO2) mientras mide y envía cada lote. |
 
 ### 3.2 No funcionales
 
@@ -83,7 +80,6 @@ Problemas abiertos, en orden:
 | 1 | Sonda DS18B20 en acero inoxidable | Temperatura | 18.000 |
 | 1 | Módulo PH-4502C + sonda BNC | pH | 95.000 |
 | 1 | Sensor TS-300B + módulo | Turbidez | 48.000 |
-| 1 | Kit SEN0237-A (DFRobot) | Oxígeno disuelto (pendiente) | 480.000 |
 | 1 | Fuente 5 V · 2 A | Alimentación | 22.000 |
 | 4 | Resistencias 10 kΩ y 20 kΩ (1 %) | Divisores de voltaje | 2.000 |
 | 1 | Resistencia 4,7 kΩ | Pull-up del bus OneWire | 500 |
@@ -115,10 +111,9 @@ Precios de referencia en Colombia, septiembre de 2026.
 | Temperatura DS18B20 | `SEN-001-TEM` | GPIO32 | Digital OneWire, 3,3 V | Pull-up 4,7 kΩ entre DATA y 3V3 |
 | pH PH-4502C (salida `Po`) | `SEN-001-PH` | GPIO34 (ADC1_CH6) | Analógica 0 – 5 V | Divisor de voltaje |
 | Turbidez TS-300B (salida `A`) | `SEN-001-TUR` | GPIO35 (ADC1_CH7) | Analógica 0 – 4,5 V | Divisor 10 kΩ / 10 kΩ |
-| Oxígeno SEN0237-A | `SEN-001-OXI` | GPIO33 (ADC1_CH5) | Analógica 0 – 3,0 V | Directa |
 | LED de estado | — | GPIO2 | Salida | No conectar nada externo |
 
-Libres para ampliar: GPIO36 y GPIO39 (analógicos), GPIO4. GPIO21 y GPIO22 quedan reservados para el bus I²C del ADS1115.
+Libres para ampliar: GPIO33, GPIO36 y GPIO39 (analógicos), GPIO4. GPIO21 y GPIO22 quedan reservados para el bus I²C del ADS1115.
 
 `codigo_hardware` debe coincidir carácter por carácter con la tabla `sensores`. El servidor rechaza con HTTP 400 cualquier lectura cuyo código no exista, esté inactivo o pertenezca a otra geomembrana.
 
@@ -145,7 +140,7 @@ Código de colores (sin contar la banda de tolerancia):
 
 ### 4.4 Alimentación
 
-- Una fuente de 5 V y 2 A alimenta `VIN` y la línea de 5 V de los módulos de pH, turbidez y oxígeno.
+- Una fuente de 5 V y 2 A alimenta `VIN` y la línea de 5 V de los módulos de pH y turbidez.
 - El DS18B20 va a 3V3: así su línea de datos nunca supera 3,3 V.
 - Los módulos de 5 V **no** se alimentan del pin 3V3: ese regulador entrega poca corriente y provoca reinicios.
 - Todos los GND se unen en un mismo riel o bornera.
@@ -158,7 +153,7 @@ Código de colores (sin contar la banda de tolerancia):
 
 ```
 Sondas → acondicionamiento (divisor / pull-up) → ADC1 y bus OneWire del ESP32
-      → conversión a unidad de ingeniería (calibración y compensación por temperatura)
+      → conversión a unidad de ingeniería (calibración)
       → lote JSON cada INTERVALO_S
       → HTTP POST /api/v1/lecturas/   con   Authorization: Device <token>
            │
@@ -166,21 +161,20 @@ Sondas → acondicionamiento (divisor / pull-up) → ADC1 y bus OneWire del ESP3
            │            → clasifica normal / riesgo / crítico contra tipos_parametros
            │            → guarda en lecturas_sensores
            │            → motor de alertas: abre o cierra alertas
-           │            → web (/monitoreo/) y app móvil
+           │            → web (/monitoreo/)
            │
            └─ fallo (sin red o servidor caído)
                       → el lote se guarda en LittleFS (/cola.jsonl; COLA_MAX_LINEAS = 500 está declarado pero aún no se aplica)
                       → se reenvía al reconectar; el servidor deduplica por (sensor, timestamp)
 ```
 
-Orden de cada ciclo (`construirCuerpo()`): la temperatura va primero porque la compensación del oxígeno la necesita.
+Orden de cada ciclo (`construirCuerpo()`):
 
 1. DS18B20: `requestTemperatures()` (≈ 750 ms a 12 bits).
 2. pH: mediana de 31 muestras → × factor del divisor → recta `PH_M × V + PH_B`.
-3. Oxígeno (cuando esté activo): mediana → mg/L con la temperatura del paso 1.
-4. Turbidez: mediana → × factor del divisor → curva del fabricante.
-5. Lote JSON con `codigo_hardware`, `valor`, `secuencia` y `timestamp`.
-6. Envío o encolado.
+3. Turbidez: mediana → × factor del divisor → curva del fabricante.
+4. Lote JSON con `codigo_hardware`, `valor`, `secuencia` y `timestamp`.
+5. Envío o encolado.
 
 ---
 
@@ -220,7 +214,6 @@ Se copia de `secrets.h.example` y no se sube a Git:
 //  codigo         tipo           gpio  divisor  activo
 { "SEN-001-TEM", TEMP_DS18B20,    32,   1.0f,   true  },
 { "SEN-001-PH",  PH_LINEAL,       34,   1.5f,   true  },
-{ "SEN-001-OXI", OXIGENO_MGL,     33,   1.0f,   false },  // activar al cablear la sonda
 { "SEN-001-TUR", TURBIDEZ_NTU,    35,   2.0f,   true  },
 ```
 
@@ -310,15 +303,11 @@ PH_B = 6,86 − PH_M × V1
 
 Verificación: de nuevo en buffer 6,86, `PH_M × V + PH_B` debe caer entre 6,75 y 6,95.
 
-### 8.2 Oxígeno disuelto — saturación en aire (trimestral; electrolito cada 6 meses)
-
-Con la membrana húmeda y al aire, la sonda ve 100 % de saturación. Se anotan en el mismo instante el voltaje en mV (`OXI_CAL_MV`) y la temperatura del DS18B20 (`OXI_CAL_TEMP_C`). La conversión a mg/L usa la tabla de saturación del agua dulce (0–40 °C) y corrige la deriva de la sonda con 35 mV por grado. Sin esa compensación, un día soleado aparenta una caída de oxígeno que no existe.
-
-### 8.3 Turbidez — agua destilada como cero
+### 8.2 Turbidez — agua destilada como cero
 
 En agua destilada el TS-300B da ≈ 4,2 V (`TURB_V_AGUA_LIMPIA`) = 0 NTU. La relación es **inversa**: más sólidos en suspensión, menos voltaje. El firmware aplica la curva de segundo grado del fabricante y limita el resultado entre 0 y 3000 NTU. Se recalibra cuando el agua destilada deja de dar el voltaje de referencia.
 
-### 8.4 Bitácora
+### 8.3 Bitácora
 
 Cada calibración se registra: fecha, sensor, voltajes, constantes y responsable. Cuando una lectura se vea rara, la bitácora dice si derivó la sonda o cambió el agua.
 
@@ -366,7 +355,7 @@ El servidor siempre responde `{success, data, message}`.
 **Actor:** Instructor Líder u Operario con acceso al servidor.
 **Precondición:** la geomembrana existe y hay WiFi de 2,4 GHz en el sitio.
 **Flujo principal:** sección 7.
-**Postcondición:** las lecturas aparecen en el módulo de monitoreo y en la app móvil.
+**Postcondición:** las lecturas aparecen en el módulo de monitoreo.
 **Flujos alternos:** token rechazado (401) o sensor no reconocido (400); ver sección 9.2.
 
 ### CU-H02 · Ingesta periódica de mediciones
@@ -412,10 +401,9 @@ El servidor siempre responde `{success, data, message}`.
 - Confirmar las resistencias del pH y unificar el factor en los dos sketches.
 - Calibrar pH con buffers reales y reemplazar `PH_M` / `PH_B` de ejemplo.
 - Resolver la turbidez en 3000 NTU (sección 2).
-- Cablear y calibrar la sonda de oxígeno; poner `SEN-001-OXI` en `activo = true`.
 - Dejar `INTERVALO_S = 300` para campo.
 - Medir el consumo del nodo para dimensionar batería y panel solar.
-- Evaluar el ADS1115 si se agregan más analógicos (solo quedan GPIO36 y GPIO39).
+- Evaluar el ADS1115 si se agregan más analógicos (solo quedan GPIO33, GPIO36 y GPIO39).
 - Aplicar el tope `COLA_MAX_LINEAS` en `guardarEnCola()` (hoy la cola crece sin límite).
 - Migrar el envío a HTTPS antes de sacar el sistema de la red local.
 

@@ -28,7 +28,7 @@ class AutenticacionDispositivoTest(BaseSigmap):
             content_type='application/json', **self.cabecera_dispositivo())
         codigos = {s['codigo_hardware']
                    for s in respuesta.json()['data']['sensores_esperados']}
-        self.assertEqual(codigos, {'SEN-PH', 'SEN-OX'})
+        self.assertEqual(codigos, {'SEN-PH', 'SEN-TEMP'})
 
     def test_token_invalido_devuelve_401(self):
         """Caso de error: credencial desconocida."""
@@ -132,7 +132,7 @@ class MotorDeAlertasTest(BaseSigmap):
     def test_alertas_de_parametros_distintos_conviven(self):
         """Caso limite: el anti-duplicados es por parametro, no por piscina."""
         self.enviar_lectura('SEN-PH', 9.5)
-        self.enviar_lectura('SEN-OX', 2.0)
+        self.enviar_lectura('SEN-TEMP', 15.0)
         self.assertEqual(Alerta.objects.filter(estado='activa').count(), 2)
 
 
@@ -171,7 +171,7 @@ class AtencionDeAlertasTest(BaseSigmap):
     """Flujo reconocer → resolver."""
 
     def setUp(self):
-        self.enviar_lectura('SEN-OX', 2.0)
+        self.enviar_lectura('SEN-TEMP', 15.0)
         self.alerta = Alerta.objects.get(estado='activa')
         self.client.force_login(self.operario)
 

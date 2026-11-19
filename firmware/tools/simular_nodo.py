@@ -21,8 +21,8 @@ import json
 import urllib.error
 import urllib.request
 
-VALORES_OK = {'ph': 7.2, 'oxigeno': 6.5, 'oxígeno': 6.5, 'temperatura': 26.0, 'turbidez': 15.0}
-VALORES_CRIT = {'ph': 9.6, 'oxigeno': 2.0, 'oxígeno': 2.0, 'temperatura': 38.0, 'turbidez': 900.0}
+VALORES_OK = {'ph': 7.2, 'temperatura': 26.0, 'turbidez': 15.0}
+VALORES_CRIT = {'ph': 9.6, 'temperatura': 38.0, 'turbidez': 900.0}
 
 
 def _post(url, token, payload):

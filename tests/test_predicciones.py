@@ -32,8 +32,8 @@ RESPUESTA_PREDICCION = {
         {'parametro': 'pH', 'valor_esperado': 7.5, 'valor_min': 7.2,
          'valor_max': 7.8, 'probabilidad_fuera_de_rango': 15,
          'justificacion': 'La media de los últimos días se mantiene en 7.4.'},
-        {'parametro': 'Oxígeno disuelto', 'valor_esperado': 6.5, 'valor_min': 6.0,
-         'valor_max': 7.0, 'probabilidad_fuera_de_rango': 10,
+        {'parametro': 'Temperatura', 'valor_esperado': 27.5, 'valor_min': 27.0,
+         'valor_max': 28.0, 'probabilidad_fuera_de_rango': 10,
          'justificacion': 'Sin variaciones bruscas en el periodo.'},
     ],
 }
@@ -46,7 +46,7 @@ class GenerarPrediccionesTest(BaseSigmap):
     def setUp(self):
         for valor in (7.3, 7.4, 7.5):
             self.enviar_lectura('SEN-PH', valor)
-        self.enviar_lectura('SEN-OX', 6.4)
+        self.enviar_lectura('SEN-TEMP', 27.4)
 
     @patch('apps.ia.services._llamar_deepseek')
     def test_persiste_una_prediccion_por_parametro(self, simulada):
@@ -80,7 +80,7 @@ class GenerarPrediccionesTest(BaseSigmap):
         analisis = generar_analisis(self.piscina, tipo='prediccion', horizonte=3)
         nombres = set(analisis.predicciones.values_list(
             'tipo_parametro__nombre_parametro', flat=True))
-        self.assertEqual(nombres, {'pH', 'Oxígeno disuelto'})
+        self.assertEqual(nombres, {'pH', 'Temperatura'})
 
     @patch('apps.ia.services._llamar_deepseek')
     def test_corrige_un_intervalo_invertido(self, simulada):

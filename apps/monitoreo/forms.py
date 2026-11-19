@@ -145,9 +145,9 @@ class TipoParametroForm(forms.ModelForm):
         ]
         widgets = {
             'nombre_parametro': forms.TextInput(attrs={
-                'class': 'gm-form-input', 'placeholder': 'Ej. Oxígeno disuelto'}),
+                'class': 'gm-form-input', 'placeholder': 'Ej. Turbidez'}),
             'unidad_medida': forms.TextInput(attrs={
-                'class': 'gm-form-input', 'placeholder': 'Ej. mg/L'}),
+                'class': 'gm-form-input', 'placeholder': 'Ej. NTU'}),
             'rango_normal_min': forms.NumberInput(attrs={'class': 'gm-form-input', 'step': '0.0001'}),
             'rango_normal_max': forms.NumberInput(attrs={'class': 'gm-form-input', 'step': '0.0001'}),
             'rango_riesgo_min': forms.NumberInput(attrs={'class': 'gm-form-input', 'step': '0.0001'}),

@@ -27,7 +27,6 @@ TURBIDEZ_POR_ETAPA = {'Alevin': ('0', '25'), 'Levante': ('0', '40'),
 
 # Rangos globales corregidos: el riesgo debe CONTENER al normal.
 GLOBALES = {
-    'Oxigeno Disuelto': {'rango_riesgo_min': D('2.5'), 'rango_riesgo_max': D('12')},
     'Turbidez': {'rango_normal_min': D('0'), 'rango_normal_max': D('50'),
                  'rango_riesgo_min': D('0'), 'rango_riesgo_max': D('100')},
 }
@@ -42,7 +41,7 @@ for nombre, (minimo, maximo) in TURBIDEZ_POR_ETAPA.items():
     print(f'[OK] Etapa {nombre}: turbidez {minimo}-{maximo} NTU ({n} fila)')
 
 print('\nRangos efectivos que vera el sistema:')
-tipos = list(TipoParametro.objects.filter(nombre_parametro__in=['pH', 'Temperatura', 'Oxigeno Disuelto', 'Turbidez']))
+tipos = list(TipoParametro.objects.filter(nombre_parametro__in=['pH', 'Temperatura', 'Turbidez']))
 for etapa in [None] + list(EtapaProduccion.objects.all()):
     nombre = etapa.nombre_etapa if etapa else 'general'
     partes = []

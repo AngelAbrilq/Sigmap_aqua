@@ -2,7 +2,6 @@
 Deja la BD lista para recibir el nodo ESP32 real (SEN-001-*).
 
 - Rangos de medicion = limites fisicos del documento de requerimientos (RF007).
-- Oxigeno disuelto inactivo mientras la sonda no este cableada.
 - Intervalo de lectura 5 s (lo recibe el ESP32 en cada respuesta, RF011).
 - Reporta el dispositivo de esa geomembrana (sin mostrar el token).
 
@@ -28,9 +27,7 @@ LIMITES_FISICOS = {
     'SEN-001-PH': (Decimal('0'), Decimal('14')),
     'SEN-001-TEM': (Decimal('0'), Decimal('50')),
     'SEN-001-TUR': (Decimal('0'), Decimal('3000')),
-    'SEN-001-OXI': (Decimal('0'), Decimal('20')),
 }
-SENSORES_SIN_CABLEAR = {'SEN-001-OXI'}
 
 
 def main():
@@ -51,7 +48,7 @@ def main():
         sensor.rango_medicion_min = minimo
         sensor.rango_medicion_max = maximo
         sensor.intervalo_lectura_segundos = args.intervalo
-        sensor.estado = 'inactivo' if sensor.codigo_hardware in SENSORES_SIN_CABLEAR else 'activo'
+        sensor.estado = 'activo'
         sensor.save(update_fields=['rango_medicion_min', 'rango_medicion_max',
                                    'intervalo_lectura_segundos', 'estado'])
         print(f'[OK] {sensor.codigo_hardware:12} {sensor.tipo_parametro.nombre_parametro:18} '

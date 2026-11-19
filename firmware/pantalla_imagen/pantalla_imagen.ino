@@ -28,7 +28,6 @@
  *   GPIO32 DS18B20 temperatura   pull-up 4,7 kOhm a 3V3, sin divisor
  *   GPIO34 pH PH-4502C           divisor 10k/20k obligatorio (sale hasta 5 V)
  *   GPIO35 turbidez TS-300B      divisor 10k/10k obligatorio (sale hasta 4,5 V)
- *   GPIO33 oxigeno SEN0237-A     salida 0-3 V, directa al pin (aun sin cablear)
  *
  * CALIBRACION DESDE EL MONITOR SERIE (115200, "Both NL & CR"), sin reprogramar:
  *   AYUDA            lista de comandos
@@ -94,7 +93,6 @@ static const char* TZ_CO = "<-05>5";
 // ---------------------------------------------------------------------------
 enum TipoSensor {
   PH_LINEAL,        // recta pH = m*V + b, calibrada con buffers 4,01 y 6,86
-  OXIGENO_MGL,      // sonda galvanica SEN0237-A, compensada por temperatura
   TURBIDEZ_NTU,     // TS-300B: curva del fabricante, voltaje alto = agua limpia
   TEMP_DS18B20      // sonda digital OneWire
 };
@@ -123,22 +121,6 @@ static const float PH_B_FABRICA = 21.34f;
 static float phM = PH_M_FABRICA;             // vigentes: se cargan de NVS en setup()
 static float phB = PH_B_FABRICA;
 
-// --- Calibracion del oxigeno disuelto (SEN0237-A) ---------------------------
-// Voltaje medido con la membrana humeda al aire (100 % de saturacion) y la
-// temperatura a la que se hizo esa medicion.
-static const float OXI_CAL_MV        = 1600.0f;
-static const float OXI_CAL_TEMP_C    = 25.0f;
-static const float OXI_PENDIENTE_MV  = 35.0f;   // deriva tipica de la sonda, mV/C
-
-/** Saturacion de oxigeno en agua dulce, mg/L, de 0 a 40 C (tabla del fabricante). */
-static const float OXI_SATURACION[41] = {
-  14.46f, 14.22f, 13.82f, 13.44f, 13.09f, 12.74f, 12.42f, 12.11f, 11.81f, 11.53f,
-  11.26f, 11.01f, 10.77f, 10.53f, 10.30f, 10.08f,  9.86f,  9.66f,  9.46f,  9.27f,
-   9.08f,  8.90f,  8.73f,  8.57f,  8.41f,  8.25f,  8.11f,  7.96f,  7.82f,  7.69f,
-   7.56f,  7.43f,  7.30f,  7.18f,  7.07f,  6.95f,  6.84f,  6.73f,  6.63f,  6.53f,
-   6.41f
-};
-
 // --- Curva de turbidez TS-300B ---------------------------------------------
 // Relacion inversa: agua limpia ~4,2 V, agua turbia < 2,5 V (curva DFRobot,
 // valida de 2,5 a 4,2 V). Cada modulo y cada divisor dan un voltaje distinto
@@ -161,7 +143,6 @@ static SensorCfg SENSORES[] = {
   //  codigo         tipo           gpio  divisor  activo
   { "SEN-001-TEM", TEMP_DS18B20,    32,   1.0f,   true  },
   { "SEN-001-PH",  PH_LINEAL,       34,   1.5f,   true },
-  { "SEN-001-OXI", OXIGENO_MGL,     33,   1.0f,   false },  // activar al cablear la sonda
   { "SEN-001-TUR", TURBIDEZ_NTU,    35,   2.0f,   true  },  // divisor 10k/10k
 };
 static const size_t N_SENSORES = sizeof(SENSORES) / sizeof(SENSORES[0]);
@@ -169,9 +150,6 @@ static const size_t N_SENSORES = sizeof(SENSORES) / sizeof(SENSORES[0]);
 static const uint8_t PIN_ONEWIRE = 32;   // DS18B20 (debe coincidir con SEN-001-TEM)
 static OneWire oneWire(PIN_ONEWIRE);
 static DallasTemperature ds18(&oneWire);
-
-/** Ultima temperatura valida; la usa la compensacion del oxigeno disuelto. */
-static float temperaturaActual = NAN;
 
 static uint32_t contadorSecuencia = 0;
 static bool     horaLista = false;
@@ -256,25 +234,6 @@ static float leerVoltaje(uint8_t gpio, float factorDivisor) {
 }
 
 /**
- * @brief Convierte el voltaje de la sonda galvanica a mg/L de oxigeno disuelto.
- *
- * La saturacion del agua depende de la temperatura: la misma tension significa
- * mas o menos oxigeno segun que tan caliente este el estanque. Sin esta
- * correccion, un dia soleado parece una caida de oxigeno que no existe.
- *
- * @param voltios  Voltaje leido de la sonda.
- * @param tempC    Temperatura del agua; si es NAN se asume la de calibracion.
- * @return Oxigeno disuelto en mg/L.
- */
-static float oxigenoMgL(float voltios, float tempC) {
-  const float t = isnan(tempC) ? OXI_CAL_TEMP_C : constrain(tempC, 0.0f, 40.0f);
-  const float mV_saturacion = OXI_CAL_MV + OXI_PENDIENTE_MV * (t - OXI_CAL_TEMP_C);
-  if (mV_saturacion <= 0.0f) return NAN;
-  const float mgL = (voltios * 1000.0f / mV_saturacion) * OXI_SATURACION[(int)roundf(t)];
-  return constrain(mgL, 0.0f, 20.0f);
-}
-
-/**
  * @brief Convierte el voltaje del TS-300B a NTU con la curva del fabricante.
  *
  * El voltaje se normaliza con el de agua limpia calibrado (CAL TUR), de modo
@@ -306,13 +265,10 @@ static float leerSensor(const SensorCfg& s) {
       const float t = ds18.getTempCByIndex(0);
       ds18.requestTemperatures();
       if (t == DEVICE_DISCONNECTED_C || t < -50.0f || t > 80.0f) return NAN;
-      temperaturaActual = t;          // queda disponible para el oxigeno
       return t;
     }
     case PH_LINEAL:
       return constrain(phM * leerVoltaje(s.gpio, s.factor_divisor) + phB, 0.0f, 14.0f);
-    case OXIGENO_MGL:
-      return oxigenoMgL(leerVoltaje(s.gpio, s.factor_divisor), temperaturaActual);
     case TURBIDEZ_NTU:
       return turbidezNTU(leerVoltaje(s.gpio, s.factor_divisor));
   }
@@ -324,7 +280,6 @@ static void etiquetaSensor(TipoSensor tipo, const char*& nombre, const char*& un
   switch (tipo) {
     case TEMP_DS18B20: nombre = "Temperatura"; unidad = "°C";   break;
     case PH_LINEAL:    nombre = "pH";          unidad = "pH";   break;
-    case OXIGENO_MGL:  nombre = "Oxigeno";     unidad = "mg/L"; break;
     case TURBIDEZ_NTU: nombre = "Turbidez";    unidad = "NTU";  break;
     default:           nombre = "Sensor";      unidad = "";     break;
   }
@@ -339,7 +294,7 @@ static bool canalPantalla(TipoSensor tipo, CanalPantalla& canal) {
     case TEMP_DS18B20: canal = PANT_TEMP; return true;
     case PH_LINEAL:    canal = PANT_PH;   return true;
     case TURBIDEZ_NTU: canal = PANT_TURB; return true;
-    default:           return false;     // el oxigeno aun no tiene tarjeta
+    default:           return false;
   }
 }
 
@@ -373,8 +328,6 @@ static String construirCuerpo() {
   JsonArray arr = doc["lecturas"].to<JsonArray>();
   const String ts = timestampISO();
 
-  // El DS18B20 va primero en la tabla a proposito: su temperatura alimenta la
-  // compensacion del oxigeno disuelto que se calcula unas lineas mas abajo.
   uint8_t incluidas = 0;
   pantallaInicioLote();
   Serial.println("\n------------------------------------------------------------");

@@ -49,14 +49,12 @@
 | ID | Sev. | Dónde | Problema | Corrección |
 |---|---|---|---|---|
 | T17 | 🟡 | `templates/funcionalidades/monitoreo.html:257-259` | `innerHTML` arma el valor con `sensor.unidad`, que viene de la BD: si alguien guarda HTML en la unidad de un parámetro, se ejecuta en el tablero (XSS almacenado; solo puede hacerlo un rol con permiso de configuraciones) | Crear los nodos con `textContent` en vez de `innerHTML` |
-| T18 | 🟠 | `config/urls.py`, `apps/api_movil/` | La API móvil (`/api/v1/movil/`) ya no está en las rutas y su código no está en el repo, pero `README.md`, `docs/CONTEXTO_SIGMAP_AQUA.md` y `docs/GUIA_MODULO_MOVIL.md` todavía la describen | Confirmar con el equipo si se retiró a propósito; actualizar la documentación o restaurar la app |
 
 ---
 
 ## Orden sugerido para corregir
 
 1. **T12** (cola bloqueada) y **T06** (pH 14 falso): pueden aparecer en la demo.
-2. **T18**: aclarar con el equipo antes de la sustentación.
-3. **T01, T02, T03**: calibración del hardware.
-4. **T08, T13, T14, T17**: robustez y seguridad.
-5. El resto: limpieza.
+2. **T01, T02, T03**: calibración del hardware.
+3. **T08, T13, T14, T17**: robustez y seguridad.
+4. El resto: limpieza.
