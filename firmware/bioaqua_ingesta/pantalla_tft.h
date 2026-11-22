@@ -32,9 +32,10 @@
  * responde, el estado (NORMAL / RIESGO / CRITICO) que el mismo software le
  * asigno a esa lectura. Solo sin conexion usa una estimacion local.
  *
- * Pines: los del User_Setup.h de TFT_eSPI (MOSI 23, SCK 18, CS 5, DC 16,
- * RST 17, TOUCH_CS 22). No chocan con los sensores (32, 33, 34, 35) ni con
- * el LED (2).
+ * Pines: los del User_Setup.h de TFT_eSPI (MOSI 23, SCK 18, CS 5, DC 16).
+ * RST de la pantalla va al pin EN del ESP32 y el touch no se usa: GPIO17,
+ * 19 y 22 quedan para la camara (camara.h). No chocan con los sensores
+ * (32, 34, 35) ni con el LED (2).
  *
  * SIN PARPADEO: fillScreen() solo al armar cada pantalla; despues se
  * redibujan unicamente las zonas que cambian, siempre por sprites.

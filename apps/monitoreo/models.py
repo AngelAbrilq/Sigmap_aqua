@@ -193,3 +193,52 @@ class Lectura(models.Model):
 
     def __str__(self):
         return f'{self.sensor.codigo_hardware}: {self.valor_medida} ({self.estado_lectura})'
+
+def ruta_captura(instancia, _nombre_original):
+    """Ruta de la foto: capturas/<piscina>/<aaaa>/<mm>/<uuid>.jpg (nunca el nombre del cliente)."""
+    import uuid
+    ahora = timezone.localtime()
+    return f'capturas/geo-{instancia.geomembrana_id}/{ahora:%Y/%m}/{uuid.uuid4().hex}.jpg'
+
+
+class CapturaCamara(models.Model):
+    """
+    Foto JPEG enviada por la camara OV7670 del nodo ESP32 (RF027).
+
+    Es evidencia visual del estanque: se toma cada cierto tiempo y, ademas,
+    cuando el software clasifica una lectura como critica.
+    """
+
+    MOTIVOS = [
+        ('periodica', 'Periódica'),
+        ('alerta', 'Por alerta crítica'),
+    ]
+
+    dispositivo = models.ForeignKey(
+        Dispositivo, on_delete=models.PROTECT, related_name='capturas'
+    )
+    geomembrana = models.ForeignKey(
+        'piscinas.Geomembrana', on_delete=models.PROTECT, related_name='capturas'
+    )
+    imagen = models.ImageField('Imagen', upload_to=ruta_captura)
+    motivo = models.CharField(max_length=10, choices=MOTIVOS, default='periodica')
+    ancho = models.PositiveSmallIntegerField(default=0)
+    alto = models.PositiveSmallIntegerField(default=0)
+    tamano_bytes = models.PositiveIntegerField('Tamaño (bytes)', default=0)
+    timestamp_captura = models.DateTimeField('Momento de la captura', default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'capturas_camara'
+        verbose_name = 'Captura de cámara'
+        verbose_name_plural = 'Capturas de cámara'
+        ordering = ['-timestamp_captura']
+        indexes = [
+            # El tablero pide "la ultima foto de esta piscina" en cada refresco.
+            models.Index(fields=['geomembrana', '-timestamp_captura'],
+                         name='idx_captura_geo_ts'),
+        ]
+
+    def __str__(self):
+        return f'{self.dispositivo.codigo} {self.timestamp_captura:%Y-%m-%d %H:%M} ({self.motivo})'

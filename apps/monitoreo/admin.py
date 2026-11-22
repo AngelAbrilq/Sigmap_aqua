@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TipoParametro, Sensor, Dispositivo, Lectura
+from .models import TipoParametro, Sensor, Dispositivo, Lectura, CapturaCamara
 
 
 @admin.register(TipoParametro)
@@ -35,3 +35,11 @@ class LecturaAdmin(admin.ModelAdmin):
     date_hierarchy = 'timestamp_lectura'
     list_select_related = ('sensor', 'geomembrana', 'tipo_parametro')
     readonly_fields = ('fecha_recepcion',)
+
+@admin.register(CapturaCamara)
+class CapturaCamaraAdmin(admin.ModelAdmin):
+    list_display = ('timestamp_captura', 'dispositivo', 'geomembrana', 'motivo',
+                    'ancho', 'alto', 'tamano_bytes')
+    list_filter = ('motivo', 'geomembrana')
+    list_select_related = ('dispositivo', 'geomembrana')
+    readonly_fields = ('created_at', 'updated_at')

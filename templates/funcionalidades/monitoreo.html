@@ -58,28 +58,37 @@
       <div class="sg-card-body">
         <div class="sg-mon-cabecera">
         {% comment %}
-          Camara de la geomembrana. Aun no hay camara IP: se muestra en bucle un
-          video grabado del prototipo (static/video/geomembrana_cam.mp4) y se avisa
-          que no es transmision en vivo. muted + playsinline son obligatorios para
-          que el navegador permita el autoplay; si el video no carga se ve el
-          poster. Cuando exista la camara, se cambia el <source> por su stream.
+          Camara de la geomembrana (RF027). Muestra la ultima foto que envio la
+          camara OV7670 del nodo ESP32 (POST /api/v1/capturas/). El refresco JSON
+          cambia la foto cuando llega una nueva. Si la piscina aun no tiene
+          capturas, se muestra el video grabado del prototipo con su aviso.
         {% endcomment %}
-        <section class="sg-camara" aria-label="Cámara de {{ seleccionada.nombre_piscina }}">
-          <video class="sg-camara-imagen" autoplay muted loop playsinline preload="auto"
-                 poster="{% static 'video/geomembrana_cam_poster.jpg' %}"
-                 aria-label="Video del prototipo: estanque con peces y nodo ESP32">
-            <source src="{% static 'video/geomembrana_cam.mp4' %}" type="video/mp4">
-          </video>
+        <section class="sg-camara" id="camara" aria-label="Cámara de {{ seleccionada.nombre_piscina }}">
+          {% if ultima_captura %}
+            <img class="sg-camara-imagen" id="camaraImagen" src="{{ ultima_captura.url }}"
+                 alt="Última foto del estanque {{ seleccionada.nombre_piscina }}"
+                 style="image-rendering:auto;object-fit:cover;">
+          {% else %}
+            <video class="sg-camara-imagen" id="camaraVideo" autoplay muted loop playsinline preload="auto"
+                   poster="{% static 'video/geomembrana_cam_poster.jpg' %}"
+                   aria-label="Video del prototipo: estanque con peces y nodo ESP32">
+              <source src="{% static 'video/geomembrana_cam.mp4' %}" type="video/mp4">
+            </video>
+          {% endif %}
           <div class="sg-camara-capa">
             <div class="sg-camara-fila">
               <span class="sg-camara-etiqueta">
                 <span class="sg-camara-punto" aria-hidden="true"></span>
                 CAM-01 · {{ seleccionada.codigo_identificacion }}
               </span>
-              <span class="sg-camara-etiqueta sg-camara-etiqueta--aviso">Video: grabando</span>
+              <span class="sg-camara-etiqueta{% if not ultima_captura or ultima_captura.motivo == 'alerta' %} sg-camara-etiqueta--aviso{% endif %}" id="camaraMotivo">
+                {% if ultima_captura %}{{ ultima_captura.motivo_label }}{% else %}Video: grabando{% endif %}
+              </span>
             </div>
             <div class="sg-camara-fila">
-              <span class="sg-camara-texto">Prototipo · no es transmisión en vivo</span>
+              <span class="sg-camara-texto" id="camaraEstado">
+                {% if ultima_captura %}Última foto del nodo{% else %}Prototipo · sin fotos del nodo aún{% endif %}
+              </span>
               <span class="sg-camara-texto" id="camaraReloj" aria-hidden="true"></span>
             </div>
           </div>
@@ -198,6 +207,37 @@
     const semaforo   = document.getElementById('semaforoPiscina');
     const btnAlertas = document.getElementById('btnAlertasPiscina');
     const COLOR_ESTADO = { normal: '#16a34a', riesgo: '#d97706', critico: '#dc2626' };
+    /**
+     * Cambia la foto de la camara solo cuando llega una captura nueva.
+     * Si la piscina mostraba el video del prototipo, lo reemplaza por la foto.
+     * @param {{url:string, motivo:string, motivo_label:string, momento:string}|null} camara
+     */
+    let ultimaFotoUrl = document.getElementById('camaraImagen')?.getAttribute('src') || null;
+    const actualizarCamara = (camara) => {
+      if (!camara || !camara.url) return;
+      const motivo = document.getElementById('camaraMotivo');
+      const estadoCam = document.getElementById('camaraEstado');
+      if (estadoCam) estadoCam.textContent = `Última foto del nodo · ${hace(camara.momento)}`;
+      if (camara.url === ultimaFotoUrl) return;
+
+      let img = document.getElementById('camaraImagen');
+      if (!img) {
+        const video = document.getElementById('camaraVideo');
+        img = document.createElement('img');
+        img.id = 'camaraImagen';
+        img.className = 'sg-camara-imagen';
+        img.style.objectFit = 'cover';
+        img.alt = 'Última foto del estanque';
+        if (video) video.replaceWith(img);
+        else document.getElementById('camara')?.prepend(img);
+      }
+      img.src = camara.url;
+      ultimaFotoUrl = camara.url;
+      if (motivo) {
+        motivo.textContent = camara.motivo_label;
+        motivo.classList.toggle('sg-camara-etiqueta--aviso', camara.motivo === 'alerta');
+      }
+    };
     const graficos = {};
 
     /**
@@ -328,6 +368,12 @@
             console.warn(`[SIGMAP] Grafico de ${sensor.codigo} no se pudo pintar:`, error.message);
           }
         });
+
+        try {
+          actualizarCamara(data.camara);
+        } catch (error) {
+          console.warn('[SIGMAP] Camara no se pudo actualizar:', error.message);
+        }
 
         if (semaforo) {
           semaforo.className = `sg-chip sg-chip--${data.semaforo}`;

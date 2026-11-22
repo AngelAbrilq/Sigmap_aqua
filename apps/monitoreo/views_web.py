@@ -26,7 +26,7 @@ from apps.usuarios.permissions import puede_editar_modulo, puede_ver_modulo, res
 from . import exportacion
 from .forms import SensorForm
 from .rangos import rangos_efectivos
-from .models import Lectura, Sensor, TipoParametro
+from .models import CapturaCamara, Lectura, Sensor, TipoParametro
 
 logger = logging.getLogger(__name__)
 
@@ -250,6 +250,26 @@ def _intervalo_refresco(geomembrana):
     return max(REFRESCO_MIN_S, min(REFRESCO_MAX_S, int(minimo)))
 
 
+def _ultima_captura(geomembrana):
+    """
+    Ultima foto de la camara de la piscina como dict para template/JSON (RF027).
+
+    Usa el indice (geomembrana, -timestamp_captura): una sola fila por refresco.
+    """
+    captura = (CapturaCamara.objects
+               .filter(geomembrana=geomembrana)
+               .only('imagen', 'motivo', 'timestamp_captura')
+               .first())
+    if captura is None:
+        return None
+    return {
+        'url': captura.imagen.url,
+        'motivo': captura.motivo,
+        'motivo_label': captura.get_motivo_display(),
+        'momento': captura.timestamp_captura.isoformat(),
+    }
+
+
 @requiere_lectura('monitoreo')
 def monitoreo(request):
     """
@@ -274,6 +294,7 @@ def monitoreo(request):
         'tarjetas': _estado_sensores(seleccionada) if seleccionada else [],
         'intervalo_refresco': _intervalo_refresco(seleccionada),
         'puntos_serie': PUNTOS_SERIE_VIVO,
+        'ultima_captura': _ultima_captura(seleccionada) if seleccionada else None,
     })
 
 
@@ -345,6 +366,7 @@ def api_estado(request, pk):
             'semaforo_label': geomembrana.estado_operativo_label,
             'alertas_activas': geomembrana.alertas_activas.count(),
             'actualizado': timezone.now().isoformat(),
+            'camara': _ultima_captura(geomembrana),
             'sensores': [{
                 'codigo': t['sensor'].codigo_hardware,
                 'nombre': t['sensor'].nombre_sensor,

@@ -14,17 +14,17 @@
 #define RPI_DISPLAY_TYPE      // Pantallas RPi: SPI de 16 bits (74HC4094)
 
 // ---------- Pines SPI (bus VSPI del ESP32) ----------
-#define TFT_MISO 19           // Solo lo usa el touch
+#define TFT_MISO -1           // Sin touch: GPIO19 es VS de la camara
 #define TFT_MOSI 23           // Datos ESP32 -> pantalla
 #define TFT_SCLK 18           // Reloj SPI
 
 // ---------- Control de la pantalla ----------
 #define TFT_CS   5            // Chip Select de la pantalla (LCD_CS)
 #define TFT_DC   16           // Data/Command (en la placa dice LCD_RS)
-#define TFT_RST  17           // Reset
+#define TFT_RST  -1           // RST de la pantalla cableado al pin EN del ESP32 (GPIO17 es D6 de la camara)
 
 // ---------- Touch XPT2046 (cuando se conecte) ----------
-#define TOUCH_CS 22
+// TOUCH_CS eliminado: GPIO22 es D4 de la camara
 
 // ---------- Fuentes ----------
 #define LOAD_GLCD
@@ -37,4 +37,3 @@
 
 // ---------- Velocidades SPI ----------
 #define SPI_FREQUENCY        20000000  // Si sale basura, bajar a 10000000
-#define SPI_TOUCH_FREQUENCY   2500000

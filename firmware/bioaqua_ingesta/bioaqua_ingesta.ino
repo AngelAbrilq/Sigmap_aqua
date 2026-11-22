@@ -31,6 +31,11 @@
  *   PANTALLA         reinicia la pantalla TFT y redibuja el tablero
  *   La calibracion queda en la memoria NVS del ESP32 y sobrevive a reinicios.
  *
+ * CAMARA OV7670 (camara.h, RF027): foto QQVGA en JPEG a POST /api/v1/capturas/
+ *   cada 5 min y, ademas, cuando el software marca una lectura critica.
+ *   Pines y cableado en camara.h. Si la camara falla, el nodo sigue midiendo.
+ *   Comando FOTO en el monitor serie: envia una foto en el momento.
+ *
  * PANTALLA TFT 3.5" (pantalla_tft.h): animacion de encendido y tablero en
  *   vivo con las mismas lecturas que se envian. Corre en el hilo principal:
  *   pantallaEsperar() reemplaza a los delay(), asi la pantalla anima mientras
@@ -56,9 +61,10 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "pantalla_tft.h"
+#include "camara.h"
 
 // ---------------------------------------------------------------------------
-static const char* FIRMWARE_VERSION = "1.5.0-calibrado";  // max 20 caracteres (columna firmware_version)
+static const char* FIRMWARE_VERSION = "1.6.0-camara";     // max 20 caracteres (columna firmware_version)
 // Intervalo entre lotes. Arranca en 30 s y lo ajusta el SOFTWARE en cada
 // respuesta (campo data.intervalo_segundos, RF011): sin reprogramar el ESP32.
 static const uint32_t INTERVALO_INICIAL_S = 7;   // el software lo ajusta en la 1.a respuesta
@@ -379,6 +385,8 @@ static void aplicarRespuesta(int codigo, const String& cuerpo) {
     return;
   }
   JsonObject data = resp["data"];
+  // Lectura critica en el lote actual -> foto de evidencia (no en reenvios viejos).
+  if (!reenviandoCola && (data["criticas"] | 0) > 0) camaraSolicitarAlerta();
   Serial.printf("[SIGMAP-AQUA] %s registradas=%d criticas=%d alertas=%d\n", mensaje,
                 data["registradas"] | 0, data["criticas"] | 0, data["alertas_generadas"] | 0);
   estadosDelServidor(data["lecturas"]);   // la pantalla usa el mismo estado que el software
@@ -560,7 +568,8 @@ static void atenderSerie() {
     else if (linea.startsWith("CAL PH")) calibrarPh(linea.substring(6).toFloat());
     else if (linea == "RESET CAL") resetCalibracion();
     else if (linea == "PANTALLA") pantallaReiniciar();
-    else Serial.println("[CAL] Comandos: VER | CAL TUR | CAL PH 6.86 | CAL PH 4.01 | RESET CAL | PANTALLA");
+    else if (linea == "FOTO") camaraFotoManual(timestampISO(), SERVER_HOST, SERVER_PORT, DEVICE_TOKEN);
+    else Serial.println("[CAL] Comandos: VER | CAL TUR | CAL PH 6.86 | CAL PH 4.01 | RESET CAL | PANTALLA | FOTO");
     linea = "";
   }
 }
@@ -577,6 +586,9 @@ void setup() {
   analogSetAttenuation(ADC_11db);
   if (!LittleFS.begin(true)) Serial.println("[FS] LittleFS no monto; el modo offline no guardara.");
   cargarCalibracion();
+  // La camara va ANTES de la pantalla: reserva su bloque de 38 KB antes de que
+  // los sprites fragmenten la memoria. Si falla, el nodo sigue sin camara.
+  camaraIniciar();
   // La pantalla arranca DESPUES de configurar los demas pines y ANTES del
   // WiFi, en el hilo principal: el mismo orden que pantalla_imagen.ino.
   pantallaIniciar();
@@ -608,6 +620,7 @@ void loop() {
       if (wifiOk && enviarCuerpo(cuerpo)) {
         vaciarCola();               // en linea: manda lo de ahora y vacia lo pendiente
         pantallaEnvio(PANT_ENVIADO);
+        camaraCiclo(timestampISO(), SERVER_HOST, SERVER_PORT, DEVICE_TOKEN);  // RF027
       } else {
         guardarEnCola(cuerpo);      // offline: a la cola
         pantallaEnvio(wifiOk ? PANT_SIN_SERVIDOR : PANT_SIN_WIFI);
