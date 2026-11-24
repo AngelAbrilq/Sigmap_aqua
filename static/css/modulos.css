@@ -391,7 +391,7 @@ textarea.gm-form-input { resize: vertical; min-height: 68px; }
 .sg-camara {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;          /* la OV7670 entrega 160x120 (4:3) */
   width: 100%;
   border-radius: var(--sg-radio);
   background: #0f172a;
@@ -423,8 +423,20 @@ textarea.gm-form-input { resize: vertical; min-height: 68px; }
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  filter: saturate(.85);
 }
+.sg-camara-enlace { position: absolute; inset: 0; display: block; z-index: 0; }
+.sg-camara-enlace:focus-visible { outline: 3px solid #38bdf8; outline-offset: -3px; }
+.sg-camara-capa { pointer-events: none; }
+.sg-camara-vacia {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 16px; text-align: center;
+  color: #cbd5e1; font-size: 13px;
+}
+.sg-camara-vacia small { color: #94a3b8; font-size: 11px; }
+.sg-camara-vacia code { background: rgba(148,163,184,.2); padding: 1px 5px; border-radius: 4px; color: #e2e8f0; }
+.sg-camara-vacia-icono { font-size: 28px; opacity: .7; }
+.sg-camara-punto.sg-camara-punto--viva { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.25); }
 .sg-camara-capa {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; justify-content: space-between;
@@ -453,7 +465,7 @@ textarea.gm-form-input { resize: vertical; min-height: 68px; }
   font-variant-numeric: tabular-nums;
 }
 @media (max-width: 720px) {
-  .sg-camara { aspect-ratio: 16 / 10; }
+  .sg-camara { aspect-ratio: 4 / 3; }
   .sg-camara-capa { padding: 10px; }
   .sg-camara-etiqueta { font-size: 10.5px; padding: 3px 8px; }
   .sg-camara-texto { font-size: 10.5px; }

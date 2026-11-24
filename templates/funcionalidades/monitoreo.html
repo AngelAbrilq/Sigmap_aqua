@@ -60,34 +60,36 @@
         {% comment %}
           Camara de la geomembrana (RF027). Muestra la ultima foto que envio la
           camara OV7670 del nodo ESP32 (POST /api/v1/capturas/). El refresco JSON
-          cambia la foto cuando llega una nueva. Si la piscina aun no tiene
-          capturas, se muestra el video grabado del prototipo con su aviso.
+          cambia la foto cuando llega una nueva. Sin fotos, un aviso de espera.
         {% endcomment %}
         <section class="sg-camara" id="camara" aria-label="Cámara de {{ seleccionada.nombre_piscina }}">
           {% if ultima_captura %}
-            <img class="sg-camara-imagen" id="camaraImagen" src="{{ ultima_captura.url }}"
-                 alt="Última foto del estanque {{ seleccionada.nombre_piscina }}"
-                 style="image-rendering:auto;object-fit:cover;">
+            <a class="sg-camara-enlace" id="camaraEnlace" href="{{ ultima_captura.url }}" target="_blank" rel="noopener"
+               title="Abrir la foto en tamaño real">
+              <img class="sg-camara-imagen" id="camaraImagen" src="{{ ultima_captura.url }}"
+                   alt="Última foto del estanque {{ seleccionada.nombre_piscina }}">
+            </a>
           {% else %}
-            <video class="sg-camara-imagen" id="camaraVideo" autoplay muted loop playsinline preload="auto"
-                   poster="{% static 'video/geomembrana_cam_poster.jpg' %}"
-                   aria-label="Video del prototipo: estanque con peces y nodo ESP32">
-              <source src="{% static 'video/geomembrana_cam.mp4' %}" type="video/mp4">
-            </video>
+            <div class="sg-camara-vacia" id="camaraVacia" role="status">
+              <span class="sg-camara-vacia-icono" aria-hidden="true">&#128247;</span>
+              <span>Esperando la primera foto del nodo</span>
+              <small>Escribe <code>FOTO</code> en el monitor serie del ESP32</small>
+            </div>
           {% endif %}
           <div class="sg-camara-capa">
             <div class="sg-camara-fila">
               <span class="sg-camara-etiqueta">
-                <span class="sg-camara-punto" aria-hidden="true"></span>
+                <span class="sg-camara-punto{% if ultima_captura %} sg-camara-punto--viva{% endif %}" id="camaraPunto" aria-hidden="true"></span>
                 CAM-01 · {{ seleccionada.codigo_identificacion }}
               </span>
-              <span class="sg-camara-etiqueta{% if not ultima_captura or ultima_captura.motivo == 'alerta' %} sg-camara-etiqueta--aviso{% endif %}" id="camaraMotivo">
-                {% if ultima_captura %}{{ ultima_captura.motivo_label }}{% else %}Video: grabando{% endif %}
+              <span class="sg-camara-etiqueta{% if ultima_captura.motivo == 'alerta' %} sg-camara-etiqueta--aviso{% endif %}" id="camaraMotivo"{% if not ultima_captura %} hidden{% endif %}>
+                {{ ultima_captura.motivo_label }}
               </span>
             </div>
             <div class="sg-camara-fila">
-              <span class="sg-camara-texto" id="camaraEstado">
-                {% if ultima_captura %}Última foto del nodo{% else %}Prototipo · sin fotos del nodo aún{% endif %}
+              <span class="sg-camara-texto" id="camaraEstado"
+                    {% if ultima_captura %}data-momento="{{ ultima_captura.momento }}"{% endif %}>
+                {% if ultima_captura %}Última foto del nodo{% else %}Cámara sin fotos{% endif %}
               </span>
               <span class="sg-camara-texto" id="camaraReloj" aria-hidden="true"></span>
             </div>
@@ -208,32 +210,51 @@
     const btnAlertas = document.getElementById('btnAlertasPiscina');
     const COLOR_ESTADO = { normal: '#16a34a', riesgo: '#d97706', critico: '#dc2626' };
     /**
-     * Cambia la foto de la camara solo cuando llega una captura nueva.
-     * Si la piscina mostraba el video del prototipo, lo reemplaza por la foto.
+     * Cambia la foto de la camara solo cuando llega una captura nueva (RF027).
+     * Si la piscina no tenia fotos, reemplaza el aviso de espera por la foto.
+     * Marca la camara como "sin fotos recientes" si la ultima tiene mas de 15 min.
      * @param {{url:string, motivo:string, motivo_label:string, momento:string}|null} camara
      */
+    const CAMARA_VIEJA_MS = 15 * 60 * 1000;
     let ultimaFotoUrl = document.getElementById('camaraImagen')?.getAttribute('src') || null;
     const actualizarCamara = (camara) => {
       if (!camara || !camara.url) return;
       const motivo = document.getElementById('camaraMotivo');
       const estadoCam = document.getElementById('camaraEstado');
-      if (estadoCam) estadoCam.textContent = `Última foto del nodo · ${hace(camara.momento)}`;
+      const punto = document.getElementById('camaraPunto');
+      const vieja = (Date.now() - new Date(camara.momento).getTime()) > CAMARA_VIEJA_MS;
+
+      if (estadoCam) {
+        estadoCam.textContent = vieja
+          ? `Sin fotos recientes · ${hace(camara.momento)}`
+          : `Última foto del nodo · ${hace(camara.momento)}`;
+      }
+      if (punto) punto.classList.toggle('sg-camara-punto--viva', !vieja);
       if (camara.url === ultimaFotoUrl) return;
 
       let img = document.getElementById('camaraImagen');
       if (!img) {
-        const video = document.getElementById('camaraVideo');
+        const enlace = document.createElement('a');
+        enlace.id = 'camaraEnlace';
+        enlace.className = 'sg-camara-enlace';
+        enlace.target = '_blank';
+        enlace.rel = 'noopener';
+        enlace.title = 'Abrir la foto en tamaño real';
         img = document.createElement('img');
         img.id = 'camaraImagen';
         img.className = 'sg-camara-imagen';
-        img.style.objectFit = 'cover';
         img.alt = 'Última foto del estanque';
-        if (video) video.replaceWith(img);
-        else document.getElementById('camara')?.prepend(img);
+        enlace.appendChild(img);
+        const vacia = document.getElementById('camaraVacia');
+        if (vacia) vacia.replaceWith(enlace);
+        else document.getElementById('camara')?.prepend(enlace);
       }
       img.src = camara.url;
+      const enlace = document.getElementById('camaraEnlace');
+      if (enlace) enlace.href = camara.url;
       ultimaFotoUrl = camara.url;
       if (motivo) {
+        motivo.hidden = false;
         motivo.textContent = camara.motivo_label;
         motivo.classList.toggle('sg-camara-etiqueta--aviso', camara.motivo === 'alerta');
       }
@@ -405,6 +426,12 @@
       const tic = () => { reloj.textContent = new Date().toLocaleString('es-CO', { hour12: false }); };
       tic();
       setInterval(tic, 1000);
+    }
+
+    // Estado inicial de la camara (antiguedad de la foto) sin esperar el refresco.
+    const momentoInicial = document.getElementById('camaraEstado')?.dataset.momento;
+    if (momentoInicial && ultimaFotoUrl) {
+      actualizarCamara({ url: ultimaFotoUrl, momento: momentoInicial });
     }
   });
 </script>

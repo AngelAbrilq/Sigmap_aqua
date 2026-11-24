@@ -80,3 +80,18 @@ class IngestaCapturaTest(BaseSigmap):
         camara = respuesta.json()['data']['camara']
         self.assertIsNotNone(camara)
         self.assertEqual(camara['url'], CapturaCamara.objects.get().imagen.url)
+
+    def test_tablero_sin_fotos_muestra_espera_y_no_video(self):
+        """Sin capturas no se carga el video del prototipo: se ve el aviso de espera."""
+        self.client.force_login(self.instructor)
+        html = self.client.get(f'/monitoreo/?piscina={self.piscina.pk}').content.decode()
+        self.assertIn('id="camaraVacia"', html)
+        self.assertNotIn('<video', html)
+
+    def test_tablero_con_foto_muestra_la_imagen(self):
+        """Con capturas, la seccion de camara muestra la ultima foto real."""
+        self.enviar(jpeg_de_prueba())
+        self.client.force_login(self.instructor)
+        html = self.client.get(f'/monitoreo/?piscina={self.piscina.pk}').content.decode()
+        self.assertIn(CapturaCamara.objects.get().imagen.url, html)
+        self.assertNotIn('id="camaraVacia"', html)
